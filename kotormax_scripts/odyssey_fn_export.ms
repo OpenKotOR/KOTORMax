@@ -186,6 +186,10 @@ fn nx_isnodetreeanimated node firstframe lastframe =
         if nx_getcontrollerhaskeys node.modifiers["OdysseyTrimesh"].alpha.controller firstframe lastframe then return true
         if nx_getcontrollerhaskeys node.modifiers["OdysseyTrimesh"].selfillumcolor.controller firstframe lastframe then return true
     )
+    if node_type == "lightsaber" then
+    (
+        if nx_getcontrollerhaskeys node.baseobject.scale.controller firstframe lastframe then return true
+    )
     if(node_type == "light") then
     (
         if nx_getcontrollerhaskeys node.rgb.controller firstframe lastframe then return true
