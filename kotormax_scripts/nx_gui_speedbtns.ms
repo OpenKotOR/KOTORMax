@@ -1,0 +1,912 @@
+/*-----------------------------------------------------------------------------\
+
+    Speed Buttons UI
+
+	KOTORmax
+	by bead-v
+	
+	Derived from:
+    NWmax
+    by Joco (jameswalker@clear.net.nz)
+
+    Credits:
+    Wayland Reid :-
+        Extends Wayland's Import/Export script with rewrites as needed
+    Zaddix :-
+        Based on code from Zaddix's original WOK file importer
+    BioWare :-
+        This code is based on the information gleaned from BioWares
+        3DS Max scripts. In many cases the Bioware code is used instead of
+        "re-inventing the wheel". I have attempted to note all those places
+        where I have used the Bioware code.
+
+
+    Legal Stuff
+    1. This is free software and is provided with no explicit or implied
+       warranty. If you use this software then you do so at your own risk.
+    2. If there is any law in your country that requires the author to provide
+       any form of support or indemnity on the use of the this software you are
+       not therefore authorised to use said software as no such indemnity or
+       support will be provided (per 1) other than at the authors discretion.
+    3. Credit has been given where code or methods have been integrated from
+       other sources.
+    4. No code has been knowingly included from other sources where that code
+       is sold for commercial purposes.
+
+\-----------------------------------------------------------------------------*/
+
+filein (g_kotormaxPath+"kotormax_scripts\\odyssey_fn_desparkle.ms")
+
+
+-- Global var for holding unlnked hierarchy of selected nodes
+global g_linkCopy = #()
+
+fn LoadPlugIns =
+(
+    -- load plugins into g_plugins
+    -- Pass through the plugins dir and process all the .ini files
+    g_plugins = #()
+    local filepattern = g_kotormaxPath+"plugins\\*.ini"
+    local files = getFiles filepattern
+    for f in files do
+    (
+        -- Each file is an ini file so get the keys and add to global array
+        append g_plugins (getINISetting f "setup" "name")
+        append g_plugins (getINISetting f "setup" "script")
+    )
+)
+
+
+--------------------------------------------------------------------------------
+rollout nx_util2 "Skin Tools" width:162 height:68
+(
+    button btn_skindumper "Skin Dumper" width:144 height:18
+    button btn_weightmaster "Weight Master" width:144 height:18
+
+    on btn_skindumper pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_skindumper.ms")) catch() )
+    on btn_weightmaster pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_weightmaster.ms")) catch() )
+)
+
+rollout nx_util3 "Mesh Tools" width:162 height:68
+(
+    button btn_trimesh "To Editable Mesh"  width:144 height:18 align:#center toolTip:"Convert object into an editable mesh, preserving modifiers."
+    --button btn_bumpmaterial "Add TXI Properties"  width:144 height:18 align:#center toolTip:"Adds TXI Properties to the materials used by the objects in selection."
+    button btn_shadowchecker "Check Shadows" width:144 height:18 align:#center toolTip:"Check shadow validity of all selected objects."
+    button btn_tidy_materials "Rationalise Materials" width:144 height:18 align:#center toolTip:"Rationalise the materials in the scene"
+    button btn_tvertdisplace "TVert Displacer" width:144 height:18 align:#center toolTip:"Scale/Move tverts on a material that has been resized"
+    button btn_randomisecolor "Random Wirecolor" width:144 height:18 align:#center toolTip:"Randomise the wirecolor of all selected objects"
+    button btn_resetxform "ResetXForm" width:70 height:18 toolTip:"Auto unlinks selection, reset xforms the editable meshes and relinks. Pivots can be preserved or not." across:2
+    checkbox chk_keeppivots "Safe Pivots" checked:true
+    checkbutton btn_linkcopy "Copy/Paste Links" width:90 height:18 align:#left across:2 toolTip:"Copy linkages of selected nodes, then on 2nd push restore them."
+    button btn_copyreset "Reset" width:44 height:18 align:#right toolTip:"Clear copy link buffer"
+    button btn_desparkle "\"Desparkle\" Model" width:144 height:18 align:#center toolTip:"Desparkle by rounding all verts to nearest cm"
+    button btn_modelscaler "Scale Wizard" width:144 height:18 align:#center
+    button btn_chilliskinner "Chilli Skinner" width:144 height:18 align:#center
+
+    on btn_trimesh pressed do undo on
+    (
+        for obj in selection do
+        (
+            local orig = copy obj
+
+            -- Converting to an Editable Patch and back again splits the
+            -- given object's polygons into faces (triangles).
+            convertToMesh obj
+            convertTo obj Editable_Patch
+            convertToMesh obj
+
+            -- Restore the original modifiers.
+            nx_copy_modifiers obj orig
+
+            delete orig
+        )
+    )
+
+    on btn_bumpmaterial pressed do 
+	(
+		for obj in selection do
+		(
+			if obj.material != undefined then
+			(
+				
+			)
+		)
+	)
+	
+    on btn_chilliskinner pressed do ( try (filein (scriptsPath + "CSv3.0.2/CSv3-0-2.ms")) catch() )
+
+    on btn_modelscaler pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_scalewiz.ms")) catch() )
+
+    on btn_tvertdisplace pressed do
+    (
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_tvertdisplacer.ms")) catch()
+    )
+
+    on btn_copyreset pressed do
+    (
+        g_linkCopy = #()
+        btn_linkcopy.checked = false
+    )
+
+    on btn_linkcopy changed down do
+    (
+        if down then
+        (
+            -- copy links
+            g_linkCopy = #()
+            for s in selection do
+            (
+                append g_linkCopy s
+                append g_linkCopy s.parent
+            )
+        ) else
+        (
+            -- restore links
+            local i
+            for i = 1 to g_linkCopy.count by 2 do
+            (
+                try
+                    g_linkCopy[i].parent = g_linkCopy[i+1]
+                catch ()
+            )
+        )
+    )
+
+    on btn_resetxform pressed do
+    (
+        local lParents = #()
+        clearListener()
+        -- build up parent list
+        for s in selection do
+        (
+            append lParents s
+            append lParents s.parent
+        )
+        -- unlink the selection
+        format "unlink\r\n"
+        for s in selection do
+        (
+            s.parent = undefined
+        )
+        -- do the reset
+        format "reset xform\r\n"
+        -- do the reset
+        local rotvalue
+        local piv
+        local orig
+        for s in selection do
+        (
+            if (iskindof s Editable_Mesh) then
+            (
+                -- preserve pivots orientation/rotation
+                if chk_keeppivots.checked then
+                (
+                    rotvalue = s.rotation
+                    s.rotation = (quat 0 0 0 1)
+                )
+                orig = copy s
+                nx_reset_transforms s
+                if chk_keeppivots.checked then
+                (
+                    s.rotation = rotvalue
+                )
+                format "XForm added: %\r\n" s.name
+
+                -- collapse stack
+                try ( collapsestack s ) catch()
+                format "XForm collapsed\r\n"
+
+                -- restore original modifiers less the Xform
+                nx_copy_modifiers s orig ignore:#("XForm")
+                delete orig
+            ) else
+            (
+                s.scale = [1,1,1]
+            )
+        )
+        -- relink
+        format "relink\r\n"
+        for n = 1 to lParents.count by 2 do
+        (
+            format "n=%\r\n" n
+            lParents[n].parent = lParents[n+1]
+        )
+    )
+
+
+    -- Tidy Materials
+    --
+    fn qcompare obj1 obj2 =
+    (
+        local s1 = obj1.mat.diffusemap.filename
+        local s2 = obj2.mat.diffusemap.filename
+
+        if s1 < s2 then return -1
+        if s1 > s2 then return 1
+        0   -- they must be equal
+    )
+    fn matcompare mat1 mat2 =
+    (
+        if  (mat1.name != mat2.name) and \
+            (mat1.diffusemap.filename == mat2.diffusemap.filename) and \
+            (mat1.diffuse == mat2.diffuse) and \
+            (mat1.ambient == mat2.ambient) and \
+            (mat1.specular == mat2.specular) and \
+            (mat1.specularlevel == mat2.specularlevel) and \
+            (mat1.glossiness == mat2.glossiness) and \
+            (mat1.selfillumcolor == mat2.selfillumcolor) and \
+            (mat1.opacity == mat2.opacity) \
+        then return true
+        false   -- assume not the same unless proven otherwise
+    )
+
+    on btn_tidy_materials pressed do
+    (
+        local objlist = #()
+        format "Material Rationalisation\r\n"
+        format "... Getting objects\r\n"
+
+        -- get the list of objs that have standard materials with a bitmap
+        for o in $objects do
+        (
+            if (o.mat!=undefined) and ((classof o.mat)==Standardmaterial) then (
+                if o.mat.diffusemap != undefined then (
+                    append objlist o
+                )
+            )
+        )
+        format "... Sorting objects\r\n"
+        -- sort the array by the filename on the material
+        qsort objlist qcompare
+
+        -- start the rationalisation
+        format "... Rationalise objects\r\n"
+        local matDeleteList = #()
+        local i, j, m
+        for i = 1 to objlist.count do
+        (
+            j = i + 1
+            -- make sure that j is within array bounds
+            if j <= objlist.count then
+            (
+                while (matcompare objlist[i].mat objlist[j].mat) do
+                (
+                    format "... Object >>  %  << rationalised\r\n" objlist[j]
+                    -- put this material on the delete list
+                    append matDeleteList objlist[j].mat
+                    -- rationalise the assigned material
+                    objlist[j].mat = objlist[i].mat
+                    -- move pointer forward 1
+                    j += 1
+                    -- make sure j is within array bounds
+                    if j > objlist.count then exit
+                )
+                -- move i forward to j-1
+                i = j - 1
+            )
+        )
+        -- Now clean out the materials to be deleted from the scene
+        format "... Remove redundant materials\r\n"
+        for m in matDeleteList do (
+            format "... Material >>  %  << removed\r\n" m.name
+            deleteItem sceneMaterials m.name
+        )
+        format "Material Rationalisation Ends\r\n"
+    )
+    -- End Tidy Materials
+    --
+
+    on btn_randomisecolor pressed do
+    (
+        local sel = selection as array
+        for s in sel do
+        (
+            try (
+                s.wirecolor = random black white
+            ) catch()
+        )
+    )
+
+    --
+    -- Test for valid shadows.  If a ray from the pivot point hits the
+    -- front of any face in the object, the shadows will be off.
+    -- Code by roboius (http://rockbottom.vtex.net/)
+    --
+    fn make_color_str c =
+    (
+        local r,g,b
+        r = c.red as string
+        g = c.green as string
+        b = c.blue as string
+        r+"|"+g+"|"+b
+    )
+    fn parse_color_str s =
+    (
+        local list
+        local r,g,b
+        list = filterString s "|"
+        r = list[1] as integer
+        g = list[2] as integer
+        b = list[3] as integer
+        return (color r g b)
+    )
+    fn test_shadows obj =
+    (
+        local invalid_shadow_color = [255,0,0]
+        local disabled_shadow_color = [0,0,0]
+        local face, normal, vertex, dp, errors = 0
+        local bHasFailed = 0
+
+        if (not iskindof obj Editable_Mesh) then ( return 0 )
+
+        try
+            bHasFailed = (getUserProp obj "shadowfailed") as integer
+        catch( bHasFailed = 0 )
+
+        if bHasFailed == 0 then (
+            setUserProp obj "wirecolor" (make_color_str obj.wirecolor)
+            originalcolor = obj.wirecolor
+        ) else (
+            originalcolor = parse_color_str (getUserProp obj "wirecolor")
+            if originalcolor == undefined then (
+                originalcolor = obj.wirecolor
+            )
+        )
+
+        for ii = 1 to obj.numfaces do
+        (
+            face = getface obj ii
+            normal = getfacenormal obj ii
+            vertex = getvert obj face.x
+
+            dp = dot normal vertex
+
+            if ((dot normal obj.pivot) - dp > 5e-3) then ( errors += 1 )
+        )
+
+        if (errors > 0) then (
+            format "Warning: Object % may have an invalid shadow.\r\n" obj.name
+            obj.wirecolor = invalid_shadow_color
+            setUserProp obj "shadowfailed" 1
+            return 1
+        ) else (
+            obj.wirecolor = originalcolor
+            setUserProp obj "shadowfailed" 0
+            return 0
+        )
+    )
+    on btn_shadowchecker pressed do
+    (
+        for obj in selection do
+            test_shadows obj
+    )
+    -- End shadow test functions
+    --
+)
+
+rollout nx_util4 "Anim Tools" width:162 height:68
+(
+    button btn_animeditor "Anim Editor" width:144 height:18
+    button btn_animapper "Anim Mapper" width:144 height:18 toolTip:"Import animations off nodes in an MDL and map to scene nodes"
+    button btn_keymaster "Key Master" width:144 height:18 toolTip:"A number of mass key manipulation functions"
+    button btn_keytweak "Mass Key Tweaker" width:144 height:18 toolTip:"Mass tweaking of rot and pos keys"
+    button btn_animcopy "Copy Anim Keys" width:144 height:18 toolTip:"Copy Anim keys in the specified range to a target start frame"
+    button btn_keyreduct "Reduce Anim Keys" width:144 height:18 toolTip:"Rationalise the animation keys for the selected nodes"
+    button btn_bakeanim "Bake Anims" width:144 height:18
+    button btn_reset_controllers "Reset Orientation" width:144 height:18 toolTip:"Resets the rotation controller to tcb then back to linear"
+
+    on btn_keymaster pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_animkeymaster.ms")) catch() )
+
+    on btn_reset_controllers pressed do
+    (
+        local objSum = $objects.count * 2.0
+        local cnt = 0.0
+        progressStart "Reset Controllers"
+        format "Setting to tcb rotation\r\n"
+        for o in $objects do
+        (
+            o.rotation.controller = tcb_rotation()
+            --o.pos.controller = tcb_position()
+            --o.scale.controller = tcb_scale()
+            cnt += 1
+            if (progressUpdate (((cnt*100)/objSum) as integer)) == false then return 0
+        )
+        format "Setting back to linear rotation\r\n"
+        for o in $objects do
+        (
+            o.rotation.controller = linear_rotation()
+            --o.pos.controller = linear_position()
+            --o.scale.controller = linear_scale()
+            cnt += 1
+            if (progressUpdate (((cnt*100)/objSum) as integer)) == false then return 0
+        )
+        progressEnd()
+    )
+
+
+    on btn_animcopy pressed do
+    (
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_animkeycopy.ms")) catch()
+    )
+
+    on btn_animapper pressed do
+    (
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_mapper.ms")) catch()
+    )
+
+    on btn_keytweak pressed do
+    (
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_masskeytweak.ms")) catch()
+    )
+
+    on btn_bakeanim pressed do
+    (
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_animbaker.ms")) catch()
+    )
+
+    on btn_keyreduct pressed do
+    (
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_keyreduct.ms")) catch()
+    )
+
+    on btn_animeditor pressed do
+    (
+        --format "Opening nx_animeditor.ms...\n"
+        try (filein (g_kotormaxPath + "kotormax_scripts/nx_animeditor.ms")) catch(format "Opening nx_animeditor.ms failed!\n")
+    )
+)
+
+rollout nx_util5 "Texture Tools" width:162 height:68
+(
+    -- ui
+    button btn_texlib "TexLib" width:144 height:18 align:#center
+    button btn_texlibmaker "TexLib Maker" width:144 height:18 align:#center
+
+    -- ensure only active if running max version of kotormax
+    on nx_util5 open do
+    (
+	    if ( not g_ismax ) then
+	    (
+		    btn_texlib.enabled = false
+		    btn_texlibmaker.enabled = false
+	    )
+    )
+
+    -- actions
+    on btn_texlib pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_texturelib.ms")) catch() )
+    on btn_texlibmaker pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_texturelibmaker.ms")) catch() )
+)
+
+rollout nx_prefs "Preferences" width:162 height:68
+(
+    checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
+    checkbox chk_usepointer "Use Base Pointers" checked:(nx_itob(g_basepointer))
+	checkbox chk_exportwok "Export WOK File" checked:(nx_itob (g_exportwok))
+    group "Sanity Check Options"
+    (
+        checkbox box_RotationCheck "Base: No Rotation" checked:runRotationCheck
+        checkbox box_AnimCheck "Anim: Start < End" checked:runAnimCheck
+        checkbox box_NameCheck "Node: Valid Name" checked:runNameCheck
+        checkbox box_ScaleCheck "Node: Valid Scale" checked:runScaleCheck
+        checkbox box_PartTextureCheck "BodyPart: Node=Texture" checked:runPartTextureCheck
+        checkbox box_WeldCheck "Mesh: Rounded To cm" checked:runWeldCheck
+        checkbox box_ClassCheck "Node: Type 'boolean'" checked:runClassCheck
+        checkbox box_ControllerCheck "Node: Valid Controllers" checked:runControllerCheck
+        checkbox box_DoganCheck "Mesh: Valid Tvert Values" checked:runDoganCheck
+        checkbox box_BitmapNameCheck "Bitmap: Name < 16 chars" checked:runBitmapNameCheck
+        checkbox box_FaceCheck "Mesh: Faces > 0" checked:runFaceCheck
+        checkbox box_AnimrootCheck "Anim: Animroot Exists" checked:runAnimrootCheck
+        checkbox box_BoneCountCheck "Skin: 4 Bones per Vert" checked:runBoneCountCheck
+        checkbox box_DuplicateNamesCheck "Node: Unique Names" checked:runDuplicateNamesCheck
+        checkbox box_AabbCheck "Aabb: 1 per Model" checked:runAabbCheck
+    )
+
+    on chk_autodock changed state do
+    (
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "dock", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+    )
+    on chk_usepointer changed state do
+    (
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "basepointer", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_basepointer = (nx_btoi state)
+    )
+    on chk_exportwok changed state do
+    (
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "exportwok", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_exportwok = (nx_btoi state)
+    )
+
+	fn saveSanity =
+	(
+        local sanitychecks = #(runRotationCheck, runAnimCheck, runNameCheck, runScaleCheck, runPartTextureCheck, \
+                               runWeldCheck, runClassCheck, runControllerCheck, runDoganCheck, runBitmapNameCheck, \
+                               runFaceCheck, runAnimrootCheck, runBoneCountCheck, runDuplicateNamesCheck, runAabbCheck)
+        local sPrint = "";
+
+		for bCheck in sanitychecks do if bCheck then sPrint += "1" else sPrint += "0"
+
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "sanity", sPrint, (g_kotormaxPath + "kotormax.ini")))
+	)
+
+	on box_RotationCheck changed newState do (
+    	-- 1
+		runRotationCheck = newState
+		saveSanity()
+	)
+	on box_AnimCheck changed newState do (
+    	-- 2
+		runAnimCheck = newState
+		saveSanity()
+	)
+	on box_NameCheck changed newState do (
+    	-- 3
+		runNameCheck = newState
+		saveSanity()
+	)
+	on box_ScaleCheck changed newState do (
+    	-- 4
+		runScaleCheck = newState
+		saveSanity()
+	)
+	on box_PartTextureCheck changed newState do (
+    	-- 5
+		runPartTextureCheck = newState
+		saveSanity()
+	)
+	on box_WeldCheck changed newState do (
+    	-- 6
+		runWeldCheck = newState
+		saveSanity()
+	)
+	on box_ClassCheck changed newState do (
+    	-- 7
+		runClassCheck = newState
+		saveSanity()
+	)
+	on box_ControllerCheck changed newState do (
+    	-- 8
+		runControllerCheck = newState
+		saveSanity()
+	)
+	on box_DoganCheck changed newState do (
+    	-- 9
+		runDoganCheck = newState
+		saveSanity()
+	)
+	on box_BitmapNameCheck changed newState do (
+    	-- 10
+		runBitmapNameCheck = newState
+		saveSanity()
+	)
+	on box_FaceCheck changed newState do (
+    	-- 11
+		runFaceCheck = newState
+		saveSanity()
+	)
+	on box_AnimrootCheck changed newState do (
+    	-- 12
+		runAnimrootCheck = newState
+		saveSanity()
+	)
+	on box_BoneCountCheck changed newState do (
+    	-- 13
+		runBoneCountCheck = newState
+		saveSanity()
+	)
+	on box_DuplicateNamesCheck changed newState do (
+    	-- 14
+		runDuplicateNamesCheck = newState
+		saveSanity()
+	)
+	on box_AabbCheck changed newState do (
+    	-- 15
+		runAabbCheck = newState
+		saveSanity()
+	)
+
+/*
+    label lbl_wip "This is WIP"
+
+    checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
+
+    button btn_exportpath "Export Path" width:144 height:18
+    label lbl_xpath ""
+
+    button btn_skinpath "SkinDumper Path" width:144 height:18
+    label lbl_xpathskin ""
+
+    button btn_xpathcryo "CyroMesh Path" width:144 height:18
+    label lbl_xpathcryp ""
+
+    spinner spn_animheight "Anim List Length:" type:#integer range:[5,30,g_guiAnimListSize]
+*/
+)
+
+rollout nx_util1 "General Utils" width:162 height:68
+(
+    local vp_layout
+    local plugin_scripts
+
+    -- speedbar #1
+    checkbutton btn_rollup "Float Speedbar" width:144 height:14 offset:[0,-5] align:#center checked:false
+    button btn_sel_parent "Parent" width:68 height:18 align:#left across:2 toolTip:"Select Parent"
+    button btn_sel_child "Children" width:68 height:18 align:#right toolTip:"Select Children"
+    button btn_makeintodummy "To Dummy" width:68 height:18 align:#left across:2 tooltop:"Make selected objects into Dummy helpers"
+    button btn_linker "Fast Linker" width:68 height:18 align:#right toolTip:"Link all selected objects to the OdysseyBase in the selection"
+    button btn_zoomextents "Zoom In" width:68 height:18 align:#left across:2 toolTip:"Zooms all viewports to selection."
+    button btn_zoomextentsall "Zoom Out" width:68 height:18 align:#right toolTip:"Zooms all viewports to scene."
+
+    -- speedbar #2
+    button btn_environ "Use Default Metric Units" width:144 height:18 align:#center toolTip:"Set default unit scales (cm)"
+    button btn_removepointer "Delete Base Arrow Pointers" width:144 height:18 align:#center
+    button btn_orderchildren "Order Children" width:144 height:18 align:#center toolTip:"Manually reorder children of selected object"
+    button btn_massops "Mass Operations" width:144 height:18 align:#center toolTip:"Mass Sanity Check, Export and Import."
+    button btn_export_all "Export All/Selected" width:144 height:18 align:#center toolTip:"Export selected models or all models if none selected."
+    group "Set Export Directory" (
+        edittext edt_resetdir "Dir:" text:(getdir #export)
+        button btn_resetdirbrowse "Browse" width:68 height:18 tooltip:"Select the export path" across:2
+        button btn_resetdir "Set" width:68 height:18 tooltip:"Set as export directory for all selected model bases."
+    )
+
+    group "Plug-Ins"
+    (
+        dropdownlist dpl_prefabs height:10 width:130 offset:[-6,0] align:#left across:2
+        button btn_prefab_do "Go" height:20 width:20 offset:[7,0] align:#right
+    )
+
+	on btn_removepointer pressed do
+	(
+		for obj in $objects do
+		(
+			if (matchPattern obj.name pattern:"ignore_NGon*") then (
+				select obj
+				max delete
+			)
+		)
+	)
+
+	on btn_zoomextents pressed do
+	(
+		if selection.count > 0 then
+		(
+			Viewport.ZoomToBounds true (selection.min) (selection.max)
+		)
+	)
+	on btn_zoomextentsall pressed do
+	(
+		max tool zoomextents all
+	)
+
+    -- old speed bar code
+    on nx_util1 open do
+    (
+        local temp = #()
+        local i
+
+        LoadPlugIns()
+
+        plugin_scripts = #()
+        -- load scripts list into drop down
+        for i = 1 to g_plugins.count by 2 do
+        (
+            append temp g_plugins[i]
+            append plugin_scripts g_plugins[i+1]
+        )
+        dpl_prefabs.items = temp
+
+        -- correctly set the floating button state
+        try (
+            tst_state = cui.getDockState kotormax_handle
+            -- is docked
+            btn_rollup.checked = false
+        ) catch
+        (
+            -- not docked
+            btn_rollup.checked = true
+        )
+        if(gNX_dock == 0) then btn_rollup.checked = true
+        else btn_rollup.checked = false
+    )
+
+    on nx_util1 moved val do
+    (
+        -- store the current location of the KOTORmax Speedbar
+		nx_setinivalue #(#("init", "position", (val as string), (g_kotormaxPath + "kotormax.ini")))
+		/*
+        if g_ismax then (
+            setINISetting (scriptsPath+"nxlocalprefs.ini") "position" "kotormax" (val as string)
+        )
+		*/
+    )
+
+    -- Deal with float/dock feature
+    on btn_rollup changed val do
+    (
+        if val then
+        (
+            try (
+                cui.FloatDialogBar kotormax_handle
+                cui.UnRegisterDialogBar kotormax_handle
+                --kotormax_handle.size = [192,85]
+                max views redraw
+            ) catch ()
+        ) else
+        (
+            try (
+                kotormax_handle.size = [192,635]
+                cui.RegisterDialogBar kotormax_handle \
+                    maxSize:[-1,-1] \
+                    style:#(#cui_dock_vert, #cui_floatable, #cui_handles)
+                cui.DockDialogBar kotormax_handle #cui_dock_left
+            ) catch ()
+        )
+    )
+
+    -- select parent
+    on btn_sel_parent pressed do
+    (
+        if selection[1] != undefined then
+        (
+            if selection[1].parent != undefined then
+                select selection[1].parent
+        )
+    )
+    -- select children
+    on btn_sel_child pressed do
+    (
+        if selection[1] != undefined then
+        (
+            if selection[1].children != undefined then
+                select selection[1].children
+        )
+    )
+
+    on btn_environ pressed do
+    (
+        units.displaytype = #Metric
+        units.metrictype = #Centimeters
+        units.SystemType = #Centimeters
+        units.SystemScale = 1.0
+    )
+
+
+    on btn_linker pressed do
+    (
+        -- First make sure only one aurabase is in the selection
+        local basecnt = 0
+        local base = undefined
+        for obj in selection do (
+            if (iskindof obj odysseybase) then
+            (
+                basecnt += 1
+                base = obj
+                format "basecnt=%\r\n" basecnt
+                format "base=%\r\n" base
+            )
+        )
+        if basecnt > 1 then (
+            msg = "More than one OdysseyBase found in the selection"
+            messageBox msg title:"Fast Linker"
+            return 0
+        )
+        if base == undefined then (
+            msg = "No OdysseyBase found in the selection"
+            messageBox msg title:"Fast Linker"
+            return 0
+        )
+
+        -- we only have one odysseybase so start the linking process
+        for obj in selection do
+        (
+            if obj != base then (
+                obj.parent = base
+            )
+        )
+    )
+
+    on btn_makeintodummy pressed do
+    (
+        -- take the selected objects and make each into a dummy object
+        clearlistener()
+        local sel = selection as array
+        local p -- position of s
+        local r -- rotation of s
+        local par -- parent of s
+        local n -- name of s
+        local newdummy
+
+        for s in sel do
+        (
+            format "Processing: %\r\n" s
+            p = s.pos
+            r = s.rotation
+            n = s.name
+            par = s.parent
+            newdummy = dummy pos:p
+            newdummy.rotation = r
+            newdummy.parent = par
+            newdummy.boxsize = [10,10,10]
+            for c in s.children do
+            (
+                c.parent = newdummy
+            )
+            select s
+            max delete
+            newdummy.name = n
+        )
+    )
+
+    on btn_prefab_do pressed do
+    (
+        local index = dpl_prefabs.selection
+        try (fileIn (g_kotormaxPath + "plugins\\"+plugin_scripts[index])) catch()
+    )
+    -- speed bar code stops
+
+    on btn_massops pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_massutils.ms")) catch() )
+
+    on btn_export_all pressed do
+    (
+        ExportAll()
+    )
+
+    on edt_resetdir entered val do
+    (
+        if not (nx_existDir val) then
+            messagebox "Directory does not exist!"
+    )
+
+    on btn_resetdir pressed do
+    (
+        local bIsSelection = false
+
+        if not (nx_existDir edt_resetdir.text) then
+        (
+            messagebox "Directory does not exist!"
+            return 0
+        )
+        for b in $helpers do
+        (
+            if b.isSelected and (iskindof b odysseybase) then
+            (
+                bIsSelection = true
+                -- node is selected so reset base
+                b.export_path = edt_resetdir.text
+            )
+        )
+        if not (bIsSelection) then
+        (
+            messagebox "No Odyssey Bases selected."
+            return 0
+        )
+    )
+
+    on btn_resetdirbrowse pressed do
+    (
+        local dirpath
+        -- suggested by Danmar
+        dirpath = getSavePath()
+        if (dirpath!=undefined) then (
+            edt_resetdir.text = dirpath
+        )
+    )
+
+    on btn_orderchildren pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_orderchildren.ms")) catch() )
+
+    -- Perform a model desparkle
+    on btn_desparkle pressed do
+    (
+        if (nx_strclassof selection[1]) == "odysseybase" then
+        (
+            clearListener()
+            --format "<snoopstart file=%>\r\n" (selection[1].name + "_desparklelog.txt")
+            nx_mesh_desparkle selection[1]
+            --format "</snoopstart>\r\n"
+        ) else
+            MessageBox "No OdysseyBase selected."
+    )
+)
