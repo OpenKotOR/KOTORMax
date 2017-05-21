@@ -123,7 +123,7 @@ invisible:true
     	inherit_part    type:#integer animatable:false ui:box_inherit_part default:0
     	-- misc
     	renderorder     type:#integer animatable:false ui:spn_renderorder default:0
-    	threshold       type:#float animatable:false ui:spn_threshold default:0  -- is this a p2p property?
+    	threshold       type:#float animatable:true ui:spn_threshold default:0  -- is this a p2p property?
     	combinetime     type:#float range:[0,15,0] animatable:true ui:spn_combinetime default:0 -- is this a p2p property?
     	deadspace       type:#float animatable:false ui:spn_deadspace default:0.0
     	opacity         type:#float animatable:true ui:spn_opacity  default:0.5
@@ -159,7 +159,7 @@ invisible:true
     	spread      type:#float animatable:true ui:spn_spread default:0.0
     	particleRot type:#float animatable:true ui:spn_particleRot default:0.0
     	velocity    type:#float animatable:true ui:spn_velocity default:0.0
-    	randvel     type:#float animatable:false ui:spn_randvel default:0.0
+    	randvel     type:#float animatable:true ui:spn_randvel default:0.0
     	bounce_co   type:#float animatable:true ui:spn_bounce_co default:0.0
     	blurlength  type:#float animatable:true ui:spn_blurlength default:10.0
 
@@ -208,7 +208,7 @@ invisible:true
     	-- lightning props
     	lightningDelay      type:#float animatable:true ui:spn_lightningDelay default:0.0
     	lightningRadius     type:#float animatable:true ui:spn_lightningRadius default:0.0
-    	lightningSubDiv		type:#integer animatable:false ui:spn_lightningSubDiv default:0
+    	lightningSubDiv		type:#integer animatable:true ui:spn_lightningSubDiv default:0
     	lightningScale		type:#float animatable:true ui:spn_lightningScale default:0
     	lightningzigzag     type:#float animatable:true ui:spn_lightningzigzag default:0.0 -- bead-v modification: add kotor props
 

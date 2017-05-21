@@ -613,7 +613,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "#": () -- ignore comments
 						"name": -- name saving
 						(
-							append NameArray tok.ReadToken()
+							append (NameArray) (tok.ReadToken())
 						)
                         "node": -- Node Struct
                         (
