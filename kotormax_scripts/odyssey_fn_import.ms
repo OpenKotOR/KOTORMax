@@ -1896,6 +1896,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         -- at time 0 newObj.scale = objScale
                                         at time 0 newObj.rotation = objRot
                                         at time 0 newObj.position = objPos
+                                        --with animate off newObj.rotation = inverse objRot
+                                        --with animate off newObj.position = objPos
                                     )
                                 )
 
@@ -1958,7 +1960,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             weightsList = undefined
 							
 							-- bead-v: save collected names to base
-							model_base.extranames = NameArray
+							if model_base != undefined model_base.extranames = NameArray
                         )
 
                         default:
@@ -2002,7 +2004,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             bAnimIsThere = false
 
 
-                            if (loadanimlist == undefined) or ((findItem loadanimlist animname) > 0) and animRoot != undefined then bDoAnimation = true
+                            if (loadanimlist == undefined) or loadanimlist == #() or ((findItem loadanimlist animname) > 0) and animRoot != undefined then bDoAnimation = true
                             else bDoAnimation = false
 
                             if(bDoAnimation) then
