@@ -2185,6 +2185,10 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                             if (objAnim != undefined) then
                             (
+								-- make sure the position and orientation controllers are bezier and linear
+								if not iskindof objAnim.pos.controller bezier_position then objAnim.pos.controller = bezier_position()
+								if not iskindof objAnim.rotation.controller linear_rotation then objAnim.rotation.controller = linear_rotation()
+								
                                 if bDoAnimation then
                                 (
                                     -- as we do NOT want to be animating WOKs we need to supress this step in that instance
@@ -2194,8 +2198,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         in coordsys parent
                                         (
                                             -- collect some data on objAnim in timeslider time zero
-                                            zeroPos = objAnim.pos
-                                            zeroRot = objAnim.rotation
+                                            zeroPos = with animate off objAnim.pos
+                                            zeroRot = with animate off objAnim.rotation
                                         )
                                     )
                                 )
@@ -2716,7 +2720,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     axis = tok.ReadPoint3()
                                                     angle = RadToDeg (tok.ReadFloat())
                                                     --format "line:% keytime:%  axis:%  angle:%\r\n" lineNum keytime axis angle
-                                                    objRot = quat angle axis
+                                                    objRot = normalize (quat angle axis)
 
                                                     if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRot
 
@@ -2726,10 +2730,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                     if bDoAnimation then (
                                                         --with animate on at time keytime objAnimTemp.rotation = objRot
-                                                        with animate on(
+                                                        --with animate on (
                                                             newkey = addnewkey objAnimTemp.rotation.controller keytime
                                                             newkey.value = objRot
-                                                        )
+                                                            --newkey.value = (at time 0 objAnimTemp.rotation) * (objRot) --* inverse (at time 0 objAnimTemp.rotation)
+                                                        --)
                                                     )
 
                                                     if (existingPosKey == 0) then(
@@ -2755,12 +2760,12 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 )
 
                                                 if bDoAnimation and bKeysPresent then (
-                                                    --with animate on(
+                                                    with animate on(
                                                         local lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 1)
                                                         lastkey.value = newkey.value
                                                         lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 2)
                                                         lastkey.value = zeroRot
-                                                    --)
+                                                    )
                                                 )
                                             )
                                         )
