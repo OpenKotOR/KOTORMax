@@ -166,7 +166,7 @@ invisible:true
 	    		if not g_ismax then
 	    		    format "<snoopstart file=%%_sanitycheck.txt>%" (g_kotormaxPath+"sanity/") model_name g_delim to:g_strBuffer
                 else
-					g_strBuffer = createFile (g_kotormaxPath"sanity/" + model_name + "_sanitycheck.txt")
+					g_strBuffer = createFile (g_kotormaxPath + "sanity/" + model_name + "_sanitycheck.txt")
 
                 -- DO SANITY CHECK IF APPLICABLE
 				if chk_check.checked then
