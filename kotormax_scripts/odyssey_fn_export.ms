@@ -1547,14 +1547,14 @@ fn DynBuildKeyList node firstframe lastframe datatype keyname mdlname:"" nodetyp
                     (
                         -- deal with potential for animated negative light
                         try ( bIsNegLight = nx_itob(node.negativeLight) ) catch ( bIsNegLight = false )
-
+						objVal = objVal as color
                         copyVal = [objVal.r, objVal.g, objVal.b] as color
                         if bIsNegLight then copyVal *= -1
 
                         if(bBezier) then
                         (
-                            objIn = objController.keys[key_index].inTangent
-                            objOut = objController.keys[key_index].outTangent
+                            objIn = objController.keys[key_index].inTangent as color
+                            objOut = objController.keys[key_index].outTangent as color
                             format "            % % % % % % % % % % %" key_time (copyVal.r / 255) (copyVal.g / 255) (copyVal.b / 255) objIn.r objIn.g objIn.b objOut.r objOut.g objOut.b g_delim to:g_strBuffer
                         )
                         else format "            % % % % %" key_time (copyVal.r / 255) (copyVal.g / 255) (copyVal.b / 255) g_delim to:g_strBuffer
