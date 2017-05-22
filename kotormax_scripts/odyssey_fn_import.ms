@@ -1960,7 +1960,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             weightsList = undefined
 							
 							-- bead-v: save collected names to base
-							if model_base != undefined model_base.extranames = NameArray
+							if model_base != undefined then model_base.extranames = NameArray
                         )
 
                         default:
