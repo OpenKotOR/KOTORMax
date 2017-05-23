@@ -107,7 +107,7 @@ fn getNextNonBlankLine fileHandle=
 ----------------------------------------------------------
 -- Adds an MDL skin using the data in the weightsBuffer --
 ----------------------------------------------------------
-fn addMDLSkin node buf =
+fn addMDLSkin node buf mdl_base =
 (
     if DEBUG then format "%SKIN PROCESSING: addMDLSkin - start: node=%\r\n" strIndent3 node
     setCommandPanelTaskMode mode:#modify
@@ -164,11 +164,15 @@ fn addMDLSkin node buf =
             if (b == 0) then    -- bone not yet linked to skin
             (
                 if DEBUG then format "%SKIN PROCESSING: Start linking bone to skin\r\n" strIndent4
-                boneNode = getNodeByName boneName
+				
+                --boneNode = getNodeByName boneName
+				-- Get bone object, taking into account that it needs to be under the right odysseybase. This should uniquely identify the node (unless the ascii is faulty).
+				boneNode = undefined
+				if boneName != "" and boneName != undefined then boneNode = (for p in $objects where (p.name == boneName and isdescendantof p mdl_base) collect p)[1]
 
                 if boneNode == undefined then
                 (
-                    format "ERROR! Unable to find the bone '%' in the scene! Check bones are in mdl.\r\n" boneName
+                    format "ERROR! Unable to find the bone node '%' in the scene! Check bones are in mdl.\r\n" boneName
                 )
 
                 skinops.AddBone node.skin boneNode 0
@@ -738,7 +742,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             --objLightningScale=undefined
                             --objBlastRadius=undefined
                             --objBlastLength=undefined
-                            --objOpacity=undefined
                             --objP2p=undefined
                             -- needs special processing
                             --objP2p_type=undefined
@@ -1141,7 +1144,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "lightningscale": objLightningScale= tok.ReadFloat()
                         "blastradius": objBlastRadius= tok.ReadFloat()
                         "blastlength": objBlastLength= tok.ReadFloat()
-                        "opacity": objOpacity = tok.ReadFloat()
                         "p2p": objP2p = tok.ReadInteger()
                         "p2p_type": objP2p_type = tok.ReadString()
                         "p2p_sel": objP2p_sel = tok.ReadInteger()
@@ -1463,7 +1465,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         -- end bead-v modification
                                         if objBlastRadius!=undefined then newObj.blastRadius = objBlastRadius
                                         if objBlastLength!=undefined then newObj.blastLength = objBlastLength
-                                        if objOpacity!=undefined then newObj.opacity = objOpacity
                                         if objP2p!=undefined then newObj.p2p = objP2p
                                         -- needs special processing
                                         if objP2p_type!=undefined then
@@ -1953,14 +1954,14 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 for i = 1 to weightsList.count do
                                 (
                                     -- Apply weight info to the skin modifer
-                                    addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData
+                                    addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData model_base
                                 )
+							
+								-- bead-v: save collected names to base
+								if model_base != undefined then model_base.extranames = NameArray
                             )
                             -- ideally let the garbage collector kill off this local var
                             weightsList = undefined
-							
-							-- bead-v: save collected names to base
-							if model_base != undefined then model_base.extranames = NameArray
                         )
 
                         default:
