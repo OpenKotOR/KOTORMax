@@ -97,8 +97,9 @@ version:1
 
 	rollout OdysseyTrimeshParams "Odyssey Trimesh Params" width:162 height:319
 	(
-		button btn_tex "test" width:120 height:15 tooltip:"Applied Texture, press to select all objects that use this texture."
-		button btn_parent "" width:120 height:15 tooltip:"Parent. Press to select."
+		button btn_tex "no texture" width:120 height:15 tooltip:"Applied Diffuse Texture, press to select all objects that use this texture."
+		button btn_tex_2 "no texture" width:120 height:15 tooltip:"Applied Ambient Texture, press to select all objects that use this texture."
+		button btn_parent "No parent" width:120 height:15 tooltip:"Parent. Press to select."
 		checkbox box_render "Render"   --height:15 align:#left across:2 -- pos:[13,7] width:95
 		checkbox box_shadow "Shadow"   --height:15 align:#right -- pos:[13,27] width:95
 		checkbox box_beaming "Beaming"  --height:15 align:#right -- pos:[13,47] width:65
@@ -201,7 +202,7 @@ version:1
 
 		fn get_material_name o =
 		(
-			local tempstring = ""
+			local tempstring = "no texture"
 			local m
 			if ( superclassof o == GeometryClass ) then
 			(
@@ -209,26 +210,49 @@ version:1
 				(
 					m = o.material
 					--- multimaterial support
-					if(classof(m) == Multimaterial ) do
-					(
-						try
-						(
-							local m_id = getFaceMatID o 1
-							m = m[m_id]
-						)
-						catch()
-					)
+					if(classof(m) == Multimaterial ) then return "no texture"
 					try
-						(
-							tempstring = m.name
-							if m.diffuseMap != undefined then tempstring = (getfilenamefile m.diffuseMap.filename)
-						)
+					(
+						local tokens = filterstring m.name " "
+						if tokens.count < 1 or tokens[1] == "n/a" then tempstring = "no texture"
+						else tempstring = tokens[1]
+						if m.diffuseMap != undefined then tempstring = (getfilenamefile m.diffuseMap.filename)
+					)
 					catch
-						(
-							tempstring = ""
-						)
+					(
+						tempstring = "no texture"
+					)
 				)
-				else tempstring = "" -- "No material set"
+				else tempstring = "no texture" -- "No material set"
+			)
+			tempstring = lowercase (tempstring as string)
+			return tempstring
+		)
+		
+		fn get_material_name2 o =
+		(
+			local tempstring = "no texture"
+			local m
+			if ( superclassof o == GeometryClass ) then
+			(
+				if o.material != undefined then
+				(
+					m = o.material
+					--- multimaterial support
+					if(classof(m) == Multimaterial ) then return "no texture"
+					try
+					(
+						local tokens = filterstring m.name " "
+						if tokens.count < 2 or tokens[2] == "n/a" then tempstring = "no texture"
+						else tempstring = tokens[2]
+						if m.ambientMap != undefined then tempstring = (getfilenamefile m.ambientMap.filename)
+					)
+					catch
+					(
+						tempstring = "no texture"
+					)
+				)
+				else tempstring = "no texture" -- "No material set"
 			)
 			tempstring = lowercase (tempstring as string)
 			return tempstring
@@ -267,11 +291,9 @@ version:1
 					try
 					(
 						btn_tex.caption = (get_material_name selection[1])
+						btn_tex2.caption = (get_material_name2 selection[1])
 					)
 					catch()
-				) else
-				(
-    				btn_tex.caption = ""
 				)
 
 		)
@@ -283,7 +305,7 @@ version:1
 
 		on btn_tex pressed do
 		(
-			if btn_tex.caption == "" then return 0
+			if btn_tex.caption == "" or btn_tex.caption == "no texture" then return 0
 			else
 			(
 				local selectme = #()
@@ -291,6 +313,22 @@ version:1
 				for obj in $geometry do
 				(
 					tempstring = get_material_name obj
+					if tempstring == texname then append selectme obj
+				)
+				select selectme
+			)
+		)
+
+		on btn_tex2 pressed do
+		(
+			if btn_tex2.caption == "" or btn_tex2.caption == "no texture" then return 0
+			else
+			(
+				local selectme = #()
+				local texname = lowercase (btn_tex.caption)
+				for obj in $geometry do
+				(
+					tempstring = get_material_name2 obj
 					if tempstring == texname then append selectme obj
 				)
 				select selectme

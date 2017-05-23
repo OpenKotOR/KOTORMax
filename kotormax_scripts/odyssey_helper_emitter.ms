@@ -126,7 +126,7 @@ invisible:true
     	threshold       type:#float animatable:true ui:spn_threshold default:0  -- is this a p2p property?
     	combinetime     type:#float range:[0,15,0] animatable:true ui:spn_combinetime default:0 -- is this a p2p property?
     	deadspace       type:#float animatable:false ui:spn_deadspace default:0.0
-    	opacity         type:#float animatable:true ui:spn_opacity  default:0.5
+    	--opacity         type:#float animatable:true ui:spn_opacity  default:0.5 -- bead-v: doesn't seem to be a kotor prop
 
     	-- new props -- bead-v modification: add kotor props
     	numBranches         type:#integer animatable:false default:0 ui:spn_branchnumber
@@ -182,7 +182,7 @@ invisible:true
     	-- texture
     	texture     type:#string animatable:false ui:edit_texture
     	twosidedtex type:#integer animatable:false ui:box_twosidedtex default:0
-    	twosidedtext type:#integer animatable:false default:0 -- wrong, for backwards compat of loading
+    	--twosidedtext type:#integer animatable:false default:0 -- wrong, for backwards compat of loading
     	-- animation
     	xgrid       type:#integer animatable:false	ui:spn_xgrid default:0
     	ygrid       type:#integer animatable:false	ui:spn_ygrid default:0
@@ -198,9 +198,9 @@ invisible:true
     	-- end bead-v modification
 
     	-- chunk
-    	chunky		type:#integer default:0		ui:chk_chunk
+    	--chunky		type:#integer default:0		ui:chk_chunk
     	chunkName   type:#string  default:"NULL"
-    	chunk		type:#string	-- for compatability, but is wrong
+    	--chunk		type:#string	-- for compatability, but: is wrong
 	)
 
 	parameters EmitAdv rollout:EmitAdvRollout
@@ -316,8 +316,8 @@ invisible:true
 	    	spinner spn_combinetime "" fieldwidth:40 height:16
 			label lbl_deadspace "Deadspace:" align:#left across:2
 	    	spinner spn_deadspace "" fieldwidth:40 height:16
-			label lbl_opacity "Opacity:" align:#left align:#left across:2
-	    	spinner spn_opacity "" fieldwidth:40 height:16
+			--label lbl_opacity "Opacity:" align:#left align:#left across:2
+	    	--spinner spn_opacity "" fieldwidth:40 height:16
 		)
 
     	fn create_rectangle o =
@@ -517,21 +517,19 @@ invisible:true
 		)
 		group "Chunk Model"
 		(
-			checkbox chk_chunk "Chunky Particles" align:#left
+			--checkbox chk_chunk "Chunky Particles" align:#left
 			edittext edit_chunk height:17 enabled:false
 		)
 
 		on EmitTextChunkRollout open do
 		(
 			format "EmitTextChunkRollout opened\r\n"
-			if chunky == 0 then (
-				edit_chunk.enabled = false
-			)
 			if (chunkName != undefined) and (chunkName != "NULL")then (
 				edit_chunk.text = chunkName
 			)
 		)
 
+		/*
 		on chk_chunk changed val do
 		(
 			if chk_chunk.checked then
@@ -539,6 +537,7 @@ invisible:true
 			else
 				edit_chunk.enabled = false
 		)
+		*/
 
 		on edit_chunk changed val do
 		(

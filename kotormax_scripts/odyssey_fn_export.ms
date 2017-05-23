@@ -548,13 +548,103 @@ function do_emitter node =
 (
 	if DEBUG then format "#do_emitter%" g_delim to:g_strBuffer
 
+	/*
 	-- Filter array of strings for properties we DON'T want
 	local invalidProps = #("cone_angle_manipulator","gizmo", \
 							"twosidedtext", "chunk", "chunky", "iconsize", \
 							"sanity_check", "sanity_tests", "copy_tga", "tga2dds", "sanityok")
 	local propStr
 	local propVal
+	*/
 
+	-- Emitter Header properties
+    format "%deadspace %%" strIndent1 (nx_fprints (degtorad node.deadspace)) g_delim to:g_strBuffer
+    format "%blastRadius %%" strIndent1 (nx_fprints node.blastRadius) g_delim to:g_strBuffer
+    format "%blastLength %%" strIndent1 (nx_fprints node.blastLength) g_delim to:g_strBuffer
+    format "%numBranches %%" strIndent1 (nx_fprints node.numBranches) g_delim to:g_strBuffer
+    format "%controlptsmoothing %%" strIndent1 (nx_fprints node.controlptsmoothing) g_delim to:g_strBuffer
+    format "%xgrid %%" strIndent1 (nx_fprints node.xgrid) g_delim to:g_strBuffer
+    format "%ygrid %%" strIndent1 (nx_fprints node.ygrid) g_delim to:g_strBuffer
+    format "%spawntype %%" strIndent1 (nx_fprints node.spawntype) g_delim to:g_strBuffer
+    format "%update %%" strIndent1 (nx_fprints node.update) g_delim to:g_strBuffer
+    format "%render %%" strIndent1 (nx_fprints node.render) g_delim to:g_strBuffer
+    format "%blend %%" strIndent1 (nx_fprints node.blend) g_delim to:g_strBuffer
+    format "%texture %%" strIndent1 (nx_fprints node.texture) g_delim to:g_strBuffer
+    format "%chunkname %%" strIndent1 (nx_fprints node.chunkName) g_delim to:g_strBuffer
+    format "%twosidedtex %%" strIndent1 (nx_fprints node.twosidedtex) g_delim to:g_strBuffer
+    format "%loop %%" strIndent1 (nx_fprints node.loop) g_delim to:g_strBuffer
+    format "%renderorder %%" strIndent1 (nx_fprints node.renderorder) g_delim to:g_strBuffer
+    format "%m_bFrameBlending %%" strIndent1 (nx_fprints node.m_bFrameBlending) g_delim to:g_strBuffer
+    format "%m_sDepthTextureName %%" strIndent1 (nx_fprints node.m_sDepthTextureName) g_delim to:g_strBuffer
+	nx_FlushBuffer()
+	
+	-- Emitter flags
+    format "%p2p %%" strIndent1 (nx_fprints node.p2p) g_delim to:g_strBuffer
+    format "%p2p_sel %%" strIndent1 (nx_fprints node.p2p_sel) g_delim to:g_strBuffer
+    format "%affectedByWind %%" strIndent1 (nx_fprints node.affectedByWind) g_delim to:g_strBuffer
+    format "%m_isTinted %%" strIndent1 (nx_fprints node.m_isTinted) g_delim to:g_strBuffer
+    format "%bounce %%" strIndent1 (nx_fprints node.bounce) g_delim to:g_strBuffer
+    format "%random %%" strIndent1 (nx_fprints node.random) g_delim to:g_strBuffer
+    format "%inherit %%" strIndent1 (nx_fprints node.inherit) g_delim to:g_strBuffer
+    format "%inheritvel %%" strIndent1 (nx_fprints node.inheritvel) g_delim to:g_strBuffer
+    format "%inherit_local %%" strIndent1 (nx_fprints node.inherit_local) g_delim to:g_strBuffer
+    format "%splat %%" strIndent1 (nx_fprints node.splat) g_delim to:g_strBuffer
+    format "%inherit_part %%" strIndent1 (nx_fprints node.inherit_part) g_delim to:g_strBuffer
+    format "%depth_texture %%" strIndent1 (nx_fprints node.depth_texture) g_delim to:g_strBuffer
+	nx_FlushBuffer()
+	
+	-- Emitter Controllers
+    format "%alphaStart %%" strIndent1 (nx_fprints node.alphaStart) g_delim to:g_strBuffer
+    format "%alphaMid %%" strIndent1 (nx_fprints node.alphaMid) g_delim to:g_strBuffer
+    format "%alphaEnd %%" strIndent1 (nx_fprints node.alphaEnd) g_delim to:g_strBuffer
+    format "%colorStart %%" strIndent1 (nx_fprints node.colorStart) g_delim to:g_strBuffer
+    format "%colorMid %%" strIndent1 (nx_fprints node.colorMid) g_delim to:g_strBuffer
+    format "%colorEnd %%" strIndent1 (nx_fprints node.colorEnd) g_delim to:g_strBuffer
+    format "%percentStart %%" strIndent1 (nx_fprints node.percentStart) g_delim to:g_strBuffer
+    format "%percentMid %%" strIndent1 (nx_fprints node.percentMid) g_delim to:g_strBuffer
+    format "%percentEnd %%" strIndent1 (nx_fprints node.percentEnd) g_delim to:g_strBuffer
+    format "%sizeStart %%" strIndent1 (nx_fprints node.sizeStart) g_delim to:g_strBuffer
+    format "%sizeMid %%" strIndent1 (nx_fprints node.sizeMid) g_delim to:g_strBuffer
+    format "%sizeEnd %%" strIndent1 (nx_fprints node.sizeEnd) g_delim to:g_strBuffer
+    format "%sizeStart_y %%" strIndent1 (nx_fprints node.sizeStart_y) g_delim to:g_strBuffer
+    format "%sizeMid_y %%" strIndent1 (nx_fprints node.sizeMid_y) g_delim to:g_strBuffer
+    format "%sizeEnd_y %%" strIndent1 (nx_fprints node.sizeEnd_y) g_delim to:g_strBuffer
+    format "%birthrate %%" strIndent1 (nx_fprints node.birthrate) g_delim to:g_strBuffer
+    format "%m_fRandomBirthRate %%" strIndent1 (nx_fprints node.m_fRandomBirthRate) g_delim to:g_strBuffer
+    format "%lifeExp %%" strIndent1 (nx_fprints node.lifeExp) g_delim to:g_strBuffer
+    format "%mass %%" strIndent1 (nx_fprints node.mass) g_delim to:g_strBuffer
+    format "%spread %%" strIndent1 (nx_fprints (degtorad node.spread)) g_delim to:g_strBuffer
+    format "%particleRot %%" strIndent1 (nx_fprints node.particleRot) g_delim to:g_strBuffer
+    format "%velocity %%" strIndent1 (nx_fprints node.velocity) g_delim to:g_strBuffer
+    format "%randvel %%" strIndent1 (nx_fprints node.randvel) g_delim to:g_strBuffer
+    format "%blurlength %%" strIndent1 (nx_fprints node.blurlength) g_delim to:g_strBuffer
+    format "%targetsize %%" strIndent1 (nx_fprints node.targetsize) g_delim to:g_strBuffer
+    format "%tangentspread %%" strIndent1 (nx_fprints node.tangentspread) g_delim to:g_strBuffer
+    format "%tangentlength %%" strIndent1 (nx_fprints node.tangentlength) g_delim to:g_strBuffer
+    format "%detonate %%" strIndent1 (nx_fprints node.detonate) g_delim to:g_strBuffer
+    format "%bounce_co %%" strIndent1 (nx_fprints node.bounce_co) g_delim to:g_strBuffer
+    format "%fps %%" strIndent1 (nx_fprints node.fps) g_delim to:g_strBuffer
+    format "%frameStart %%" strIndent1 (nx_fprints node.frameStart) g_delim to:g_strBuffer
+    format "%frameEnd %%" strIndent1 (nx_fprints node.frameEnd) g_delim to:g_strBuffer
+    format "%xsize %%" strIndent1 (nx_fprints node.xsize) g_delim to:g_strBuffer
+    format "%ysize %%" strIndent1 (nx_fprints node.ysize) g_delim to:g_strBuffer
+    format "%threshold %%" strIndent1 (nx_fprints node.threshold) g_delim to:g_strBuffer
+    format "%combinetime %%" strIndent1 (nx_fprints node.combinetime) g_delim to:g_strBuffer
+    format "%lightningDelay %%" strIndent1 (nx_fprints node.lightningDelay) g_delim to:g_strBuffer
+    format "%lightningRadius %%" strIndent1 (nx_fprints node.lightningRadius) g_delim to:g_strBuffer
+    format "%lightningScale %%" strIndent1 (nx_fprints node.lightningScale) g_delim to:g_strBuffer
+    format "%lightningSubDiv %%" strIndent1 (nx_fprints node.lightningSubDiv) g_delim to:g_strBuffer
+    format "%lightningzigzag %%" strIndent1 (nx_fprints node.lightningzigzag) g_delim to:g_strBuffer
+    format "%drag %%" strIndent1 (nx_fprints node.drag) g_delim to:g_strBuffer
+    format "%grav %%" strIndent1 (nx_fprints node.grav) g_delim to:g_strBuffer
+    format "%p2p_bezier2 %%" strIndent1 (nx_fprints node.p2p_bezier2) g_delim to:g_strBuffer
+    format "%p2p_bezier3 %%" strIndent1 (nx_fprints node.p2p_bezier3) g_delim to:g_strBuffer
+    format "%numcontrolpts %%" strIndent1 (nx_fprints node.numcontrolpts) g_delim to:g_strBuffer
+    format "%controlptradius %%" strIndent1 (nx_fprints node.controlptradius) g_delim to:g_strBuffer
+    format "%controlptdelay %%" strIndent1 (nx_fprints node.controlptdelay) g_delim to:g_strBuffer
+	nx_FlushBuffer()
+	
+	/*
 	for prop in (getpropnames node) do
 	(
     	-- We will need to perform some filtering on what
@@ -591,6 +681,7 @@ function do_emitter node =
 			nx_FlushBuffer()
 	    )
 	)
+	*/
 	if DEBUG then format "#do_emitter:: End%" g_delim to:g_strBuffer
 )
 
@@ -608,15 +699,15 @@ fn do_modifier_props node mat =
 
     if(classof node.baseobject as string == "odysseylightsaber") then
     (
-        format "%scale %%" strIndent1 node.saberscale g_delim to:g_strBuffer
+        format "%scale %%" strIndent1 (nx_fprints node.saberscale) g_delim to:g_strBuffer
     )
     nx_FlushBuffer()
 
     odyssey_modifier = node.modifiers["OdysseyTrimesh"]
     if(odyssey_modifier != undefined) then
     (
-        format "%scale %%" strIndent1 odyssey_modifier.scale g_delim to:g_strBuffer
-        format "%alpha %%" strIndent1 odyssey_modifier.alpha g_delim to:g_strBuffer
+        format "%scale %%" strIndent1 (nx_fprints odyssey_modifier.scale) g_delim to:g_strBuffer
+        format "%alpha %%" strIndent1 (nx_fprints odyssey_modifier.alpha) g_delim to:g_strBuffer
         format "%selfillumcolor %%" strIndent1 (nx_fprints odyssey_modifier.selfillumcolor) g_delim to:g_strBuffer
 
         if odyssey_modifier.extra_mat_data != 0 then
@@ -624,7 +715,7 @@ fn do_modifier_props node mat =
             format "%ambient %%" strIndent1 (nx_fprints odyssey_modifier.ambient) g_delim to:g_strBuffer
             format "%diffuse %%" strIndent1 (nx_fprints odyssey_modifier.diffuse) g_delim to:g_strBuffer
             --format "%specular %%" strIndent1 (nx_fprints odyssey_modifier.specular) g_delim to:g_strBuffer
-            --format "%shininess %%" strIndent1 odyssey_modifier.shininess g_delim to:g_strBuffer
+            --format "%shininess %%" strIndent1 (nx_fprints odyssey_modifier.shininess) g_delim to:g_strBuffer
         )
         else if mat != undefined then
         (
@@ -635,30 +726,30 @@ fn do_modifier_props node mat =
             local illum = mat.selfillumcolor
             local alpha = mat.opacity / 100.0
 
-            --format "%alpha %%" strIndent1 alpha g_delim to:g_strBuffer
+            --format "%alpha %%" strIndent1 (nx_fprints alpha) g_delim to:g_strBuffer
             --format "%selfillumcolor %%" strIndent1 (nx_fprints illum) g_delim to:g_strBuffer
             format "%ambient %%"  strIndent1 (nx_fprints a) g_delim to:g_strBuffer
             format "%diffuse %%"  strIndent1 (nx_fprints d) g_delim to:g_strBuffer
             --format "%specular %%"  strIndent1 (nx_fprints sp) g_delim to:g_strBuffer
             --format "%shininess %%"  strIndent1 (nx_fprints sh) g_delim to:g_strBuffer
         )
-        format "%render %%" strIndent1 odyssey_modifier.render g_delim to:g_strBuffer
-        format "%shadow %%" strIndent1 odyssey_modifier.shadow g_delim to:g_strBuffer
-        format "%beaming %%" strIndent1 odyssey_modifier.beaming g_delim to:g_strBuffer
-        format "%rotatetexture %%" strIndent1 odyssey_modifier.rotatetexture g_delim to:g_strBuffer
-        format "%lightmapped %%" strIndent1 odyssey_modifier.lightmapped g_delim to:g_strBuffer
-        format "%hologram_donotdraw %%" strIndent1 odyssey_modifier.hologram_donotdraw g_delim to:g_strBuffer
-        format "%m_blsBackgroundGeometry %%" strIndent1 odyssey_modifier.m_blsBackgroundGeometry g_delim to:g_strBuffer
-        format "%transparencyhint %%" strIndent1 odyssey_modifier.transparencyhint g_delim to:g_strBuffer
-        format "%dirt_enabled %%" strIndent1 odyssey_modifier.dirt_enabled g_delim to:g_strBuffer
-        format "%dirt_texture %%" strIndent1 odyssey_modifier.dirt_texture g_delim to:g_strBuffer
-        format "%dirt_worldspace %%" strIndent1 odyssey_modifier.dirt_worldspace g_delim to:g_strBuffer
-        format "%animateuv %%" strIndent1 odyssey_modifier.animateuv g_delim to:g_strBuffer
-        format "%uvdirectionx %%" strIndent1 odyssey_modifier.uvdirectionx g_delim to:g_strBuffer
-        format "%uvdirectiony %%" strIndent1 odyssey_modifier.uvdirectiony g_delim to:g_strBuffer
-        format "%uvjitter %%" strIndent1 odyssey_modifier.uvjitter g_delim to:g_strBuffer
-        format "%uvjitterspeed %%" strIndent1 odyssey_modifier.uvjitterspeed g_delim to:g_strBuffer
-        format "%tangentspace %%" strIndent1 odyssey_modifier.tangentspace g_delim to:g_strBuffer
+        format "%render %%" strIndent1 (nx_fprints odyssey_modifier.render) g_delim to:g_strBuffer
+        format "%shadow %%" strIndent1 (nx_fprints odyssey_modifier.shadow) g_delim to:g_strBuffer
+        format "%beaming %%" strIndent1 (nx_fprints odyssey_modifier.beaming) g_delim to:g_strBuffer
+        format "%rotatetexture %%" strIndent1 (nx_fprints odyssey_modifier.rotatetexture) g_delim to:g_strBuffer
+        format "%lightmapped %%" strIndent1 (nx_fprints odyssey_modifier.lightmapped) g_delim to:g_strBuffer
+        format "%hologram_donotdraw %%" strIndent1 (nx_fprints odyssey_modifier.hologram_donotdraw) g_delim to:g_strBuffer
+        format "%m_blsBackgroundGeometry %%" strIndent1 (nx_fprints odyssey_modifier.m_blsBackgroundGeometry) g_delim to:g_strBuffer
+        format "%transparencyhint %%" strIndent1 (nx_fprints odyssey_modifier.transparencyhint) g_delim to:g_strBuffer
+        format "%dirt_enabled %%" strIndent1 (nx_fprints odyssey_modifier.dirt_enabled) g_delim to:g_strBuffer
+        format "%dirt_texture %%" strIndent1 (nx_fprints odyssey_modifier.dirt_texture) g_delim to:g_strBuffer
+        format "%dirt_worldspace %%" strIndent1 (nx_fprints odyssey_modifier.dirt_worldspace) g_delim to:g_strBuffer
+        format "%animateuv %%" strIndent1 (nx_fprints odyssey_modifier.animateuv) g_delim to:g_strBuffer
+        format "%uvdirectionx %%" strIndent1 (nx_fprints odyssey_modifier.uvdirectionx) g_delim to:g_strBuffer
+        format "%uvdirectiony %%" strIndent1 (nx_fprints odyssey_modifier.uvdirectiony) g_delim to:g_strBuffer
+        format "%uvjitter %%" strIndent1 (nx_fprints odyssey_modifier.uvjitter) g_delim to:g_strBuffer
+        format "%uvjitterspeed %%" strIndent1 (nx_fprints odyssey_modifier.uvjitterspeed) g_delim to:g_strBuffer
+        format "%tangentspace %%" strIndent1 (nx_fprints odyssey_modifier.tangentspace) g_delim to:g_strBuffer
     )
     else if mat != undefined then
     (
@@ -670,7 +761,7 @@ fn do_modifier_props node mat =
 		local illum = mat.selfillumcolor
         local alpha = mat.opacity / 100.0
 
-        format "%alpha %%" strIndent1 alpha g_delim to:g_strBuffer
+        format "%alpha %%" strIndent1 (nx_fprints alpha) g_delim to:g_strBuffer
 		format "%selfillumcolor %%" strIndent1 (nx_fprints illum) g_delim to:g_strBuffer
 		format "%ambient %%"  strIndent1 (nx_fprints a) g_delim to:g_strBuffer
 		format "%diffuse %%"  strIndent1 (nx_fprints d) g_delim to:g_strBuffer
@@ -682,9 +773,9 @@ fn do_modifier_props node mat =
     odyssey_modifier = node.modifiers["OdysseyFlex"]
     if(odyssey_modifier != undefined) then
     (
-        format "%period %%" strIndent1 odyssey_modifier.alpha g_delim to:g_strBuffer
-        format "%tightness %%" strIndent1 odyssey_modifier.alpha g_delim to:g_strBuffer
-        format "%displacement %%" strIndent1 odyssey_modifier.alpha g_delim to:g_strBuffer
+        format "%period %%" strIndent1 (nx_fprints odyssey_modifier.period) g_delim to:g_strBuffer
+        format "%tightness %%" strIndent1 (nx_fprints odyssey_modifier.tightness) g_delim to:g_strBuffer
+        format "%displacement %%" strIndent1 (nx_fprints odyssey_modifier.displacement) g_delim to:g_strBuffer
     )
     nx_FlushBuffer()
 
@@ -965,14 +1056,26 @@ function do_skin node =
 (
     -- Code from Bioware
 	local save_selection = selection
-	max modify mode
+	--clearSelection()
+	--deselect selection
 	select node
-
-	local i,j,zeroWeights
+	max modify mode
+    --setCommandPanelTaskMode mode:#modify
+	--select node
 	local m = node.modifiers["skin"]
+    modPanel.setCurrentObject m
+    --local oSelected = modPanel.getCurrentObject()
+	
+	--if selection[1] != undefined then messageBox ("Selected node: " + (selection[1]).name)
+	--if oSelected != undefined then messageBox ("Selected modifier: " + oSelected.name)
+	
+    --modPanel.setCurrentObject m
+	local i,j,zeroWeights
+	--while modPanel.getCurrentObject != m do modPanel.setCurrentObject m
 	try
 	(
 		local n = skinops.getnumbervertices m
+	--/*
 	) catch
 	(
 		--local n = skinops.getnumbervertices m
@@ -981,6 +1084,7 @@ function do_skin node =
 		select save_selection
 		return 0
 	)
+	--*/
 	format "%weights %%" strIndent1 n g_delim to:g_strBuffer
 	for i = 1 to n do
 	(
@@ -989,16 +1093,15 @@ function do_skin node =
 		format "%" strIndent2 to:g_strBuffer
 		for j = 1 to w_num do
 		(
-			local bone_id   = (skinops.getvertexweightboneid m i j )
+			local bone_id = (skinops.getvertexweightboneid m i j )
 			local bone_name = "root"
 			local weight_i_j = 1
 			if(bone_id > 0) do
 			(
-				--bone_name = (skinops.getbonename m bone_id 0) -- could be 1 or could be 0 UNSURE!!
-				--bone_name = (skinops.getbonename m bone_id 1) 
-				
-				-- per VP, the above doesn't work in later versions of max. Instead we should try the following:
-				bone_name = (skinops.getbonenamebylistid m bone_id 1)
+				local nMaxVersion = (maxversion())[1]
+				if (nMaxVersion <= 14000) then bone_name = (skinops.getbonename m bone_id 1)  -- per VP, the above doesn't work in later versions of max. Instead we should try the following:
+				else if (nMaxVersion < 17000) then bone_name = (skinops.getbonenamebylistid m bone_id 1)
+				else bone_name = skinops.getbonename m (skinOps.GetBoneIDByListID m bone_id) 1
 			)
 			weight_i_j = (skinops.getvertexweight m i j )
 			if (weight_i_j != 0.0) then (
@@ -1017,6 +1120,7 @@ function do_skin node =
 	(
 		select save_selection
 	)
+	--max create mode
 )
 
 function do_dangly node =
@@ -1254,6 +1358,8 @@ fn Node_Geometry node type:"mdl" root:false =
         format "# Exported from KOTORmax % at %%" gblVersion localtime g_delim to:g_strBuffer
         format "# DWKMESH  ASCII%" g_delim to:g_strBuffer
     )
+	
+	--select node
 
     -- act on the node type
     case of
@@ -1399,6 +1505,7 @@ fn ExportOdysseyGeometry node =
 
     -- DO MODEL GEOM
     sExtraNames = #() --clear name array
+	--setCommandPanelTaskMode mode:#modify
     Node_Geometry node root:true
 
     --write out extra names
@@ -2188,6 +2295,8 @@ fn ExportOdysseyModel node anim:true showprogress:true =
     -- b. Tile - got rid of this for kotormax
     -- c. Standard Geometry
     -- d. Animations
+	
+	showprogress = false
 
     -- Perform some basic sanity checking before we start trying to
     -- make a model file.
