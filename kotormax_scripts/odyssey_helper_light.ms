@@ -375,7 +375,7 @@ invisible:true
 			for f in lens_flares do (
 				join tmpList #(f)
 			)
-			if (nx_strclassof(selection[1]) == "auroraDlight") then
+			if classof selection[1] odysseylight then
 				selection[1].lensflareUI.lst_flares.items = tmpList
 		)
 
@@ -452,7 +452,7 @@ invisible:true
 
 		on bt_gettexfile pressed do (
 			f = getFilenameFile (getOpenFileName "Lens Flare Texture")
-			if f == undefined then return
+			if f == undefined then return 0
 			et_texname.text = f
 		)
 		on spn_pos changed arg do (
