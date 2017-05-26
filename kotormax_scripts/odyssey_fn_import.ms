@@ -426,8 +426,10 @@ fn ImportOdysseyWalkmesh pFile type =
 
                     -- Set orientation and position
                     in coordsys parent(
+								--format "Rotation Debug 5\n"
                         newObj.rotation = objRot
                         newObj.position = objPos
+								--format "Rotation Debug 5 End\n"
                     )
 
                 ) -- End endnode case
@@ -1435,7 +1437,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if objFrameEnd!=undefined then newObj.frameEnd = objFrameEnd
                                         if objRandom!=undefined then newObj.random = objRandom
                                         if objChunk!=undefined then newObj.chunkName = objChunk
-                                        if objChunk!=undefined then newObj.chunky = 1
                                         if objLightningDelay!=undefined then newObj.lightningDelay = objLightningDelay
                                         if objLightningRadius!=undefined then newObj.lightningRadius = objLightningRadius
                                         if objLightningSubDiv!=undefined then newObj.lightningSubDiv = objLightningSubDiv
@@ -1889,14 +1890,18 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                     -- check the controller types are correct!
                                     --newObj.scale.controller = bezier_scale()
+								--format "Rotation Debug 6\n"
                                     newObj.position.controller = bezier_position()
                                     newObj.rotation.controller = linear_rotation()
+								--format "Rotation Debug 6 End\n"
 
                                     in coordsys parent
                                     (
                                         -- at time 0 newObj.scale = objScale
+								--format "Rotation Debug 7\n"
                                         at time 0 newObj.rotation = objRot
                                         at time 0 newObj.position = objPos
+								--format "Rotation Debug 7 End\n"
                                         --with animate off newObj.rotation = inverse objRot
                                         --with animate off newObj.position = objPos
                                     )
@@ -2184,11 +2189,13 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             objAnim = undefined
                             if objName != "" and objName != undefined then objAnim = (for p in objects where (p.name == objName and isdescendantof p animRoot) collect p)[1]
 
-                            if (objAnim != undefined) then
+                            if (objAnim != undefined and objAnim != animRoot) then
                             (
+								--format "Rotation Debug 1\n"
 								-- make sure the position and orientation controllers are bezier and linear
 								if not iskindof objAnim.pos.controller bezier_position then objAnim.pos.controller = bezier_position()
 								if not iskindof objAnim.rotation.controller linear_rotation then objAnim.rotation.controller = linear_rotation()
+								--format "Rotation Debug 1 End\n"
 								
                                 if bDoAnimation then
                                 (
@@ -2198,9 +2205,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         -- We have an animation node obj
                                         in coordsys parent
                                         (
+								--format "Rotation Debug 2\n"
                                             -- collect some data on objAnim in timeslider time zero
                                             zeroPos = with animate off objAnim.pos
                                             zeroRot = with animate off objAnim.rotation
+								--format "Rotation Debug 2 End\n"
                                         )
                                     )
                                 )
@@ -2264,10 +2273,12 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         defval = objAnimTemp.position
                                     )
                                     "orientation": (
+								--format "Rotation Debug 3\n"
                                         ctrl_data = "rotation"
                                         if(objAnimTemp.rotation.controller == undefined) then objAnimTemp.rotation.controller = linear_rotation()
                                         objController = objAnimTemp.rotation.controller
                                         defval = objAnimTemp.rotation
+								--format "Rotation Debug 3 End\n"
                                     )
 
                                     -- colors
@@ -3168,8 +3179,10 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                             (
                                 oNode = createOdysseyDummy position
                                 oNode.name = sName
+								--format "Rotation Debug 4\n"
                                 in coordsys world ( oNode.Pos = position )
                                 in coordsys local ( oNode.Rotation = objRot )
+								--format "Rotation Debug 4 End\n"
                                 oNode.parent = oParent
                             )
                         )
