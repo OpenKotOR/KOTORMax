@@ -375,7 +375,7 @@ invisible:true
 			for f in lens_flares do (
 				join tmpList #(f)
 			)
-			if classof selection[1] odysseylight then
+			if iskindof selection[1] odysseylight then
 				selection[1].lensflareUI.lst_flares.items = tmpList
 		)
 
