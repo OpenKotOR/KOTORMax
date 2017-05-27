@@ -541,7 +541,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
         local fsize = nx_filesize mdlStream
 		local bNoSkipLine = false
 		local NameArray = #()
-		local line
+		local line = ""
 
         while not (eof mdlStream) and not quitEarly do
         (
@@ -567,11 +567,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
             (
                 mdl_pos = MDL_NOT_IN_MDL
                 quitEarly = true
-            )
-
-            -- typo clean ups
-            case idToken of (
-                "setfillumcolorkey": idToken = "selfillumcolorkey"
             )
 
             case mdl_pos of (
@@ -656,7 +651,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             objFadingLight = 0
                             objInheritcolor = 0
                             objRotatetexture = 0
-                            --shininess       type:#integer
                             objTransparencyhint = 0
 
 
@@ -774,20 +768,23 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         )
                         "aabb":
                         (
-							tok.SetString (getNextNonBlankLine mdlStream)
+							line = getNextNonBlankLine mdlStream
+							tok.SetString line
 							lineNum += 1
-							local sTokenAabb = tok.PeekToken()
-							while sTokenAabb as float != undefined do
+							idToken = tok.PeekToken()
+							while idToken as float != undefined do
 							(
-								--format "sToken = %\n" sTokenAabb
-                                tok.SetString (getNextNonBlankLine mdlStream)
+								--format "sToken = %\n" idToken
+								line = getNextNonBlankLine mdlStream
+                                tok.SetString line
                                 lineNum += 1
-								sTokenAabb = tok.PeekToken()
+								idToken = tok.PeekToken()
 							)
-							--format "Ending aabb = %\n" sTokenAabb
+							--format "Ending aabb = %\n" idToken
 							bNoSkipLine = true
 							
-							/* this is what code actually reading the aabb would look like, keep it.
+							/* 
+							-- this is what code actually reading the aabb would look like, keep it.
                             local bSkipFirst = false
                             if(tok.PeekToken() != undefined) then bSkipFirst = true
 
