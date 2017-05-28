@@ -137,30 +137,8 @@ fn nx_importer =
         -- import DWK file if available
         if (nx_existFile dwk_file) then
             ImportOdysseyWalkmesh dwk_file "dwk"
-
+			
         enableSceneRedraw()
-
-        if ImportRollout.chk_resetctrl.checked then
-        (
-					local objSum = $objects.count * 2.0
-					local cnt = 0.0
-					progressStart "Reset Controllers"
-					format "Setting to tcb rotation\r\n"
-					for o in $objects do
-					(
-			    		o.rotation.controller = tcb_rotation()
-			    		cnt += 1
-			    		if (progressUpdate (((cnt*100)/objSum) as integer)) == false then return 0
-					)
-					format "Setting back to linear rotation\r\n"
-					for o in $objects do
-					(
-			    		o.rotation.controller = linear_rotation()
-			    		cnt += 1
-			    		if (progressUpdate (((cnt*100)/objSum) as integer)) == false then return 0
-					)
-					progressEnd()
-        )
 
         -- Redraw gmax viewports
         clearSelection()
@@ -168,6 +146,50 @@ fn nx_importer =
         max views redraw
 
         gc()
+
+        if ImportRollout.chk_resetctrl.checked then
+        (
+					local objSum = $objects.count * 2.0
+					local cnt = 0.0
+					progressStart "Resetting Orientation"
+					format "Setting to tcb rotation\r\n"
+					for o in $objects do
+					(
+						format "Setting to tcb rotation for %\r\n" o.name
+						--/*
+						if hasProperty o "rotation" then
+						(
+							local CurrentController
+							try( CurrentController = o.rotation.controller )
+							catch( CurrentController = undefined )
+							o.position.controller = tcb_position()
+							if CurrentController != undefined then
+								o.rotation.controller = tcb_rotation()
+						)
+						--*/
+			    		cnt += 1.0
+			    		if (progressUpdate (((cnt*100)/objSum) as integer)) == false then exit
+					)
+					format "Setting back to linear rotation\r\n"
+					for o in $objects do
+					(
+						format "Setting back to linear rotation for %\r\n" o.name
+						--/*
+						if hasProperty o "rotation" then
+						(
+							local CurrentController
+							try( CurrentController = o.rotation.controller )
+							catch( CurrentController = undefined )
+							o.position.controller = linear_position()
+							if CurrentController != undefined then
+								o.rotation.controller = linear_rotation()
+						)
+						--*/
+			    		cnt += 1.0
+			    		if (progressUpdate (((cnt*100)/objSum) as integer)) == false then exit
+					)
+					progressEnd()
+        )
     )
 )
 
@@ -184,7 +206,7 @@ rollout ImportRollout "MDL Loading" width:162 height:250
 		label lbl_animname "Anim name to load:" enabled:false
 		edittext edt_animname enabled:false
 		spinner spn_startframe "Insert Frame:" type:#integer range:[-1,100000,-1] enabled:false
-		checkbox chk_resetctrl "Reset Orientation" checked:false
+		checkbox chk_resetctrl "Reset Orientation" checked:false --enabled:false
 		checkbox warn_checkbox "Show warnings" width:128 height:16
 		checkbox chk_uselyt "Use Layout Position" checked:true
 		spinner spn_loc_x "Import Loc X:" range:[0,1000000,0] enabled:false
