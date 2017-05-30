@@ -600,9 +600,9 @@ function do_emitter node =
     format "%colorStart %%" strIndent1 (nx_fprints node.colorStart) g_delim to:g_strBuffer
     format "%colorMid %%" strIndent1 (nx_fprints node.colorMid) g_delim to:g_strBuffer
     format "%colorEnd %%" strIndent1 (nx_fprints node.colorEnd) g_delim to:g_strBuffer
-    format "%percentStart %%" strIndent1 (nx_fprints node.percentStart) g_delim to:g_strBuffer
-    format "%percentMid %%" strIndent1 (nx_fprints node.percentMid) g_delim to:g_strBuffer
-    format "%percentEnd %%" strIndent1 (nx_fprints node.percentEnd) g_delim to:g_strBuffer
+    format "%percentStart %%" strIndent1 (nx_fprints (node.percentStart / 100.0)) g_delim to:g_strBuffer
+    format "%percentMid %%" strIndent1 (nx_fprints (node.percentMid / 100.0)) g_delim to:g_strBuffer
+    format "%percentEnd %%" strIndent1 (nx_fprints (node.percentEnd / 100.0)) g_delim to:g_strBuffer
     format "%sizeStart %%" strIndent1 (nx_fprints node.sizeStart) g_delim to:g_strBuffer
     format "%sizeMid %%" strIndent1 (nx_fprints node.sizeMid) g_delim to:g_strBuffer
     format "%sizeEnd %%" strIndent1 (nx_fprints node.sizeEnd) g_delim to:g_strBuffer

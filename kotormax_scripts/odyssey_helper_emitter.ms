@@ -174,7 +174,7 @@ invisible:true
     	bounce      type:#integer animatable:false ui:box_bounce default:0
     	m_isTinted  type:#integer animatable:false ui:box_m_isTinted default:0
     	splat       type:#integer animatable:false ui:box_Splat default:0
-    	affectedByWind type:#boolean animatable:false ui:box_affectedbyWind default:false
+    	affectedByWind type:#integer animatable:false ui:box_affectedbyWind default:0
 	)
 
 	parameters EmitTextChunk rollout:EmitTextChunkRollout

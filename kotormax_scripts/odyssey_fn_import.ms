@@ -1094,7 +1094,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         -- render is dealt with above.
                         "render_sel": objRender_sel = tok.ReadInteger()
                         "spawntype": objSpawnType = tok.ReadInteger()
-                        "iconSize": objIconSize = tok.ReadFloat()
+                        "iconsize": objIconSize = tok.ReadFloat()
                         "xsize": objXsize = tok.ReadFloat()
                         "ysize": objYsize = tok.ReadFloat()
                         "inherit": objInherit = tok.ReadInteger()
@@ -1126,7 +1126,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "bounce": objBounce = tok.ReadInteger()
                         "m_istinted": objM_isTinted = tok.ReadInteger()
                         "splat": objSplat = tok.ReadInteger()
-                        "affectedbywind": objAffectedbyWind = tok.ReadBoolean()
+                        "affectedbywind": objAffectedbyWind = tok.ReadInteger()
                         "texture": objTexture = tok.ReadString()
                         "twosidedtext": objTwosidedtext = tok.ReadInteger()
                         "twosidedtex": objTwosidedtext = tok.ReadInteger()
@@ -1152,16 +1152,16 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "drag": objDrag = tok.ReadFloat()
              -- bead-v modification: add kotor props
                         "lightningzigzag": objLightningzigzag = tok.ReadFloat()
-                        "colorMid": objColorMid = tok.ReadFloat()
-                        "alphaMid": objAlphaMid = tok.ReadFloat()
-                        "sizeMid": objSizeMid = tok.ReadFloat()
-                        "sizeMid_y": objSizeMid_y = tok.ReadFloat()
-                        "percentStart": objPercentStart = tok.ReadFloat()
-                        "percentMid": objPercentMid = tok.ReadFloat()
-                        "percentEnd": objPercentEnd = tok.ReadFloat()
+                        "colormid": objColorMid = tok.ReadColor()
+                        "alphamid": objAlphaMid = tok.ReadFloat()
+                        "sizemid": objSizeMid = tok.ReadFloat()
+                        "sizemid_y": objSizeMid_y = tok.ReadFloat()
+                        "percentstart": objPercentStart = tok.ReadFloat() * 100.0
+                        "percentmid": objPercentMid = tok.ReadFloat() * 100.0
+                        "percentend": objPercentEnd = tok.ReadFloat() * 100.0
                         "m_frandombirthrate": objRandomBirthRate = tok.ReadFloat()
                         "targetsize": objTargetsize = tok.ReadFloat()
-                        "numcontrolpts": objNumcontrolpts = tok.ReadFloat()
+                        "numcontrolpts": objNumcontrolpts = tok.ReadInteger()
                         "controlptradius": objControlptradius = tok.ReadFloat()
                         "controlptdelay": objControlptdelay = tok.ReadFloat()
                         "tangentspread": objTangentspread = tok.ReadFloat()
@@ -2086,10 +2086,20 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             (
                                 if not bAnimIsThere then
                                 (
-                                    -- Add animation data to animation root
-                                    animRoot.animations[animRoot.animations.count] = \
-                                        animRoot.animations[animRoot.animations.count]+ \
-                                        " " + animRootPlay
+									if animRootPlay != undefined and mappingtbl != undefined then
+										for mapindex = 1 to mappingtbl.count by 2 do 
+											if nx_lowercase(mappingtbl[mapindex]) == nx_lowercase(animRootPlay) then 
+												animRootPlay = mappingtbl[mapindex + 1]
+									
+									if animRootPlay == undefined then
+									(
+										messagebox ("Animroot for animation " + animName + " not specified!")
+										animRootPlay = "ERROR"
+									)
+									-- Add animation data to animation root
+									animRoot.animations[animRoot.animations.count] = \
+										animRoot.animations[animRoot.animations.count] + \
+										" " + animRootPlay
                                 )
                             )
                         )
@@ -2111,6 +2121,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 -- Add event data to animation root
                                 if not bDupEvent then
                                 (
+									if event_name == undefined then
+									(
+										messagebox ("An event name in animation " + animName + " not specified!")
+										event_name = "ERROR"
+									)
                                     numEvents += 1 -- bead-v: moved this here, as it makes more sense
                                     animRoot.events[animRoot.events.count+1] = \
                                         event_name + " " + (event_frame as string)
@@ -2726,10 +2741,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     lineNum += 1
                                                     keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
-                                                    axis = tok.ReadPoint3()
-                                                    angle = RadToDeg (tok.ReadFloat())
+                                                    --axis = tok.ReadPoint3()
+                                                    --angle = RadToDeg (tok.ReadFloat())
                                                     --format "line:% keytime:%  axis:%  angle:%\r\n" lineNum keytime axis angle
-                                                    objRot = normalize (quat angle axis)
+                                                    --objRot = normalize (quat angle axis)
+													objRot = quat (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat())
 
                                                     if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRot
 
@@ -2742,7 +2758,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                         --with animate on (
                                                             newkey = addnewkey objAnimTemp.rotation.controller keytime
                                                             newkey.value = objRot
-                                                            --newkey.value = (at time 0 objAnimTemp.rotation) * (objRot) --* inverse (at time 0 objAnimTemp.rotation)
+                                                            --newkey.value = (objRot) / (at time 0 objAnimTemp.rotation)
                                                         --)
                                                     )
 
