@@ -199,7 +199,7 @@ invisible:true
 
     	-- chunk
     	--chunky		type:#integer default:0		ui:chk_chunk
-    	chunkName   type:#string  default:"NULL"
+    	chunkName   type:#string  default:""
     	--chunk		type:#string	-- for compatability, but: is wrong
 	)
 
@@ -524,7 +524,7 @@ invisible:true
 		on EmitTextChunkRollout open do
 		(
 			format "EmitTextChunkRollout opened\r\n"
-			if (chunkName != undefined) and (chunkName != "NULL")then (
+			if (chunkName != undefined) then (
 				edit_chunk.text = chunkName
 			)
 		)
@@ -725,8 +725,7 @@ invisible:true
             EmitAdvRollout.spn_lightningZigZag.enabled = false
         )
         -- chunk rules
-        if (EmitTextChunkRollout.edit_chunk.text != "") and \
-        	(EmitTextChunkRollout.edit_chunk.text != "NULL") then
+        if (EmitTextChunkRollout.edit_chunk.text != "") then
         (
             EmitStyleRollout.radio_render.state = 1
             EmitStyleRollout.radio_render.enabled = false
