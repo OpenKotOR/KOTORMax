@@ -66,29 +66,63 @@ fn isdescendantof oCheck oAncestor =
     return false
 )
 
-/*
 -----------------------------------
--- Binary Model Importer Dialog  --
+-- The Euler Filter              --
 -----------------------------------
-global fControl
-rollout rl_binmdl "Decompile MDL"
+fn nx_eulerFilter curEul prevEul =
 (
-    local tickCounter = 0
-    label lbl_1 "Model decompile in progress"
-    label lbl_ticker ""
-    timer t_looking interval:1000
-
-    on t_looking tick do
-    (
-        tickCounter += 1
-        lbl_ticker.text = (tickCounter as string)
-        if (deletefile fControl) or (tickCounter > 15) then
-        (
-            DestroyDialog rl_binmdl
-        )
-    )
+	if prevEul == undefined then return curEul
+	
+	local copyEul = copy curEul
+	
+	--/*
+	while abs (copyEul.x - prevEul.x) > radtodeg pi do 
+	(
+		if copyEul.x <= prevEul.x then copyEul.x += 2 * radtodeg pi
+		else copyEul.x -= 2 * radtodeg pi
+	)
+	while abs (copyEul.y - prevEul.y) > radtodeg pi do 
+	(
+		if copyEul.y <= prevEul.y then copyEul.y += 2 * radtodeg pi
+		else copyEul.y -= 2 * radtodeg pi
+	)
+	while abs (copyEul.z - prevEul.z) > radtodeg pi do 
+	(
+		if copyEul.z <= prevEul.z then copyEul.z += 2 * radtodeg pi
+		else copyEul.z -= 2 * radtodeg pi
+	)
+	--*/
+	
+	local flipEul = copy copyEul
+	flipEul.x += radtodeg pi
+	flipEul.y *= -1.0
+	flipEul.y += radtodeg pi
+	flipEul.z += radtodeg pi
+	
+	--/*
+	while abs (flipEul.x - prevEul.x) > radtodeg pi do
+	(
+		if flipEul.x <= prevEul.x then flipEul.x += 2 * radtodeg pi
+		else flipEul.x -= 2 * radtodeg pi
+	)
+	while abs (flipEul.y - prevEul.y) > radtodeg pi do 
+	(
+		if flipEul.y <= prevEul.y then flipEul.y += 2 * radtodeg pi
+		else flipEul.y -= 2 * radtodeg pi
+	)
+	while abs (flipEul.z - prevEul.z) > radtodeg pi do 
+	(
+		if flipEul.z <= prevEul.z then flipEul.z += 2 * radtodeg pi
+		else flipEul.z -= 2 * radtodeg pi
+	)
+	--*/
+	
+	if abs (copyEul.x - prevEul.x) + abs (copyEul.x - prevEul.x) + abs (copyEul.x - prevEul.x) >
+	   abs (flipEul.x - prevEul.x) + abs (flipEul.x - prevEul.x) + abs (flipEul.x - prevEul.x) then 
+		return flipEul
+	else 
+		return copyEul
 )
-*/
 
 -------------------------------
 --- Get Next Non-Blank line ---
@@ -2733,12 +2767,17 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 if ((tok.PeekToken() != "endlist") or (keyCount != 0)) then bKeysPresent = true
 
                                                 local newkey  -- bead-v: defined here so that the last key is saved after the while is done
+												local eulPrev, eulCurr
 
                                                 if bDoAnimation and bKeysPresent then
                                                 (
                                                     -- Make sure we have the 0th key down in case we do have keys
-                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
+                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 2)
                                                     newkey.value = zeroRot
+													
+                                                    -- Also make sure that there is a 0 0 0 0 orientation key on the first frame.
+                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
+                                                    newkey.value = (quat 0.0 [0.0, 0.0, 0.0])
                                                 )
 
                                                 while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
@@ -2747,15 +2786,20 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                     axis = tok.ReadPoint3()
                                                     angle = RadToDeg (tok.ReadFloat())
-                                                    --format "line:% keytime:%  axis:%  angle:%\r\n" lineNum keytime axis angle
-                                                    objRot = normalize (quat angle axis)
-													--objRot = quat (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat())
-
+                                                    local objRot = normalize (quat angle axis)
+													
                                                     if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRot
+													
+													-- The Euler Filter
+													/*
+													eulCurr = nx_eulerFilter ((AngleAxis angle axis) as EulerAngles) eulPrev
+													eulPrev = eulCurr
+													objRot = eulCurr as quat
+													*/
 
-                                                    local existingPosKey = getKeyIndex objAnimTemp.pos.controller keytime
-                                                    local existingPos
-                                                    if (existingPosKey > 0) then existingPos = objAnimTemp.pos.keys[existingPosKey].value
+                                                    --local existingPosKey = getKeyIndex objAnimTemp.pos.controller keytime
+                                                    --local existingPos
+                                                    --if (existingPosKey > 0) then existingPos = objAnimTemp.pos.keys[existingPosKey].value
 
                                                     if bDoAnimation then (
                                                         --with animate on at time keytime objAnimTemp.rotation = objRot
@@ -2766,6 +2810,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                         --)
                                                     )
 
+													/*
                                                     if (existingPosKey == 0) then(
                                                         local newPosKey = getKeyIndex objAnimTemp.pos.controller keytime
                                                         if (newPosKey != 0) then
@@ -2775,6 +2820,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     )
                                                     else
                                                         objAnimTemp.pos.keys[existingPosKey].value = existingPos
+													*/
 
 
                                                     if (keyCount != undefined) then (
@@ -2789,12 +2835,10 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 )
 
                                                 if bDoAnimation and bKeysPresent then (
-                                                    with animate on(
-                                                        local lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 1)
-                                                        lastkey.value = newkey.value
-                                                        lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 2)
-                                                        lastkey.value = zeroRot
-                                                    )
+													local lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 1)
+													lastkey.value = newkey.value
+													lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 2)
+													lastkey.value = zeroRot
                                                 )
                                             )
                                         )
