@@ -1172,6 +1172,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "m_bframeblending": objFrameBlending = tok.ReadInteger()
                         "depth_texture": objDepth_texture = tok.ReadInteger()
                         "m_sdepthtexturename": objDepthTextureName = tok.ReadString()
+                        "emitter_unknown_1": objEmitterUnknown1 = tok.ReadInteger()
+                        "emitter_unknown_2": objEmitterUnknown2 = tok.ReadInteger()
              -- end bead-v modification
                         -- Emitter key words end
 
@@ -1460,6 +1462,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if objFrameBlending!=undefined then newObj.m_bFrameBlending = objFrameBlending
                                         if objDepth_texture!=undefined then newObj.depth_texture = objDepth_texture
                                         if objDepthTextureName!=undefined then newObj.m_sDepthTextureName = objDepthTextureName
+                                        if objEmitterUnknown1!=undefined then newObj.unknown1 = objEmitterUnknown1
+                                        if objEmitterUnknown2!=undefined then newObj.unknown2 = objEmitterUnknown2
                                         -- end bead-v modification
                                         if objBlastRadius!=undefined then newObj.blastRadius = objBlastRadius
                                         if objBlastLength!=undefined then newObj.blastLength = objBlastLength
@@ -2741,11 +2745,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     lineNum += 1
                                                     keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
-                                                    --axis = tok.ReadPoint3()
-                                                    --angle = RadToDeg (tok.ReadFloat())
+                                                    axis = tok.ReadPoint3()
+                                                    angle = RadToDeg (tok.ReadFloat())
                                                     --format "line:% keytime:%  axis:%  angle:%\r\n" lineNum keytime axis angle
-                                                    --objRot = normalize (quat angle axis)
-													objRot = quat (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat())
+                                                    objRot = normalize (quat angle axis)
+													--objRot = quat (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat()) (tok.ReadFloat())
 
                                                     if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRot
 
@@ -3177,7 +3181,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         local sParent = tok.ReadToken()
                         local sName = tok.ReadToken()
                         local nUnknown = tok.ReadInteger()
-                        local position = tok.ReadPoint3() *100
+                        local position = tok.ReadPoint3() * 100
 						local qFloat4 = tok.ReadFloat()
 						local qFloat1 = tok.ReadFloat()
 						local qFloat2 = tok.ReadFloat()

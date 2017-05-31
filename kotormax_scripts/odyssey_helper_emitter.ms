@@ -129,7 +129,9 @@ invisible:true
     	--opacity         type:#float animatable:true ui:spn_opacity  default:0.5 -- bead-v: doesn't seem to be a kotor prop
 
     	-- new props -- bead-v modification: add kotor props
-    	numBranches         type:#integer animatable:false default:0 ui:spn_branchnumber
+    	numBranches     type:#integer animatable:false default:0 ui:spn_branchnumber
+		unknown1        type:#integer animatable:false default:0
+		unknown2        type:#integer animatable:false default:0
     	-- end bead-v modification
 	)
 

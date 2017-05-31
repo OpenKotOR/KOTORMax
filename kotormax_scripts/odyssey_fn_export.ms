@@ -547,15 +547,57 @@ function do_light node =
 function do_emitter node =
 (
 	if DEBUG then format "#do_emitter%" g_delim to:g_strBuffer
-
-	/*
-	-- Filter array of strings for properties we DON'T want
-	local invalidProps = #("cone_angle_manipulator","gizmo", \
-							"twosidedtext", "chunk", "chunky", "iconsize", \
-							"sanity_check", "sanity_tests", "copy_tga", "tga2dds", "sanityok")
-	local propStr
-	local propVal
-	*/
+	
+	-- Emitter Controllers
+    format "%fps %%" strIndent1 (nx_fprints node.fps) g_delim to:g_strBuffer
+    format "%birthrate %%" strIndent1 (nx_fprints node.birthrate) g_delim to:g_strBuffer
+    format "%m_fRandomBirthRate %%" strIndent1 (nx_fprints node.m_fRandomBirthRate) g_delim to:g_strBuffer
+    format "%velocity %%" strIndent1 (nx_fprints node.velocity) g_delim to:g_strBuffer
+    format "%randvel %%" strIndent1 (nx_fprints node.randvel) g_delim to:g_strBuffer
+    format "%mass %%" strIndent1 (nx_fprints node.mass) g_delim to:g_strBuffer
+    format "%particleRot %%" strIndent1 (nx_fprints node.particleRot) g_delim to:g_strBuffer
+    format "%spread %%" strIndent1 (nx_fprints (degtorad node.spread)) g_delim to:g_strBuffer
+    format "%lifeExp %%" strIndent1 (nx_fprints node.lifeExp) g_delim to:g_strBuffer
+    format "%xsize %%" strIndent1 (nx_fprints node.xsize) g_delim to:g_strBuffer
+    format "%ysize %%" strIndent1 (nx_fprints node.ysize) g_delim to:g_strBuffer
+    format "%colorStart %%" strIndent1 (nx_fprints node.colorStart) g_delim to:g_strBuffer
+    format "%colorMid %%" strIndent1 (nx_fprints node.colorMid) g_delim to:g_strBuffer
+    format "%colorEnd %%" strIndent1 (nx_fprints node.colorEnd) g_delim to:g_strBuffer
+    format "%percentStart %%" strIndent1 (nx_fprints (node.percentStart / 100.0)) g_delim to:g_strBuffer
+    format "%percentMid %%" strIndent1 (nx_fprints (node.percentMid / 100.0)) g_delim to:g_strBuffer
+    format "%percentEnd %%" strIndent1 (nx_fprints (node.percentEnd / 100.0)) g_delim to:g_strBuffer
+    format "%alphaStart %%" strIndent1 (nx_fprints node.alphaStart) g_delim to:g_strBuffer
+    format "%alphaMid %%" strIndent1 (nx_fprints node.alphaMid) g_delim to:g_strBuffer
+    format "%alphaEnd %%" strIndent1 (nx_fprints node.alphaEnd) g_delim to:g_strBuffer
+    format "%sizeStart %%" strIndent1 (nx_fprints node.sizeStart) g_delim to:g_strBuffer
+    format "%sizeMid %%" strIndent1 (nx_fprints node.sizeMid) g_delim to:g_strBuffer
+    format "%sizeEnd %%" strIndent1 (nx_fprints node.sizeEnd) g_delim to:g_strBuffer
+    format "%sizeStart_y %%" strIndent1 (nx_fprints node.sizeStart_y) g_delim to:g_strBuffer
+    format "%sizeMid_y %%" strIndent1 (nx_fprints node.sizeMid_y) g_delim to:g_strBuffer
+    format "%sizeEnd_y %%" strIndent1 (nx_fprints node.sizeEnd_y) g_delim to:g_strBuffer
+    format "%frameStart %%" strIndent1 (nx_fprints node.frameStart) g_delim to:g_strBuffer
+    format "%frameEnd %%" strIndent1 (nx_fprints node.frameEnd) g_delim to:g_strBuffer
+    format "%bounce_co %%" strIndent1 (nx_fprints node.bounce_co) g_delim to:g_strBuffer
+    format "%lightningDelay %%" strIndent1 (nx_fprints node.lightningDelay) g_delim to:g_strBuffer
+    format "%lightningRadius %%" strIndent1 (nx_fprints node.lightningRadius) g_delim to:g_strBuffer
+    format "%lightningScale %%" strIndent1 (nx_fprints node.lightningScale) g_delim to:g_strBuffer
+    format "%lightningSubDiv %%" strIndent1 (nx_fprints node.lightningSubDiv) g_delim to:g_strBuffer
+    format "%lightningzigzag %%" strIndent1 (nx_fprints node.lightningzigzag) g_delim to:g_strBuffer
+    format "%targetsize %%" strIndent1 (nx_fprints node.targetsize) g_delim to:g_strBuffer
+    format "%combinetime %%" strIndent1 (nx_fprints node.combinetime) g_delim to:g_strBuffer
+    format "%p2p_bezier2 %%" strIndent1 (nx_fprints node.p2p_bezier2) g_delim to:g_strBuffer
+    format "%p2p_bezier3 %%" strIndent1 (nx_fprints node.p2p_bezier3) g_delim to:g_strBuffer
+    format "%numcontrolpts %%" strIndent1 (nx_fprints node.numcontrolpts) g_delim to:g_strBuffer
+    format "%controlptradius %%" strIndent1 (nx_fprints node.controlptradius) g_delim to:g_strBuffer
+    format "%controlptdelay %%" strIndent1 (nx_fprints node.controlptdelay) g_delim to:g_strBuffer
+    format "%tangentspread %%" strIndent1 (nx_fprints node.tangentspread) g_delim to:g_strBuffer
+    format "%tangentlength %%" strIndent1 (nx_fprints node.tangentlength) g_delim to:g_strBuffer
+    format "%drag %%" strIndent1 (nx_fprints node.drag) g_delim to:g_strBuffer
+    format "%grav %%" strIndent1 (nx_fprints node.grav) g_delim to:g_strBuffer
+    format "%threshold %%" strIndent1 (nx_fprints node.threshold) g_delim to:g_strBuffer
+    format "%blurlength %%" strIndent1 (nx_fprints node.blurlength) g_delim to:g_strBuffer
+    format "%detonate %%" strIndent1 (nx_fprints node.detonate) g_delim to:g_strBuffer
+	nx_FlushBuffer()
 
 	-- Emitter Header properties
     format "%deadspace %%" strIndent1 (nx_fprints (degtorad node.deadspace)) g_delim to:g_strBuffer
@@ -573,9 +615,10 @@ function do_emitter node =
     format "%chunkname %%" strIndent1 (nx_fprints node.chunkName) g_delim to:g_strBuffer
     format "%twosidedtex %%" strIndent1 (nx_fprints node.twosidedtex) g_delim to:g_strBuffer
     format "%loop %%" strIndent1 (nx_fprints node.loop) g_delim to:g_strBuffer
-    format "%renderorder %%" strIndent1 (nx_fprints node.renderorder) g_delim to:g_strBuffer
+    format "%emitter_unknown_1 %%" strIndent1 (nx_fprints node.unknown1) g_delim to:g_strBuffer
     format "%m_bFrameBlending %%" strIndent1 (nx_fprints node.m_bFrameBlending) g_delim to:g_strBuffer
     format "%m_sDepthTextureName %%" strIndent1 (nx_fprints node.m_sDepthTextureName) g_delim to:g_strBuffer
+    format "%emitter_unknown_2 %%" strIndent1 (nx_fprints node.unknown2) g_delim to:g_strBuffer
 	nx_FlushBuffer()
 	
 	-- Emitter flags
@@ -591,97 +634,9 @@ function do_emitter node =
     format "%splat %%" strIndent1 (nx_fprints node.splat) g_delim to:g_strBuffer
     format "%inherit_part %%" strIndent1 (nx_fprints node.inherit_part) g_delim to:g_strBuffer
     format "%depth_texture %%" strIndent1 (nx_fprints node.depth_texture) g_delim to:g_strBuffer
+    format "%renderorder %%" strIndent1 (nx_fprints node.renderorder) g_delim to:g_strBuffer
 	nx_FlushBuffer()
 	
-	-- Emitter Controllers
-    format "%alphaStart %%" strIndent1 (nx_fprints node.alphaStart) g_delim to:g_strBuffer
-    format "%alphaMid %%" strIndent1 (nx_fprints node.alphaMid) g_delim to:g_strBuffer
-    format "%alphaEnd %%" strIndent1 (nx_fprints node.alphaEnd) g_delim to:g_strBuffer
-    format "%colorStart %%" strIndent1 (nx_fprints node.colorStart) g_delim to:g_strBuffer
-    format "%colorMid %%" strIndent1 (nx_fprints node.colorMid) g_delim to:g_strBuffer
-    format "%colorEnd %%" strIndent1 (nx_fprints node.colorEnd) g_delim to:g_strBuffer
-    format "%percentStart %%" strIndent1 (nx_fprints (node.percentStart / 100.0)) g_delim to:g_strBuffer
-    format "%percentMid %%" strIndent1 (nx_fprints (node.percentMid / 100.0)) g_delim to:g_strBuffer
-    format "%percentEnd %%" strIndent1 (nx_fprints (node.percentEnd / 100.0)) g_delim to:g_strBuffer
-    format "%sizeStart %%" strIndent1 (nx_fprints node.sizeStart) g_delim to:g_strBuffer
-    format "%sizeMid %%" strIndent1 (nx_fprints node.sizeMid) g_delim to:g_strBuffer
-    format "%sizeEnd %%" strIndent1 (nx_fprints node.sizeEnd) g_delim to:g_strBuffer
-    format "%sizeStart_y %%" strIndent1 (nx_fprints node.sizeStart_y) g_delim to:g_strBuffer
-    format "%sizeMid_y %%" strIndent1 (nx_fprints node.sizeMid_y) g_delim to:g_strBuffer
-    format "%sizeEnd_y %%" strIndent1 (nx_fprints node.sizeEnd_y) g_delim to:g_strBuffer
-    format "%birthrate %%" strIndent1 (nx_fprints node.birthrate) g_delim to:g_strBuffer
-    format "%m_fRandomBirthRate %%" strIndent1 (nx_fprints node.m_fRandomBirthRate) g_delim to:g_strBuffer
-    format "%lifeExp %%" strIndent1 (nx_fprints node.lifeExp) g_delim to:g_strBuffer
-    format "%mass %%" strIndent1 (nx_fprints node.mass) g_delim to:g_strBuffer
-    format "%spread %%" strIndent1 (nx_fprints (degtorad node.spread)) g_delim to:g_strBuffer
-    format "%particleRot %%" strIndent1 (nx_fprints node.particleRot) g_delim to:g_strBuffer
-    format "%velocity %%" strIndent1 (nx_fprints node.velocity) g_delim to:g_strBuffer
-    format "%randvel %%" strIndent1 (nx_fprints node.randvel) g_delim to:g_strBuffer
-    format "%blurlength %%" strIndent1 (nx_fprints node.blurlength) g_delim to:g_strBuffer
-    format "%targetsize %%" strIndent1 (nx_fprints node.targetsize) g_delim to:g_strBuffer
-    format "%tangentspread %%" strIndent1 (nx_fprints node.tangentspread) g_delim to:g_strBuffer
-    format "%tangentlength %%" strIndent1 (nx_fprints node.tangentlength) g_delim to:g_strBuffer
-    format "%detonate %%" strIndent1 (nx_fprints node.detonate) g_delim to:g_strBuffer
-    format "%bounce_co %%" strIndent1 (nx_fprints node.bounce_co) g_delim to:g_strBuffer
-    format "%fps %%" strIndent1 (nx_fprints node.fps) g_delim to:g_strBuffer
-    format "%frameStart %%" strIndent1 (nx_fprints node.frameStart) g_delim to:g_strBuffer
-    format "%frameEnd %%" strIndent1 (nx_fprints node.frameEnd) g_delim to:g_strBuffer
-    format "%xsize %%" strIndent1 (nx_fprints node.xsize) g_delim to:g_strBuffer
-    format "%ysize %%" strIndent1 (nx_fprints node.ysize) g_delim to:g_strBuffer
-    format "%threshold %%" strIndent1 (nx_fprints node.threshold) g_delim to:g_strBuffer
-    format "%combinetime %%" strIndent1 (nx_fprints node.combinetime) g_delim to:g_strBuffer
-    format "%lightningDelay %%" strIndent1 (nx_fprints node.lightningDelay) g_delim to:g_strBuffer
-    format "%lightningRadius %%" strIndent1 (nx_fprints node.lightningRadius) g_delim to:g_strBuffer
-    format "%lightningScale %%" strIndent1 (nx_fprints node.lightningScale) g_delim to:g_strBuffer
-    format "%lightningSubDiv %%" strIndent1 (nx_fprints node.lightningSubDiv) g_delim to:g_strBuffer
-    format "%lightningzigzag %%" strIndent1 (nx_fprints node.lightningzigzag) g_delim to:g_strBuffer
-    format "%drag %%" strIndent1 (nx_fprints node.drag) g_delim to:g_strBuffer
-    format "%grav %%" strIndent1 (nx_fprints node.grav) g_delim to:g_strBuffer
-    format "%p2p_bezier2 %%" strIndent1 (nx_fprints node.p2p_bezier2) g_delim to:g_strBuffer
-    format "%p2p_bezier3 %%" strIndent1 (nx_fprints node.p2p_bezier3) g_delim to:g_strBuffer
-    format "%numcontrolpts %%" strIndent1 (nx_fprints node.numcontrolpts) g_delim to:g_strBuffer
-    format "%controlptradius %%" strIndent1 (nx_fprints node.controlptradius) g_delim to:g_strBuffer
-    format "%controlptdelay %%" strIndent1 (nx_fprints node.controlptdelay) g_delim to:g_strBuffer
-	nx_FlushBuffer()
-	
-	/*
-	for prop in (getpropnames node) do
-	(
-    	-- We will need to perform some filtering on what
-    	-- properties we want to output
-     	if (findItem invalidProps (nx_lowercase (prop as string))) == 0 then
-       	(
-		  	propStr = prop as string
-		  	propVal = (getproperty node prop)
-		  	if (getproperty node prop) != undefined then
-		  	(
-			  	-- special case processing required
-			  	case of
-			  	(
-				  	((propStr == "spread") or (propStr == "deadspace")):
-				  	(
-					  	format "%% %%" strIndent1 propStr (nx_fprints (degtorad propVal)) g_delim to:g_strBuffer
-				  	)
-
-				  	(propStr == "chunkName"):
-				  	(
-					  	-- we only put out chunkName if it is not a "NULL" value
-					  	if propVal != "NULL" then (
-						  	format "%% %%" strIndent1 propStr (nx_fprints propVal) g_delim to:g_strBuffer
-					  	)
-				  	)
-
-				  	default: format "%% %%" strIndent1 propStr (nx_fprints propVal) g_delim to:g_strBuffer
-			  	)
-			)
-			else
-			(
-				format "%#% %%" strIndent1 propStr (nx_fprints propVal) g_delim to:g_strBuffer
-	        )
-			nx_FlushBuffer()
-	    )
-	)
-	*/
 	if DEBUG then format "#do_emitter:: End%" g_delim to:g_strBuffer
 )
 
