@@ -69,59 +69,20 @@ fn isdescendantof oCheck oAncestor =
 -----------------------------------
 -- The Euler Filter              --
 -----------------------------------
-fn nx_eulerFilter curEul prevEul =
+fn nx_eulerFilter curQuat prevQuat =
 (
-	if prevEul == undefined then return curEul
+	if prevQuat == undefined then return curQuat
 	
-	local copyEul = copy curEul
+	local diffAA = (curQuat * (inverse prevQuat)) as AngleAxis
+	local curAA = curQuat as AngleAxis
 	
-	--/*
-	while abs (copyEul.x - prevEul.x) > radtodeg pi do 
+	if abs (diffAA.angle) > 180.0 then
 	(
-		if copyEul.x <= prevEul.x then copyEul.x += 2 * radtodeg pi
-		else copyEul.x -= 2 * radtodeg pi
+		if diffAA.angle == 0.0 then curAA.angle += 360.0
+		else curAA.angle += (curAA.angle / abs (curAA.angle)) * -360.0
 	)
-	while abs (copyEul.y - prevEul.y) > radtodeg pi do 
-	(
-		if copyEul.y <= prevEul.y then copyEul.y += 2 * radtodeg pi
-		else copyEul.y -= 2 * radtodeg pi
-	)
-	while abs (copyEul.z - prevEul.z) > radtodeg pi do 
-	(
-		if copyEul.z <= prevEul.z then copyEul.z += 2 * radtodeg pi
-		else copyEul.z -= 2 * radtodeg pi
-	)
-	--*/
 	
-	local flipEul = copy copyEul
-	flipEul.x += radtodeg pi
-	flipEul.y *= -1.0
-	flipEul.y += radtodeg pi
-	flipEul.z += radtodeg pi
-	
-	--/*
-	while abs (flipEul.x - prevEul.x) > radtodeg pi do
-	(
-		if flipEul.x <= prevEul.x then flipEul.x += 2 * radtodeg pi
-		else flipEul.x -= 2 * radtodeg pi
-	)
-	while abs (flipEul.y - prevEul.y) > radtodeg pi do 
-	(
-		if flipEul.y <= prevEul.y then flipEul.y += 2 * radtodeg pi
-		else flipEul.y -= 2 * radtodeg pi
-	)
-	while abs (flipEul.z - prevEul.z) > radtodeg pi do 
-	(
-		if flipEul.z <= prevEul.z then flipEul.z += 2 * radtodeg pi
-		else flipEul.z -= 2 * radtodeg pi
-	)
-	--*/
-	
-	if abs (copyEul.x - prevEul.x) + abs (copyEul.x - prevEul.x) + abs (copyEul.x - prevEul.x) >
-	   abs (flipEul.x - prevEul.x) + abs (flipEul.x - prevEul.x) + abs (flipEul.x - prevEul.x) then 
-		return flipEul
-	else 
-		return copyEul
+	return curAA as quat
 )
 
 -------------------------------
@@ -2663,6 +2624,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                 local newkey  -- bead-v: defined here so that the last key is saved after the while is done
 
+												/* bead-v: putting this into the while loop so that we may put the value of the first key as the initial key, not the zeroPos value
                                                 if bDoAnimation and bKeysPresent then
                                                 (
                                                     -- Make sure we have the 0th key down in case we do have keys
@@ -2671,6 +2633,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     newkey.inTangentType = #linear
                                                     newkey.outTangentType = #linear
                                                 )
+												*/
+												local bInitial = false
 
                                                 while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
 
@@ -2689,6 +2653,27 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     if DEBUG then format "line:% keytime:%   p3:% in:% out:%\r\n" lineNum keytime p3 p3in p3out
 
                                                     if bDoAnimation and bKeysPresent then (
+														if not bInitial then
+														(
+															newkey = addnewkey objAnimTemp.pos.controller (firstFrame - 1)
+															newkey.value = p3
+															if(bBezier) then (
+																newkey.inTangentType = #custom
+																newkey.outTangentType = #custom
+																newkey.x_locked = false
+																newkey.y_locked = false
+																newkey.z_locked = false
+																newkey.inTangent = p3in
+																newkey.outTangent = p3out
+															)
+															else(
+																newkey.inTangentType = #linear
+																newkey.outTangentType = #linear
+															)
+															
+															bInitial = true
+														)
+														
                                                         newkey = addnewkey objAnimTemp.pos.controller keytime
                                                         newkey.value = p3
                                                         if(bBezier) then (
@@ -2751,7 +2736,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                             local keyCount = undefined
                                             if (tok.PeekToken() != undefined) then keyCount = tok.ReadInteger()
 
-                                            in coordsys parent(
+                                            in coordsys parent
+											(
                                                 /*
                                                 -- first, create the default value at time 0 if controller has no keys
                                                 if (numKeys objController == 0) then
@@ -2767,17 +2753,19 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 if ((tok.PeekToken() != "endlist") or (keyCount != 0)) then bKeysPresent = true
 
                                                 local newkey  -- bead-v: defined here so that the last key is saved after the while is done
-												local eulPrev, eulCurr
+												local qPrev, qCurr
+												qPrev = zeroRot
 
                                                 if bDoAnimation and bKeysPresent then
                                                 (
                                                     -- Make sure we have the 0th key down in case we do have keys
-                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 2)
+													--with animate on at time (firstFrame - 1) objAnimTemp.rotation = zeroRot
+                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
                                                     newkey.value = zeroRot
 													
                                                     -- Also make sure that there is a 0 0 0 0 orientation key on the first frame.
-                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
-                                                    newkey.value = (quat 0.0 [0.0, 0.0, 0.0])
+                                                    --newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
+                                                    --newkey.value = (quat 0.0 [0.0, 0.0, 0.0])
                                                 )
 
                                                 while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
@@ -2786,16 +2774,14 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                     axis = tok.ReadPoint3()
                                                     angle = RadToDeg (tok.ReadFloat())
-                                                    local objRot = normalize (quat angle axis)
+                                                    local objRot = quat angle axis
 													
                                                     if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRot
 													
 													-- The Euler Filter
-													/*
-													eulCurr = nx_eulerFilter ((AngleAxis angle axis) as EulerAngles) eulPrev
-													eulPrev = eulCurr
-													objRot = eulCurr as quat
-													*/
+													qCurr = nx_eulerFilter objRot qPrev
+													qPrev = qCurr
+													objRot = qCurr
 
                                                     --local existingPosKey = getKeyIndex objAnimTemp.pos.controller keytime
                                                     --local existingPos
@@ -2803,11 +2789,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                     if bDoAnimation then (
                                                         --with animate on at time keytime objAnimTemp.rotation = objRot
-                                                        --with animate on (
-                                                            newkey = addnewkey objAnimTemp.rotation.controller keytime
-                                                            newkey.value = objRot
-                                                            --newkey.value = (objRot) / (at time 0 objAnimTemp.rotation)
-                                                        --)
+                                                        newkey = addnewkey objAnimTemp.rotation.controller keytime
+                                                        newkey.value = objRot
                                                     )
 
 													/*
@@ -2835,6 +2818,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 )
 
                                                 if bDoAnimation and bKeysPresent then (
+													--with animate on at time (lastFrame + 1) objAnimTemp.rotation = qPrev
+													--with animate on at time (lastFrame + 2) objAnimTemp.rotation = zeroRot
 													local lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 1)
 													lastkey.value = newkey.value
 													lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 2)
@@ -3003,7 +2988,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 --------------------------------------------------------------------------------
 -- Import Layout file
 --------------------------------------------------------------------------------
-fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false doanims:true =
+fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false doanims:true suffix:"" =
 (
     local currentPath = getFilenamePath pFile
 
@@ -3078,7 +3063,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         if(oNode == undefined and withmodels) then
                         (
                             -- couldnt find node, try importing
-                            local sFile = currentPath+sNode+".mdl"
+                            local sFile = currentPath+sNode+suffix+".mdl"
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3129,7 +3114,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         if(oNode == undefined and withmodels) then
                         (
                             -- couldnt find node, try importing
-                            local sFile = currentPath+sNode+".mdl"
+                            local sFile = currentPath+sNode+suffix+".mdl"
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3178,7 +3163,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         if(oNode == undefined and withmodels) then
                         (
                             -- couldnt find node, try importing
-                            local sFile = currentPath+sNode+".mdl"
+                            local sFile = currentPath+sNode+suffix+".mdl"
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3310,6 +3295,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
 					local sRoom = idToken
 					local room = (for obj in $helpers where (nx_lowercase obj.name) == (nx_lowercase sRoom) and iskindof obj odysseybase and obj.layouttype == 2 collect obj)[1]
 					
+					--messagebox sRoom
 					-- clear existing list, no turning back after this
 					if room != undefined then room.visrooms = #()
 					
@@ -3318,7 +3304,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                     if (tok.PeekToken() != undefined) then nCount = tok.ReadInteger()
 
                     -- Go to first row
-                    tok.SetString (getNextNonBlankLine mdlStream)
+                    if nCount > 0 then tok.SetString (getNextNonBlankLine mdlStream)
 
                     while (tok.PeekToken() != "endlist" and nCount != 0) do
                     (
@@ -3326,6 +3312,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
 
                         ---- DO STUFF
 						local sVisible = tok.ReadToken()
+						--messagebox ("Visible: "+sVisible)
 						local visible = (for obj in $helpers where (nx_lowercase obj.name) == (nx_lowercase sVisible) and iskindof obj odysseybase and obj.layouttype == 2 collect obj)[1]
 						if room != undefined and visible != undefined then append room.visrooms (nx_lowercase sVisible)
                         -- DONE WITH STUFF

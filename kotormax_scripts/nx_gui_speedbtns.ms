@@ -71,8 +71,8 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
 (
     button btn_trimesh "To Editable Mesh"  width:144 height:18 align:#center toolTip:"Convert object into an editable mesh, preserving modifiers."
     --button btn_bumpmaterial "Add TXI Properties"  width:144 height:18 align:#center toolTip:"Adds TXI Properties to the materials used by the objects in selection."
-    button btn_shadowchecker "Check Shadows" width:144 height:18 align:#center toolTip:"Check shadow validity of all selected objects."
-    button btn_tidy_materials "Rationalise Materials" width:144 height:18 align:#center toolTip:"Rationalise the materials in the scene"
+    --button btn_shadowchecker "Check Shadows" width:144 height:18 align:#center toolTip:"Check shadow validity of all selected objects."
+    --button btn_tidy_materials "Rationalise Materials" width:144 height:18 align:#center toolTip:"Rationalise the materials in the scene"
     button btn_tvertdisplace "TVert Displacer" width:144 height:18 align:#center toolTip:"Scale/Move tverts on a material that has been resized"
     button btn_randomisecolor "Random Wirecolor" width:144 height:18 align:#center toolTip:"Randomise the wirecolor of all selected objects"
     button btn_resetxform "ResetXForm" width:70 height:18 toolTip:"Auto unlinks selection, reset xforms the editable meshes and relinks. Pivots can be preserved or not." across:2
@@ -81,7 +81,7 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
     button btn_copyreset "Reset" width:44 height:18 align:#right toolTip:"Clear copy link buffer"
     button btn_desparkle "\"Desparkle\" Model" width:144 height:18 align:#center toolTip:"Desparkle by rounding all verts to nearest cm"
     button btn_modelscaler "Scale Wizard" width:144 height:18 align:#center
-    button btn_chilliskinner "Chilli Skinner" width:144 height:18 align:#center
+    --button btn_chilliskinner "Chilli Skinner" width:144 height:18 align:#center
 
     on btn_trimesh pressed do undo on
     (
@@ -113,7 +113,7 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
 		)
 	)
 	
-    on btn_chilliskinner pressed do ( try (filein (scriptsPath + "CSv3.0.2/CSv3-0-2.ms")) catch() )
+    --on btn_chilliskinner pressed do ( try (filein (scriptsPath + "CSv3.0.2/CSv3-0-2.ms")) catch() )
 
     on btn_modelscaler pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_scalewiz.ms")) catch() )
 
@@ -479,7 +479,8 @@ rollout nx_util5 "Texture Tools" width:162 height:68
 
 rollout nx_prefs "Preferences" width:162 height:68
 (
-    checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
+    checkbutton btn_rollup "Float Speedbar" width:144 height:14 offset:[0,-5] align:#center checked:false
+    --checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
     checkbox chk_usepointer "Use Base Pointers" checked:(nx_itob(g_basepointer))
 	checkbox chk_exportwok "Export WOK File" checked:(nx_itob (g_exportwok))
     group "Sanity Check Options"
@@ -501,11 +502,13 @@ rollout nx_prefs "Preferences" width:162 height:68
         checkbox box_AabbCheck "Aabb: 1 per Model" checked:runAabbCheck
     )
 
+	/*
     on chk_autodock changed state do
     (
 		-- Array contains the section, attrib, value, file
 		nx_setinivalue #(#("init", "dock", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
     )
+	*/
     on chk_usepointer changed state do
     (
 		-- Array contains the section, attrib, value, file
@@ -608,6 +611,47 @@ rollout nx_prefs "Preferences" width:162 height:68
 		saveSanity()
 	)
 
+    -- Deal with float/dock feature
+    on btn_rollup changed val do
+    (
+        if val then
+        (
+            try (
+                cui.FloatDialogBar kotormax_handle
+                cui.UnRegisterDialogBar kotormax_handle
+                --kotormax_handle.size = [192,85]
+                max views redraw
+            ) catch ()
+        ) else
+        (
+            try (
+                kotormax_handle.size = [192,635]
+                cui.RegisterDialogBar kotormax_handle \
+                    maxSize:[-1,-1] \
+                    style:#(#cui_dock_vert, #cui_floatable, #cui_handles)
+                cui.DockDialogBar kotormax_handle #cui_dock_left
+            ) catch ()
+        )
+		nx_setinivalue #(#("init", "dock", (nx_btoi (not val)) as string, (g_kotormaxPath + "kotormax.ini")))
+    )
+	    
+	-- old speed bar code
+    on nx_prefs open do
+    (
+        -- correctly set the floating button state
+        try (
+            tst_state = cui.getDockState kotormax_handle
+            -- is docked
+            btn_rollup.checked = false
+        ) catch
+        (
+            -- not docked
+            btn_rollup.checked = true
+        )
+        if(gNX_dock == 0) then btn_rollup.checked = true
+        else btn_rollup.checked = false
+    )
+
 /*
     label lbl_wip "This is WIP"
 
@@ -632,7 +676,6 @@ rollout nx_util1 "General Utils" width:162 height:68
     local plugin_scripts
 
     -- speedbar #1
-    checkbutton btn_rollup "Float Speedbar" width:144 height:14 offset:[0,-5] align:#center checked:false
     button btn_sel_parent "Parent" width:68 height:18 align:#left across:2 toolTip:"Select Parent"
     button btn_sel_child "Children" width:68 height:18 align:#right toolTip:"Select Children"
     button btn_makeintodummy "To Dummy" width:68 height:18 align:#left across:2 tooltop:"Make selected objects into Dummy helpers"
@@ -697,53 +740,6 @@ rollout nx_util1 "General Utils" width:162 height:68
             append plugin_scripts g_plugins[i+1]
         )
         dpl_prefabs.items = temp
-
-        -- correctly set the floating button state
-        try (
-            tst_state = cui.getDockState kotormax_handle
-            -- is docked
-            btn_rollup.checked = false
-        ) catch
-        (
-            -- not docked
-            btn_rollup.checked = true
-        )
-        if(gNX_dock == 0) then btn_rollup.checked = true
-        else btn_rollup.checked = false
-    )
-
-    on nx_util1 moved val do
-    (
-        -- store the current location of the KOTORmax Speedbar
-		nx_setinivalue #(#("init", "position", (val as string), (g_kotormaxPath + "kotormax.ini")))
-		/*
-        if g_ismax then (
-            setINISetting (scriptsPath+"nxlocalprefs.ini") "position" "kotormax" (val as string)
-        )
-		*/
-    )
-
-    -- Deal with float/dock feature
-    on btn_rollup changed val do
-    (
-        if val then
-        (
-            try (
-                cui.FloatDialogBar kotormax_handle
-                cui.UnRegisterDialogBar kotormax_handle
-                --kotormax_handle.size = [192,85]
-                max views redraw
-            ) catch ()
-        ) else
-        (
-            try (
-                kotormax_handle.size = [192,635]
-                cui.RegisterDialogBar kotormax_handle \
-                    maxSize:[-1,-1] \
-                    style:#(#cui_dock_vert, #cui_floatable, #cui_handles)
-                cui.DockDialogBar kotormax_handle #cui_dock_left
-            ) catch ()
-        )
     )
 
     -- select parent

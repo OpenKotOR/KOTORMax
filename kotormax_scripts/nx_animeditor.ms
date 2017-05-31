@@ -311,9 +311,10 @@ rollout nx_animeditor "Animation Editor"
 
 	on lst_anims doubleClicked val do
 	(
+        stopAnimation()
     	if nodesel != undefined then
     	(
-            stopAnimation()
+            --stopAnimation()
             lst_anims.selection = val
             ZoomToAnim()
             LoadSelectedAnimation()

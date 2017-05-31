@@ -302,10 +302,10 @@ fn nx_make_floater =
 	kotormax_handle = newRolloutFloater "KOTORmax" 200 600 0 100 -- 192 600 0 100
 	addRollout nx_util0			kotormax_handle rolledUp:true
 	addRollout nx_util1			kotormax_handle rolledUp:true
-	addRollout nx_util2			kotormax_handle rolledUp:true
+	--addRollout nx_util2			kotormax_handle rolledUp:true
 	addRollout nx_util3			kotormax_handle rolledUp:true
 	addRollout nx_util4			kotormax_handle rolledUp:true
-	addRollout nx_util5			kotormax_handle rolledUp:true
+	--addRollout nx_util5			kotormax_handle rolledUp:true
 	addRollout nx_util6			kotormax_handle rolledUp:true
 	addRollout ImportRollout    kotormax_handle rolledUp:true
 	addRollout nx_prefs			kotormax_handle rolledUp:true
