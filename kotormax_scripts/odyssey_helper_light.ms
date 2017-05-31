@@ -36,225 +36,11 @@
 format "load: odyssey_helper_light.ms\r\n"
 nx_progressPlus()
 
-/*
-plugin light auroralight
-name:"AuroraLight"
-classID:#(0x91e8a664, 0x39b92e97)
-version:2
-extends:omniLight
-replaceUI:true
-invisible:true
-(
-	parameters main rollout:params
-	(
-		rgb 			type:#color     animatable:true default:(color 255 255 255) ui:colorpicker_color
-		radius			type:#float     animatable:true ui:spn_radius
-		multiplier		type:#float 	animatable:true default:1.0 ui:spn_multiplier
-    -- bead-v modification: add kotor props
-		shadowradius         type:#float animatable:true default:0.0
-		verticaldisplacement type:#float animatable:true default:0.0
-    -- end bead-v modification
-		lightpriority	type:#integer	animatable:false default:5 ui:spn_lightpriority
-		nDynamicType	type:#integer	animatable:false ui:box_isdynamic
-
-		ambientOnly 	type:#integer	animatable:false ui:box_ambientOnly
-		affectDynamic	type:#integer	animatable:false ui:box_affectDynamic
-		Shadow			type:#integer	animatable:false ui:box_Shadow
-		lensflares		type:#integer	animatable:false default:0
-		fadingLight 	type:#integer	animatable:false ui:box_fadingLight
-		negativeLight	type:#integer	animatable:false ui:box_negative
-	)
-	-- from bioware. Modified by Joco
-	parameters flares rollout:lensflareUI
-	(
-		flareRadius 	type:#float default:5000 ui:spn_flareRadius
-		-- lens_flares is a list of flares with in which the string encodes the
-		-- flare information. This makes it realatively easy to see the total number
-		-- of flares and to delete those you don't want
-		-- The flare data is held in the order:
-		-- texture, flare size, position, colour shift
-		lens_flares 	type:#stringtab tabsizevariable:true
-	)
-
-	rollout params "MDL Light Parameters" width:160 height:337
-	(
-
-		spinner spn_radius "Radius (cm):" pos:[43,10] width:106 height:16 range:[0,10000000000,500]
-		spinner spn_multiplier "Multiplier:" pos:[53,30] width:96 height:16 fieldwidth:40
-		spinner spn_lightpriority "Priority:" pos:[63,51] width:86 height:16 range:[1,5,5] type:#integer scale:1 fieldwidth:40
-
-		GroupBox grp3 "Intensity\Colour" pos:[4,92] width:154 height:105
-		colorPicker colorpicker_color "" pos:[7,113] width:44 height:50 across:2
-		spinner spn_red "Red:" pos:[74,106] width:75 height:16 range:[0,255,255] fieldwidth:40
-		spinner spn_green "Green:" pos:[65,126] width:84 height:16 range:[0,255,255] fieldwidth:40
-		spinner spn_blue "Blue:" pos:[73,147] width:76 height:16 range:[0,255,255] fieldwidth:40
-
-		checkbox box_ambientOnly "Ambient (off=Diffuse)" pos:[13,238] width:126 height:15
-		checkbox box_affectDynamic "Affects Dynamic Objects" pos:[13,288] width:140 height:15
-		checkbox box_shadow "Shadows" pos:[13,309] width:63 height:15
-		checkbox box_fadingLight "Fading Light" pos:[73,71] width:80 height:15
-		checkbox box_negative "Negative Light" pos:[13,175] width:97 height:15
-		label lbl1 "Surface Type:" pos:[13,222] width:108 height:14
-		checkbox box_isdynamic "Is Dynamic Light" pos:[13,268] width:106 height:15
-		on colorpicker_color changed col do
-		(
-			spn_red.value = col.r
-			spn_green.value = col.g
-			spn_blue.value = col.b
-			--delegate.color = col
-		)
-		on spn_red changed val do
-		(
-			colorpicker_color.color.r = val
-		)
-		on spn_green changed val do
-		(
-			colorpicker_color.color.g = val
-		)
-		on spn_blue changed val do
-		(
-			colorpicker_color.color.b = val
-		)
-
-		on params open do
-		(
-			spn_red.value = rgb.r
-			spn_green.value = rgb.g
-			spn_blue.value = rgb.b
-			--colorpicker_color.color = rgb
-		)
-	)
-
-	-- Originally from Bioware. Modified by Joco
-	rollout lensflareUI "Lens Flares" rolledUp:true (
-	-- This rollout is kinda gross. I needed some way of storing individual parameters for each separate flare, the
-	-- total number of which could be increased/decreased on the fly.  As such, tying variables to UI objects
-	-- wasn't feasible, and required all sorts of update checks.
-
-
-		--spinner spn_lensflares "Number of flares:" type:#integer range:[0,25,0] fieldWidth:30
-		spinner spn_flareRadius "Flare Radius:" type:#integer range:[0,10000,5000] enabled:true align:#center
-		group "Flare Parameters" (
-			listbox lst_flares "Flares" height:5
-			button btn_add "Add" height:14 width:45 align:#left across:3
-			button btn_delete "Delete" height:14 width:45 align:#center
-			button btn_update "Update" height:14 width:45 align:#right
-
-			edittext et_texname "Texture" text:"" enabled:true
-			button bt_gettexfile "Get Texture" enabled:true
-			spinner spn_size "Size" type:#float range:[0.0,10.0,0.0] enabled:true
-			spinner spn_pos "Position" type:#float range:[-10.0,10.0,0.0] enabled:true
-			label posDescription "Camera Position" enabled:true
-			label colourshift "Colour Shift:" enabled:true
-			spinner spn_r "R" type:#float range:[-1.0,1.0,0.0] enabled:true align:#center
-			spinner spn_g "G" type:#float range:[-1.0,1.0,0.0] enabled:true align:#center
-			spinner spn_b "B"  type:#float range:[-1.0,1.0,0.0] enabled:true align:#center
-		)
-
-		fn updateflarelist =
-		(
-			local tmpList = #()
-			for f in lens_flares do (
-				join tmpList #(f)
-			)
-			if (nx_strclassof(selection[1]) == "auroralight") then
-				selection[1].lensflareUI.lst_flares.items = tmpList
-		)
-
-		on lensflareUI open do (
-			updateflarelist()
-			lst_flares.selection = 0
-		)
-
-		on lst_flares selected selindex do
-		(
-			local tokens = filterString (lens_flares[selindex]) " "
-			et_texname.text = tokens[1]
-			spn_size.value = tokens[2] as float
-			spn_pos.value = tokens[3] as float
-			spn_r.value = tokens[4] as float
-			spn_g.value = tokens[5] as float
-			spn_b.value = tokens[6] as float
-
-			-- update the posDesc text
-			local posVal = spn_pos.value
-			if ( (posVal > -0.05) and (posVal < 0.05)) then
-				posDescription.text = "Camera Position"
-			else if ( (posVal > 0.95) and (posVal < 1.05) ) then
-				posDescription.text = "Light Position"
-			else posDescription.text = " "
-		)
-
-		on btn_add pressed do
-		(
-			local addStr = et_texname.text+" "+ \
-						(spn_size.value as string)+" "+ \
-						(spn_pos.value as string)+" "+ \
-						(spn_r.value as string)+" "+ \
-						(spn_g.value as string)+" "+ \
-						(spn_b.value as string)
-			append lens_flares addStr
-			updateflarelist()
-		)
-
-		on btn_delete pressed do
-		(
-			local selIndex = lst_flares.selection
-			if selIndex != 0 then (
-				deleteItem lens_flares selIndex
-			)
-			updateflarelist()
-		)
-
-		on btn_update pressed do
-		(
-			local selIndex = lst_flares.selection
-			if selIndex != 0 then (
-				local addStr = et_texname.text+" "+ \
-							(spn_size.value as string)+" "+ \
-							(spn_pos.value as string)+" "+ \
-							(spn_r.value as string)+" "+ \
-							(spn_g.value as string)+" "+ \
-							(spn_b.value as string)
-				lens_flares[selIndex] = addStr
-			)
-			updateflarelist()
-		)
-
-		on bt_gettexfile pressed do (
-			f = getFilenameFile (getOpenFileName "Lens Flare Texture")
-			et_texname.text = f
-		)
-		on spn_pos changed arg do (
-			-- By pushing the little arrows on the spinner enough times, 0.0 no longer equals 0.0 even though
-			-- 0.0 is displayed. 0.0 eventually turns into 0.00000001 or something equally intelligent.
-			-- This necessitates the following tests for 0.0 and 1.0.....
-
-			if ( (arg > -0.05) and (arg < 0.05)) then
-				posDescription.text = "Camera Position"
-			else if ( (arg > 0.95) and (arg < 1.05) ) then
-				posDescription.text = "Light Position"
-			else posDescription.text = " "
-		)
-
-	) -- End "Lens Flares" rollout
-)
-*/
-
-
-
-
-
-
-
-/*
-	New light based on dummy
-*/
-plugin helper odysseylight
+plugin light odysseylight
 name:"OdysseyLight"
 classID:#(0x678e80c2, 0xb6c98009)
 version:1
-extends:dummy
+extends:omniLight
 replaceUI:true
 invisible:true
 (
@@ -278,6 +64,28 @@ invisible:true
 		negativeLight	type:#integer	animatable:false ui:box_negative
 
 		Preset_Sel		type:#integer	animatable:false default:1 --ui:rdo_mainlights
+		
+		on rgb set val do
+		(
+			delegate.rgb = val
+		)
+		
+		on multiplier set val do
+		(
+			delegate.multiplier = val
+		)
+		
+		on Shadow set val do
+		(
+			if val == 0 then delegate.castShadows = false
+			else delegate.castShadows = true
+		)
+		
+		on ambientOnly set val do
+		(
+			if val == 0 then delegate.ambientOnly = false
+			else delegate.ambientOnly = true
+		)
 	)
 	-- from bioware. Modified by Joco
 	parameters flares rollout:lensflareUI
@@ -473,8 +281,8 @@ invisible:true
 fn createOdysseyLight position =
 (
     local oObject = odysseylight pos:position
-    oObject.delegate.boxsize = [5,5,5]
-    oObject.wirecolor = [150, 150, 0]
+    --oObject.delegate.boxsize = [5,5,5]
+    --oObject.wirecolor = [150, 150, 0]
     return oObject
 )
 

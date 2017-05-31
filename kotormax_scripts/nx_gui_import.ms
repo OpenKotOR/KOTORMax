@@ -197,7 +197,7 @@ rollout ImportRollout "MDL Loading" width:162 height:250
 (
 	Group "Filename"
 	(
-		edittext import_filename_edit "" width:128 height:16
+		edittext import_filename_edit "" height:16 --width:128
 		button import_browse_button "Browse" width:70 height:24
 	)
 	Group "Options"
@@ -262,6 +262,7 @@ rollout nx_util6 "Area Tools" width:162 height:68
         checkbox chk_withvis "With VIS file" checked:true
         checkbox chk_withmodels "With Models" checked:false
         checkbox chk_withanims "With Anims" checked:true enabled:false offset:[15,0]
+        edittext edit_suffix "Suffix" enabled:false offset:[15,0] width:120
     )
 
     -- ensure only active if running max version of kotormax
@@ -276,7 +277,11 @@ rollout nx_util6 "Area Tools" width:162 height:68
     -- actions
     on btn_orderrooms pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_orderrooms.ms")) catch() )
     on btn_editvis pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_editvis.ms")) catch() )
-	on chk_withmodels changed state do chk_withanims.enabled = state
+	on chk_withmodels changed state do
+	(
+		chk_withanims.enabled = state
+		edit_suffix.enabled = state
+	)
 
     on btn_minimap pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_minimap_maker.ms")) catch() )
 
@@ -284,7 +289,12 @@ rollout nx_util6 "Area Tools" width:162 height:68
 	(
 	    local filename = getOpenFileName caption:"Import lyt" types:"Odyssey Layout (*.lyt)|*.lyt|"
 	    if (filename != undefined) then
-			ImportOdysseyLayout filename showprogress:true withvis:chk_withvis.checked withmodels:chk_withmodels.checked doanims:chk_withanims.checked
+			ImportOdysseyLayout filename \
+								showprogress:true \
+								withvis:chk_withvis.checked \
+								withmodels:chk_withmodels.checked \
+								doanims:chk_withanims.checked \
+								suffix:edit_suffix.text
 			
 	)
 
@@ -342,7 +352,11 @@ rollout nx_util6 "Area Tools" width:162 height:68
 			if g_ismax then
 				g_strBuffer = createFile filename
 
-			ExportOdysseyLayout (getFilenameFile filename) Rooms Tracks Obstacles Doorhooks showprogress:true withvis:chk_withvis.checked withmodels:chk_withmodels.checked doanims:chk_withanims.checked
+			ExportOdysseyLayout (getFilenameFile filename) Rooms Tracks Obstacles Doorhooks \ 
+								showprogress:true  \
+								withvis:chk_withvis.checked \
+								withmodels:chk_withmodels.checked \
+								doanims:chk_withanims.checked
 
 			if g_ismax then
 			(
