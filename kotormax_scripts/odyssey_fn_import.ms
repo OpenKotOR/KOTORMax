@@ -1930,7 +1930,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     -- the addMDLSkin function where it should be.
                                     -- I think its a gmax maxscript bug.
                                     addmodifier newObj (skin()) -- Add skin modifier to created obj
-                                    newObj.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
 
                                     -- Joco 24-Aug-03
                                     -- Add data to the list of Weights structures
@@ -1956,6 +1955,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 (
                                     -- Apply weight info to the skin modifer
                                     addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData model_base
+                                    (weightsList[i]).Object.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
+                                    (weightsList[i]).Object.skin.no_update = true -- bead-v: EDIT: and this.
                                 )
 							
 								-- bead-v: save collected names to base
@@ -2624,16 +2625,14 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                 local newkey  -- bead-v: defined here so that the last key is saved after the while is done
 
-												/* bead-v: putting this into the while loop so that we may put the value of the first key as the initial key, not the zeroPos value
                                                 if bDoAnimation and bKeysPresent then
                                                 (
                                                     -- Make sure we have the 0th key down in case we do have keys
-                                                    newkey = addNewKey objAnimTemp.pos.controller (firstFrame - 1)
+                                                    newkey = addNewKey objAnimTemp.pos.controller (firstFrame - 2)
                                                     newkey.value = zeroPos
                                                     newkey.inTangentType = #linear
                                                     newkey.outTangentType = #linear
                                                 )
-												*/
 												local bInitial = false
 
                                                 while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
@@ -2657,19 +2656,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 														(
 															newkey = addnewkey objAnimTemp.pos.controller (firstFrame - 1)
 															newkey.value = p3
-															if(bBezier) then (
-																newkey.inTangentType = #custom
-																newkey.outTangentType = #custom
-																newkey.x_locked = false
-																newkey.y_locked = false
-																newkey.z_locked = false
-																newkey.inTangent = p3in
-																newkey.outTangent = p3out
-															)
-															else(
-																newkey.inTangentType = #linear
-																newkey.outTangentType = #linear
-															)
+															newkey.inTangentType = #linear
+															newkey.outTangentType = #linear
 															
 															bInitial = true
 														)
@@ -2760,13 +2748,14 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 (
                                                     -- Make sure we have the 0th key down in case we do have keys
 													--with animate on at time (firstFrame - 1) objAnimTemp.rotation = zeroRot
-                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
+                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 2)
                                                     newkey.value = zeroRot
 													
                                                     -- Also make sure that there is a 0 0 0 0 orientation key on the first frame.
                                                     --newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
                                                     --newkey.value = (quat 0.0 [0.0, 0.0, 0.0])
                                                 )
+												local bInitial = false
 
                                                 while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
                                                     lineNum += 1
@@ -2788,6 +2777,14 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     --if (existingPosKey > 0) then existingPos = objAnimTemp.pos.keys[existingPosKey].value
 
                                                     if bDoAnimation then (
+														if not bInitial then
+														(
+															newkey = addnewkey objAnimTemp.rotation.controller (firstFrame - 1)
+															newkey.value = objRot
+														
+															bInitial = true
+														)
+														
                                                         --with animate on at time keytime objAnimTemp.rotation = objRot
                                                         newkey = addnewkey objAnimTemp.rotation.controller keytime
                                                         newkey.value = objRot
