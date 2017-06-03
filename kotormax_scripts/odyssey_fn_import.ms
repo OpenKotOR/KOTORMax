@@ -2215,14 +2215,18 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     if (objAnim.modifiers["OdysseyWalkmesh"] == undefined) then
                                     (
                                         -- We have an animation node obj
-                                        in coordsys parent
+                                        in coordsys parent with animate off
                                         (
 								--format "Rotation Debug 2\n"
                                             -- collect some data on objAnim in timeslider time zero
-                                            zeroPos = with animate off objAnim.pos
-                                            zeroRot = with animate off objAnim.rotation
+                                            zeroPos = objAnim.pos
+                                            zeroRot = objAnim.rotation
+											if animRoot.animations.count > 1 then zeroRot = zeroRot * -1
 								--format "Rotation Debug 2 End\n"
                                         )
+										--zeroPos = in coordsys parent objAnim.pos
+										--zeroRot = in coordsys parent objAnim.rotation
+										if objAnim.name == "pelvis" or objAnim.name == "torso" then format "pelvis: zeroRot= %\n" zeroRot
                                     )
                                 )
                             ) -- end if
@@ -2724,7 +2728,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                             local keyCount = undefined
                                             if (tok.PeekToken() != undefined) then keyCount = tok.ReadInteger()
 
-                                            in coordsys parent
+                                            in coordsys parent with animate on
 											(
                                                 /*
                                                 -- first, create the default value at time 0 if controller has no keys
@@ -2747,7 +2751,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 if bDoAnimation and bKeysPresent then
                                                 (
                                                     -- Make sure we have the 0th key down in case we do have keys
-													--with animate on at time (firstFrame - 1) objAnimTemp.rotation = zeroRot
+													--with animate on at time (firstFrame - 2) objAnimTemp.rotation = zeroRot
                                                     newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 2)
                                                     newkey.value = zeroRot
 													
@@ -2779,6 +2783,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     if bDoAnimation then (
 														if not bInitial then
 														(
+															--with animate on at time (firstFrame - 1) objAnimTemp.rotation = objRot
 															newkey = addnewkey objAnimTemp.rotation.controller (firstFrame - 1)
 															newkey.value = objRot
 														
