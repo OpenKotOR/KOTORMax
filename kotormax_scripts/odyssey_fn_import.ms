@@ -75,10 +75,13 @@ fn nx_eulerFilter curQuat prevQuat =
 	
 	local diffAA = (curQuat * (inverse prevQuat)) as AngleAxis
 	local curAA = curQuat as AngleAxis
+	local prevAA = prevQuat as AngleAxis
+	
+	--if curAA.angle == 0.0 then curAA.axis = prevAA.axis
 	
 	if abs (diffAA.angle) > 180.0 then
 	(
-		if diffAA.angle == 0.0 then curAA.angle += 360.0
+		if curAA.angle == 0.0 then curAA.angle += 360.0
 		else curAA.angle += (curAA.angle / abs (curAA.angle)) * -360.0
 	)
 	
