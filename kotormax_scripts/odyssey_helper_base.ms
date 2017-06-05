@@ -195,7 +195,13 @@ invisible:true
 	      		if bSanityCheck == 1 then
 	      		(
 	         		if g_ismax then
-	            		g_strBuffer = createFile (export_path + model_name + "." + mdlextn)
+					(
+	            		--g_strBuffer = createFile (export_path + model_name + "." + mdlextn)
+
+						local folder = getDir export_path
+						if not doesFileExist folder or not getFileAttribute folder #directory do makeDir folder
+						g_strBuffer = createFile (folder + model_name + "." + mdlextn)
+					)
 
 	         		ExportOdysseyModel node anim:doanim
 
