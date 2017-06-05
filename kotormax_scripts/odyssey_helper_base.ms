@@ -198,9 +198,8 @@ invisible:true
 					(
 	            		--g_strBuffer = createFile (export_path + model_name + "." + mdlextn)
 
-						local folder = getDir export_path
-						if not doesFileExist folder or not getFileAttribute folder #directory do makeDir folder
-						g_strBuffer = createFile (folder + model_name + "." + mdlextn)
+						if not doesFileExist export_path or not getFileAttribute export_path #directory do makeDir export_path
+						g_strBuffer = createFile (export_path + model_name + "." + mdlextn)
 					)
 
 	         		ExportOdysseyModel node anim:doanim
