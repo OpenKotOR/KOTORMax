@@ -1287,8 +1287,10 @@ fn Node_Geometry node type:"mdl" root:false =
     */
 
     -- If we have a pwk or dwk root, start writing out the .pwk/.dwk file
+	local bDoingWk = false
     if matchPattern node.name pattern:"*_pwk" and (classof node.parent as string == "odysseybase") then
     (
+		bDoingWk = true
         local filename
         filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + ".pwk" )
         if g_ismax then (
@@ -1305,6 +1307,7 @@ fn Node_Geometry node type:"mdl" root:false =
     )
     else if matchPattern node.name pattern:"*_dwk" and (classof node.parent as string == "odysseybase") then
     (
+		bDoingWk = true
         local filename
         filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + ".dwk" )
         if g_ismax then (
@@ -1426,7 +1429,7 @@ fn Node_Geometry node type:"mdl" root:false =
 	)
 
 	-- We need to close off the file processing for pwk & dwk dummy children.
-	if (node_type == "pwk_root" or node_type == "dwk_root") then
+	if bDoingWk then
     (
         if g_ismax then (
             flush g_strBuffer
@@ -1434,6 +1437,7 @@ fn Node_Geometry node type:"mdl" root:false =
             g_strBuffer = nx_pop g_FileHandles
         )
         else format "</snoopstart>%" g_delim to:g_strBuffer
+		bDoingWk = false
     )
 
     nx_FlushBuffer()
