@@ -542,7 +542,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     local quitEarly = false
     local bAnimIsThere = false
     local zeroPos
-	local nodeOrientations = #()
 
     -- Setup basis for model header
     local newModelClassification = 1
@@ -1934,10 +1933,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     (
                                         -- at time 0 newObj.scale = objScale
 								--format "Rotation Debug 7\n"
-										append nodeOrientations (newObj.name + " " + objRot.x as string + \
-																			" " + objRot.y as string + \
-																			" " + objRot.z as string + \
-																			" " + objRot.w as string )
                                         --at time 0 newObj.rotation = inverse objRot
 										nx_applyOrientationKey newObj 0 objRot
                                         at time 0 newObj.position = objPos
@@ -2000,7 +1995,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     -- Apply weight info to the skin modifer
                                     addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData model_base
                                     (weightsList[i]).Object.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
-                                    (weightsList[i]).Object.skin.no_update = true -- bead-v: EDIT: and this.
+                                    --(weightsList[i]).Object.skin.no_update = true -- bead-v: EDIT: and this.
                                 )
 							
 								-- bead-v: save collected names to base
@@ -2795,27 +2790,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 											if ((tok.PeekToken() != "endlist") or (keyCount != 0)) then bKeysPresent = true
 
 											local zeroRot = (in coordsys parent at time 0 objAnimTemp.rotation)
-											/*
-											for str in nodeOrientations do
-											(
-												local tokens = filterString str " "
-												if tokens[1] == objAnim.name then
-												(
-													zeroRot = inverse quat (tokens[2] as float) (tokens[3] as float) (tokens[4] as float) (tokens[5] as float)
-													exit
-												)
-											)
-											*/
 											local qPrev = zeroRot
 											
-											if bDoAnimation and false then
-											(
-												-- Make sure we have the 0th key down in case we do have keys
-												--if objAnim.name == "pelvis" or objAnim.name == "torso" then format "prefirstinitial %: zeroRot= %\n" objAnim.name zeroRot
-
-												nx_applyOrientationKey objAnimTemp (firstFrame - 2) zeroRot
-												nx_applyOrientationKey objAnimTemp (lastFrame + 2) zeroRot
-											)
 											local bInitial = false
 											
 											while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (

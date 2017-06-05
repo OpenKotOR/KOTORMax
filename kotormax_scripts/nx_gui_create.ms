@@ -193,12 +193,15 @@ rollout nx_util0 "Create" width:162
 
     on nx_util0 moved val do
     (
-        -- store the current location of the KOTORmax Speedbar
-		nx_setinivalue #(#("init", "position", (val as string), (g_kotormaxPath + "kotormax.ini")))
-		/*
-        if g_ismax then (
-            setINISetting (scriptsPath+"nxlocalprefs.ini") "position" "kotormax" (val as string)
-        )
-		*/
+		if gNX_dock == 0 then
+		(
+			-- store the current location of the KOTORmax Speedbar
+			nx_setinivalue #(#("init", "position", (val as string), (g_kotormaxPath + "kotormax.ini")))
+			/*
+			if g_ismax then (
+				setINISetting (scriptsPath+"nxlocalprefs.ini") "position" "kotormax" (val as string)
+			)
+			*/
+		)
     )
 )

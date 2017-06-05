@@ -633,6 +633,7 @@ rollout nx_prefs "Preferences" width:162 height:68
             ) catch ()
         )
 		nx_setinivalue #(#("init", "dock", (nx_btoi (not val)) as string, (g_kotormaxPath + "kotormax.ini")))
+		gNX_dock = (nx_btoi (not val))
     )
 	    
 	-- old speed bar code
