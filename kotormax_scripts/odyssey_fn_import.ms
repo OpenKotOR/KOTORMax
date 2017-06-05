@@ -73,19 +73,55 @@ fn nx_eulerFilter curQuat prevQuat =
 (
 	if prevQuat == undefined then return curQuat
 	
-	local diffAA = (curQuat * (inverse prevQuat)) as AngleAxis
-	local curAA = curQuat as AngleAxis
-	local prevAA = prevQuat as AngleAxis
+	local curAA = (curQuat) as AngleAxis
+	local prevAA = (prevQuat) as AngleAxis
+	local diffAA = (curAA as quat * (inverse (prevAA as quat))) as AngleAxis
 	
 	--if curAA.angle == 0.0 then curAA.axis = prevAA.axis
 	
-	if abs (diffAA.angle) > 180.0 then
+	local nTimes = 0
+	while abs (diffAA.angle) > 180.0 and nTimes < 6 do
 	(
-		if curAA.angle == 0.0 then curAA.angle += 360.0
-		else curAA.angle += (curAA.angle / abs (curAA.angle)) * -360.0
+		--if curAA.angle == 0.0 then curAA.angle += 360.0
+		--else curAA.angle += (curAA.angle / abs (curAA.angle)) * -360.0
+		nTimes += 1
+		curAA.angle += ((-1.0) ^ nTimes) * nTimes * 360.0
+		(curAA as quat * (inverse (prevAA as quat))) as AngleAxis
 	)
 	
-	return curAA as quat
+	return (curAA as quat)
+)
+
+fn ListKeys obj keyfirst keylast datatype =
+(
+	for i = keyfirst to keylast do
+	(
+		local qData = at time i in coordsys parent obj.rotation.controller.value
+		if datatype == "angleaxis" then qData = qData as angleaxis
+		else if datatype == "eulerangles" then qData = qData as eulerangles
+		local sExtra = "      "
+		if getkeyindex obj.rotation.controller i > 0 then sExtra = "[key] "
+		format "% -> %%\n" i sExtra qData
+	)
+)
+
+fn nx_applyOrientationKey obj nTime qValue =
+(
+	
+	--if in coordsys parent with animate on at time nTime (ctrl.value == qValue) then addNewKey ctrl nTime
+	--else
+	(
+		in coordsys parent with animate on at time nTime (obj.rotation.controller.value = inverse qValue)
+		--local newkey = addNewKey ctrl nTime
+		--newkey.value = qValue
+	)
+	/*
+	in coordsys local with animate on at time nTime (
+		--obj.transform = rotMatrix * (translate parentMatrix pos3)
+		obj.transform = translate(inverse((inverse qValue) as matrix3)*(obj.parent.transform.rotationpart) as matrix3) obj.transform.translationpart
+		--obj.transform = obj.position as matrix3 * (inverse qValue as matrix3)
+	)
+	/* */
 )
 
 -------------------------------
@@ -506,7 +542,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     local quitEarly = false
     local bAnimIsThere = false
     local zeroPos
-    local zeroRot
+	local nodeOrientations = #()
 
     -- Setup basis for model header
     local newModelClassification = 1
@@ -1898,7 +1934,12 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     (
                                         -- at time 0 newObj.scale = objScale
 								--format "Rotation Debug 7\n"
-                                        at time 0 newObj.rotation = objRot
+										append nodeOrientations (newObj.name + " " + objRot.x as string + \
+																			" " + objRot.y as string + \
+																			" " + objRot.z as string + \
+																			" " + objRot.w as string )
+                                        --at time 0 newObj.rotation = inverse objRot
+										nx_applyOrientationKey newObj 0 objRot
                                         at time 0 newObj.position = objPos
 								--format "Rotation Debug 7 End\n"
                                         --with animate off newObj.rotation = inverse objRot
@@ -2042,6 +2083,19 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         */
                                     )
                                 )
+								
+								-- if we have no animation yet, then we need to make an initial boundary rotation key for all objects.
+								if animRoot.animations.count == 0 then
+								(
+									for obj in $objects where isdescendantof obj animRoot and obj != animRoot do
+									(
+										local zeroRot = (in coordsys parent at time 0 obj.rotation)
+										
+										-- create boundary keys
+										nx_applyOrientationKey obj (firstFrame - 2) zeroRot
+										--nx_applyOrientationKey obj (lastFrame + 2) zeroRot
+									)
+								)
 
                                 -- Add animation data to animation root
                                 if not bAnimIsThere then (
@@ -2064,6 +2118,18 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         animRoot.animations[animRoot.animations.count]+ \
                                         " " + (lastFrame as string)
                                 )
+								/*
+								-- if we're writing out this animation, then we need to make sure that the nodes have boundary rotation keys in place. 
+								-- at this point we know both the first and last frame, so might as well do it here.
+								for obj in $objects where isdescendantof obj animRoot and obj != animRoot do
+								(
+									local zeroRot = (in coordsys parent at time 0 obj.rotation)
+									
+									-- create boundary keys
+									nx_applyOrientationKey obj (firstFrame - 2) zeroRot
+									nx_applyOrientationKey obj (lastFrame + 2) zeroRot
+								)
+								*/
                             )
                         )
                         "transtime": -- animtion length
@@ -2218,26 +2284,24 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     if (objAnim.modifiers["OdysseyWalkmesh"] == undefined) then
                                     (
                                         -- We have an animation node obj
-                                        in coordsys parent with animate off
+                                        in coordsys parent
                                         (
-								--format "Rotation Debug 2\n"
                                             -- collect some data on objAnim in timeslider time zero
-                                            zeroPos = objAnim.pos
-                                            zeroRot = objAnim.rotation
-											if animRoot.animations.count > 1 then zeroRot = zeroRot * -1
-								--format "Rotation Debug 2 End\n"
+                                            at time 0 zeroPos = objAnim.pos.controller.value
+											local zeroRot = (in coordsys parent at time 0 objAnim.rotation)
+											
+											-- create boundary keys
+											nx_applyOrientationKey objAnim (firstFrame - 2) zeroRot
+											nx_applyOrientationKey objAnim (lastFrame + 2) zeroRot
                                         )
-										--zeroPos = in coordsys parent objAnim.pos
-										--zeroRot = in coordsys parent objAnim.rotation
-										if objAnim.name == "pelvis" or objAnim.name == "torso" then format "pelvis: zeroRot= %\n" zeroRot
-                                    )
+									)
                                 )
                             ) -- end if
 
                         ) -- end 'Node' case
                         "endnode":
                         (
-                            if DEBUG then format "endnode processing START\r\n"
+							if DEBUG then format "endnode processing START\r\n"
                             if DEBUG then format "objName = % : objAnim = %\r\n" objName objAnim
                             objAnim = undefined
                             if DEBUG then format "endnode (in anim) processing END\r\n"
@@ -2296,7 +2360,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         ctrl_data = "rotation"
                                         if(objAnimTemp.rotation.controller == undefined) then objAnimTemp.rotation.controller = linear_rotation()
                                         objController = objAnimTemp.rotation.controller
-                                        defval = objAnimTemp.rotation
+                                        defval = (at time 0 objAnim.rotation.controller.value)
 								--format "Rotation Debug 3 End\n"
                                     )
 
@@ -2722,115 +2786,78 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                             )
                                         )
                                         "rotation":(
-                                            local keytime
-                                            local axis
-                                            local angle
-                                            local objRot
-                                            local originalObjRot
-
                                             local keyCount = undefined
                                             if (tok.PeekToken() != undefined) then keyCount = tok.ReadInteger()
 
-                                            in coordsys parent with animate on
+											tok.SetString (getNextNonBlankLine mdlStream)
+
+											local bKeysPresent = false
+											if ((tok.PeekToken() != "endlist") or (keyCount != 0)) then bKeysPresent = true
+
+											local zeroRot = (in coordsys parent at time 0 objAnimTemp.rotation)
+											/*
+											for str in nodeOrientations do
 											(
-                                                /*
-                                                -- first, create the default value at time 0 if controller has no keys
-                                                if (numKeys objController == 0) then
-                                                (
-                                                    local nullkey = addnewkey objController 0
-                                                    nullkey.value = defval
-                                                )
-                                                */
+												local tokens = filterString str " "
+												if tokens[1] == objAnim.name then
+												(
+													zeroRot = inverse quat (tokens[2] as float) (tokens[3] as float) (tokens[4] as float) (tokens[5] as float)
+													exit
+												)
+											)
+											*/
+											local qPrev = zeroRot
+											
+											if bDoAnimation and false then
+											(
+												-- Make sure we have the 0th key down in case we do have keys
+												--if objAnim.name == "pelvis" or objAnim.name == "torso" then format "prefirstinitial %: zeroRot= %\n" objAnim.name zeroRot
 
-                                                tok.SetString (getNextNonBlankLine mdlStream)
+												nx_applyOrientationKey objAnimTemp (firstFrame - 2) zeroRot
+												nx_applyOrientationKey objAnimTemp (lastFrame + 2) zeroRot
+											)
+											local bInitial = false
+											
+											while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
+												-- next line
+												lineNum += 1
+												local keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
-                                                local bKeysPresent = false
-                                                if ((tok.PeekToken() != "endlist") or (keyCount != 0)) then bKeysPresent = true
+												-- read data
+												local axis = tok.ReadPoint3()
+												local angle = RadToDeg (tok.ReadFloat())
+												local objRotNew = ((angleaxis angle axis) as quat)
+												
+												if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRotNew
+												
+												-- The Euler Filter
+												objRotNew = nx_eulerFilter objRotNew qPrev
 
-                                                local newkey  -- bead-v: defined here so that the last key is saved after the while is done
-												local qPrev, qCurr
-												qPrev = zeroRot
-
-                                                if bDoAnimation and bKeysPresent then
-                                                (
-                                                    -- Make sure we have the 0th key down in case we do have keys
-													--with animate on at time (firstFrame - 2) objAnimTemp.rotation = zeroRot
-                                                    newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 2)
-                                                    newkey.value = zeroRot
+												if bDoAnimation then (
+													-- check if we still need to do the initial key
+													if not bInitial then
+													(
+														nx_applyOrientationKey objAnimTemp (firstFrame - 1) objRotNew
+														bInitial = true
+													)
 													
-                                                    -- Also make sure that there is a 0 0 0 0 orientation key on the first frame.
-                                                    --newkey = addNewKey objAnimTemp.rotation.controller (firstFrame - 1)
-                                                    --newkey.value = (quat 0.0 [0.0, 0.0, 0.0])
-                                                )
-												local bInitial = false
+													nx_applyOrientationKey objAnimTemp keytime objRotNew
+												)
+												
+												qPrev = copy objRotNew
 
-                                                while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
-                                                    lineNum += 1
-                                                    keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
-
-                                                    axis = tok.ReadPoint3()
-                                                    angle = RadToDeg (tok.ReadFloat())
-                                                    local objRot = quat angle axis
-													
-                                                    if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRot
-													
-													-- The Euler Filter
-													qCurr = nx_eulerFilter objRot qPrev
-													qPrev = qCurr
-													objRot = qCurr
-
-                                                    --local existingPosKey = getKeyIndex objAnimTemp.pos.controller keytime
-                                                    --local existingPos
-                                                    --if (existingPosKey > 0) then existingPos = objAnimTemp.pos.keys[existingPosKey].value
-
-                                                    if bDoAnimation then (
-														if not bInitial then
-														(
-															--with animate on at time (firstFrame - 1) objAnimTemp.rotation = objRot
-															newkey = addnewkey objAnimTemp.rotation.controller (firstFrame - 1)
-															newkey.value = objRot
-														
-															bInitial = true
-														)
-														
-                                                        --with animate on at time keytime objAnimTemp.rotation = objRot
-                                                        newkey = addnewkey objAnimTemp.rotation.controller keytime
-                                                        newkey.value = objRot
-                                                    )
-
-													/*
-                                                    if (existingPosKey == 0) then(
-                                                        local newPosKey = getKeyIndex objAnimTemp.pos.controller keytime
-                                                        if (newPosKey != 0) then
-                                                        (
-                                                            deleteKey objAnimTemp.pos.controller newPosKey
-                                                        )
-                                                    )
-                                                    else
-                                                        objAnimTemp.pos.keys[existingPosKey].value = existingPos
-													*/
-
-
-                                                    if (keyCount != undefined) then (
-                                                        keyCount -= 1
-                                                        if keyCount > 0 then
-                                                        (
-                                                            tok.SetString (getNextNonBlankLine mdlStream)
-                                                         )
-                                                    )
-                                                    else
-                                                        tok.SetString (getNextNonBlankLine mdlStream)
-                                                )
-
-                                                if bDoAnimation and bKeysPresent then (
-													--with animate on at time (lastFrame + 1) objAnimTemp.rotation = qPrev
-													--with animate on at time (lastFrame + 2) objAnimTemp.rotation = zeroRot
-													local lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 1)
-													lastkey.value = newkey.value
-													lastkey = addNewKey objAnimTemp.rotation.controller (lastFrame + 2)
-													lastkey.value = zeroRot
-                                                )
-                                            )
+												if (keyCount != undefined) then 
+												(
+													keyCount -= 1
+													if keyCount > 0 then tok.SetString (getNextNonBlankLine mdlStream)
+												)
+												else tok.SetString (getNextNonBlankLine mdlStream)
+											)
+											
+											-- write last key
+											if bDoAnimation and bKeysPresent then (
+												nx_applyOrientationKey objAnimTemp (lastFrame + 1) qPrev
+											)											
                                         )
                                         "color":(
                                             -- first, create the default value at time 0 if controller has no keys
