@@ -185,7 +185,7 @@ fn addMDLSkin node buf mdl_base =
             boneName = tok.ReadString()
             weight = tok.ReadFloat()
 			
-			if boneName == "root" then continue
+			if matchPattern boneName pattern:"root" then continue
 
             if DEBUG then format "%SKIN PROCESSING: Finding bone in skin\r\n" strIndent4
             for i = 1 to (skinops.GetNumberBones node.skin) do
@@ -257,7 +257,7 @@ fn addMDLSkin node buf mdl_base =
         if DEBUG then format "%SKIN PROCESSING: done building up the bone and weight lists for the vertex\r\n" strIndent4
 
         -- add vertex weight data
-		if not bonelist.count > 0 and weightlist.count > 0 then skinops.SetVertexWeights (node.skin) v bonelist weightlist
+		if bonelist.count > 0 and weightlist.count > 0 then skinops.SetVertexWeights (node.skin) v bonelist weightlist
         bonelist = #()
         weightlist = #()
     )
@@ -2087,7 +2087,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 								-- if we have no animation yet, then we need to make an initial boundary rotation key for all objects.
 								if animRoot.animations.count == 0 then
 								(
-									for obj in $objects where isdescendantof obj animRoot and obj != animRoot do
+									for obj in $objects where isdescendantof obj animRoot and obj != animRoot and not matchPattern obj.name pattern:"ignore_*" do
 									(
 										local zeroRot = (in coordsys parent at time 0 obj.rotation)
 										
