@@ -184,6 +184,8 @@ fn addMDLSkin node buf mdl_base =
             b = 0   -- bone index
             boneName = tok.ReadString()
             weight = tok.ReadFloat()
+			
+			if boneName == "root" then continue
 
             if DEBUG then format "%SKIN PROCESSING: Finding bone in skin\r\n" strIndent4
             for i = 1 to (skinops.GetNumberBones node.skin) do
@@ -255,7 +257,7 @@ fn addMDLSkin node buf mdl_base =
         if DEBUG then format "%SKIN PROCESSING: done building up the bone and weight lists for the vertex\r\n" strIndent4
 
         -- add vertex weight data
-        skinops.SetVertexWeights (node.skin) v bonelist weightlist
+		if not bonelist.count > 0 and weightlist.count > 0 then skinops.SetVertexWeights (node.skin) v bonelist weightlist
         bonelist = #()
         weightlist = #()
     )
@@ -1992,10 +1994,13 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             if loadGeom then (
                                 for i = 1 to weightsList.count do
                                 (
-                                    -- Apply weight info to the skin modifer
-                                    addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData model_base
-                                    (weightsList[i]).Object.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
-                                    --(weightsList[i]).Object.skin.no_update = true -- bead-v: EDIT: and this.
+									if (weightsList[i]).Object != undefined then
+									(
+										-- Apply weight info to the skin modifer
+										addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData model_base
+										(weightsList[i]).Object.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
+										--(weightsList[i]).Object.skin.no_update = true -- bead-v: EDIT: and this.
+									)
                                 )
 							
 								-- bead-v: save collected names to base
