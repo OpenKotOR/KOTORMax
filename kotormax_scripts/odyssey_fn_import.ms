@@ -92,6 +92,15 @@ fn nx_eulerFilter curQuat prevQuat =
 	return (curAA as quat)
 )
 
+fn nx_translateRotation curQuat baseQuat1 baseQuat2 =
+(
+	-- diff * q1 = q2
+	-- diff = q2 * inverse(q1)
+	
+	local diffQuat = curQuat * inverse baseQuat1
+	return (diffQuat * baseQuat2)
+)
+
 fn ListKeys obj keyfirst keylast datatype =
 (
 	for i = keyfirst to keylast do
@@ -107,21 +116,19 @@ fn ListKeys obj keyfirst keylast datatype =
 
 fn nx_applyOrientationKey obj nTime qValue =
 (
-	
-	--if in coordsys parent with animate on at time nTime (ctrl.value == qValue) then addNewKey ctrl nTime
-	--else
+	in coordsys parent with animate on at time nTime (obj.rotation.controller.value = inverse qValue)
+)
+
+global baseRots = #()
+fn nx_getNodeBaseRot node_name =
+(
+	for entry in baseRots do
 	(
-		in coordsys parent with animate on at time nTime (obj.rotation.controller.value = inverse qValue)
-		--local newkey = addNewKey ctrl nTime
-		--newkey.value = qValue
+		local tokens = filterstring entry " "
+		if tokens[1] == node_name then
+			return quat (tokens[2] as float) (tokens[3] as float) (tokens[4] as float) (tokens[5] as float)
 	)
-	/*
-	in coordsys local with animate on at time nTime (
-		--obj.transform = rotMatrix * (translate parentMatrix pos3)
-		obj.transform = translate(inverse((inverse qValue) as matrix3)*(obj.parent.transform.rotationpart) as matrix3) obj.transform.translationpart
-		--obj.transform = obj.position as matrix3 * (inverse qValue as matrix3)
-	)
-	/* */
+	return quat 0 0 0 0
 )
 
 -------------------------------
@@ -462,10 +469,8 @@ fn ImportOdysseyWalkmesh pFile type =
 
                     -- Set orientation and position
                     in coordsys parent(
-								--format "Rotation Debug 5\n"
                         newObj.rotation = objRot
                         newObj.position = objPos
-								--format "Rotation Debug 5 End\n"
                     )
 
                 ) -- End endnode case
@@ -536,7 +541,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     local bDoAnimation = false
     local objAnim = undefined
     local animGap = 10
-    local lastFrame = insertpoint - animGap
+    local lastFrame = insertpoint -- - animGap
     local firstFrame = 0
     local lineNum = 0
     local mdl_pos = MDL_DEF
@@ -544,6 +549,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     local quitEarly = false
     local bAnimIsThere = false
     local zeroPos
+	baseRots = #() -- bead-v: reset the base rots
 
     -- Setup basis for model header
     local newModelClassification = 1
@@ -793,7 +799,9 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         (
                             local axis = tok.ReadPoint3()
                             local angle = RadToDeg (tok.ReadFloat())
-                            objRot = quat angle axis
+							if angle == 0.0 then objRot = quat 0 0 0 1
+                            else objRot = (quat angle axis)
+							append baseRots (objName + " " + objRot.x as string + " " + objRot.y as string + " " + objRot.z as string + " " + objRot.w as string)
                         )
                         "scale":
                         (
@@ -2085,15 +2093,26 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 )
 								
 								-- if we have no animation yet, then we need to make an initial boundary rotation key for all objects.
+								-- lastFrame == insertpoint at this time
 								if animRoot.animations.count == 0 then
 								(
 									for obj in $objects where isdescendantof obj animRoot and obj != animRoot and not matchPattern obj.name pattern:"ignore_*" do
 									(
-										local zeroRot = (in coordsys parent at time 0 obj.rotation)
-										
-										-- create boundary keys
-										nx_applyOrientationKey obj (firstFrame - 2) zeroRot
-										--nx_applyOrientationKey obj (lastFrame + 2) zeroRot
+										if not loadGeom then
+										(
+											-- First, apply base rotation to insert point. In case we did geometry, then this will just be overwriting what we already did above
+											nx_applyOrientationKey obj (insertpoint + 1) (nx_getNodeBaseRot obj.name)
+											local zeroRot = (in coordsys parent at time (insertpoint + 1) obj.rotation) --nx_getNodeBaseRot obj.name -- 
+											
+											-- create boundary keys
+											nx_applyOrientationKey obj (insertpoint + 2) zeroRot
+											--nx_applyOrientationKey obj (lastFrame + 2) zeroRot
+										)
+										else
+										(
+											local zeroRot = (in coordsys parent at time 0 obj.rotation) --nx_getNodeBaseRot obj.name -- 
+											nx_applyOrientationKey obj 1 zeroRot
+										)
 									)
 								)
 
@@ -2272,11 +2291,9 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                             if (objAnim != undefined and objAnim != animRoot) then
                             (
-								--format "Rotation Debug 1\n"
 								-- make sure the position and orientation controllers are bezier and linear
 								if not iskindof objAnim.pos.controller bezier_position then objAnim.pos.controller = bezier_position()
 								if not iskindof objAnim.rotation.controller linear_rotation then objAnim.rotation.controller = linear_rotation()
-								--format "Rotation Debug 1 End\n"
 								
                                 if bDoAnimation then
                                 (
@@ -2794,7 +2811,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 											local bKeysPresent = false
 											if ((tok.PeekToken() != "endlist") or (keyCount != 0)) then bKeysPresent = true
 
-											local zeroRot = (in coordsys parent at time 0 objAnimTemp.rotation)
+											local zeroRot = (in coordsys parent at time 0 objAnim.rotation)
+											local zeroRot2 = (in coordsys parent at time (insertpoint + 2) objAnim.rotation)
 											local qPrev = zeroRot
 											
 											local bInitial = false
@@ -2812,6 +2830,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 												if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRotNew
 												
 												-- The Euler Filter
+												if not loadGeom then objRotNew = nx_translateRotation objRotNew zeroRot2 zeroRot
 												objRotNew = nx_eulerFilter objRotNew qPrev
 
 												if bDoAnimation then (
@@ -2970,16 +2989,18 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 	                --
 	                -- MDL is finished being loaded. Do any mandatory post processing that is needed
 	                --
-			       if (importAnims) then
+			        if (importAnims) then
 			        (
-			            if lastFrame > 0 then (
-			                animationRange = (interval 0 lastFrame)
-			            ) else (
-			                animationRange = (interval 0 60)
-			            )
-			        ) else (
-				        lastFrame = animationRange.end
+			            if lastFrame > 0 then animationRange = (interval 0 lastFrame)
+			            else animationRange = (interval 0 60)
+						
+						for obj in $objects where isdescendantof obj animRoot and obj != animRoot and not matchPattern obj.name pattern:"ignore_*" do
+						(
+							if getkeyindex obj.rotation.controller (insertpoint + 1) > 0 then deleteKey obj.rotation.controller (getkeyindex obj.rotation.controller (insertpoint + 1))
+							if getkeyindex obj.rotation.controller (insertpoint + 2) > 0 then deleteKey obj.rotation.controller (getkeyindex obj.rotation.controller (insertpoint + 2))
+						)
 			        )
+					else lastFrame = animationRange.end
                 )
 
             ) -- end mdl_pos case statement
