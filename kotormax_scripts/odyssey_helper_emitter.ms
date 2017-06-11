@@ -100,7 +100,7 @@ invisible:true
     	    )
     	)
     	-- spawn type
-    	spawntype_sel   type:#integer animatable:false ui:radio_spawnType default:0
+    	spawntype_sel   type:#integer animatable:false ui:radio_spawnType default:1
     	spawntype   type:#integer animatable:false
     	on spawntype_sel set val do
     	(
