@@ -36,6 +36,7 @@
 \-----------------------------------------------------------------------------*/
 
 filein (g_kotormaxPath+"kotormax_scripts\\odyssey_fn_desparkle.ms")
+filein (g_kotormaxPath+"kotormax_scripts\\nx_adjustnormals.ms")
 
 
 -- Global var for holding unlnked hierarchy of selected nodes
@@ -82,6 +83,18 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
     button btn_desparkle "\"Desparkle\" Model" width:144 height:18 align:#center toolTip:"Desparkle by rounding all verts to nearest cm"
     button btn_modelscaler "Scale Wizard" width:144 height:18 align:#center
     --button btn_chilliskinner "Chilli Skinner" width:144 height:18 align:#center
+	group "Smoothing"
+	(
+		button btn_smooth "Apply Smoothing" width:144 height:18 align:#center toolTip:"This will recalculate the vertex normals in the same way they are calculated by the compilers, using smoothing groups. Warning: This is an expensive operation on larger models!"
+		checkbox chk_areaweight "Use Area Weighting" checked:true
+		checkbox chk_angleweight "Use Angle Weighting" checked:false
+	)
+	
+	on btn_smooth pressed do undo on
+	(
+		CalculateVertexNormals bArea:chk_areaweight.state bAngle:chk_angleweight.state
+		max views redraw
+	)
 
     on btn_trimesh pressed do undo on
     (
