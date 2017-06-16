@@ -714,6 +714,71 @@ rollout nx_util1 "General Utils" width:162 height:68
         dropdownlist dpl_prefabs height:10 width:130 offset:[-6,0] align:#left across:2
         button btn_prefab_do "Go" height:20 width:20 offset:[7,0] align:#right
     )
+	group "Hide / Unhide / Select"
+	(
+		radiobuttons rdo_hide labels:#("Only the following:", "All but the following:") default:1 columns:1
+		checkbox chk_dummy "Dummy"
+		checkbox chk_odybase "OdysseyBase"
+		checkbox chk_odylight "OdysseyLight"
+		checkbox chk_odyemitter "OdysseyEmitter"
+		checkbox chk_odysaber "OdysseyLightsaber"
+		checkbox chk_odywalk "OdysseyWalkmesh"
+		checkbox chk_odyflex "OdysseyFlex"
+		checkbox chk_odymesh "OdysseyTrimesh"
+		checkbox chk_skin "Skin"
+		checkbox chk_other "Other"
+		button btn_hide "Hide" across:3
+		button btn_show "Unhide" width:40
+		button btn_select "Select" width:40 offset:[-6,0]
+	)
+	
+	fn getObjectCollection =
+	(
+		local show_array = #()
+		for obj in $objects do
+		(
+			local bInclude = false
+			if (chk_dummy.state and iskindof obj.baseobject dummy) then bInclude = true
+			if not bInclude and (chk_odybase.state and (iskindof obj.baseobject odysseybase or matchPattern obj.name pattern:"ignore_basepointer")) then bInclude = true
+			if not bInclude and (chk_odylight.state and iskindof obj.baseobject odysseylight) then bInclude = true
+			if not bInclude and (chk_odyemitter.state and iskindof obj.baseobject odysseyemitter) then bInclude = true
+			if not bInclude and (chk_odysaber.state and iskindof obj.baseobject odysseylightsaber) then bInclude = true
+			if not bInclude and (chk_odywalk.state and obj.modifiers[#OdysseyWalkmesh] != undefined) then bInclude = true
+			if not bInclude and (chk_odyflex.state and obj.modifiers[#OdysseyFlex] != undefined) then bInclude = true
+			if not bInclude and (chk_odymesh.state and obj.modifiers[#OdysseyTrimesh] != undefined) then bInclude = true
+			if not bInclude and (chk_skin.state and obj.modifiers[#Skin] != undefined) then bInclude = true
+			if not bInclude and (chk_other.state and not iskindof obj.baseobject dummy and \
+								 not iskindof obj.baseobject odysseybase and \
+								 not iskindof obj.baseobject odysseylight and \
+								 not iskindof obj.baseobject odysseyemitter and \
+								 not iskindof obj.baseobject odysseylightsaber and \
+								 not obj.modifiers[#OdysseyWalkmesh] != undefined and \
+								 not obj.modifiers[#OdysseyFlex] != undefined and \
+								 not obj.modifiers[#OdysseyTrimesh] != undefined and \
+								 not obj.modifiers[#Skin] != undefined) then bInclude = true
+			if rdo_hide.state == 1 and bInclude then append show_array obj
+			else if rdo_hide.state == 2 and not bInclude then append show_array obj
+		)
+		return show_array
+	)
+	
+	on btn_show pressed do
+	(
+		local obj_array = getObjectCollection()
+		unhide obj_array
+	)
+	
+	on btn_hide pressed do
+	(
+		local obj_array = getObjectCollection()
+		hide obj_array
+	)
+	
+	on btn_select pressed do
+	(
+		local obj_array = getObjectCollection()
+		select obj_array
+	)
 
 	on btn_removepointer pressed do
 	(
