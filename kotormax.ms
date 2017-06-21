@@ -246,7 +246,7 @@ fn nx_coderefresh =
 -- Start progress for loading
 --
 progressStart "PlugIns Loading ..."
-global com_load_total = 8 -- setting progress 
+global com_load_total = 9 -- setting progress 
 global com_load = 0 -- tracking progress
 
 --------------------------------------------------------------------------------
@@ -266,10 +266,11 @@ filein (g_kotormaxPath+"kotormax_scripts/odyssey_helper_dummy.ms")    -- 1
 filein (g_kotormaxPath+"kotormax_scripts/odyssey_helper_base.ms")     -- 2
 filein (g_kotormaxPath+"kotormax_scripts/odyssey_helper_light.ms")    -- 3
 filein (g_kotormaxPath+"kotormax_scripts/odyssey_helper_emitter.ms")  -- 4
-filein (g_kotormaxPath+"kotormax_scripts/odyssey_mod_trimesh.ms")     -- 5
-filein (g_kotormaxPath+"kotormax_scripts/odyssey_mod_flex.ms")        -- 6
-filein (g_kotormaxPath+"kotormax_scripts/odyssey_mod_walkmesh.ms")    -- 7
-filein (g_kotormaxPath+"kotormax_scripts/odyssey_geom_lightsaber.ms") -- 8
+filein (g_kotormaxPath+"kotormax_scripts/odyssey_helper_reference.ms")-- 5
+filein (g_kotormaxPath+"kotormax_scripts/odyssey_mod_trimesh.ms")     -- 6
+filein (g_kotormaxPath+"kotormax_scripts/odyssey_mod_flex.ms")        -- 7
+filein (g_kotormaxPath+"kotormax_scripts/odyssey_mod_walkmesh.ms")    -- 8
+filein (g_kotormaxPath+"kotormax_scripts/odyssey_geom_lightsaber.ms") -- 9
 
 --------------------------------------------------------------------------------
 --

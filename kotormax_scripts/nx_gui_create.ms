@@ -10,8 +10,9 @@ rollout nx_util0 "Create" width:162
         checkbutton btn_odybase "Base" width:68 height:17 align:#right
         checkbutton btn_odylight "Light" width:68 height:17 align:#left across:2 offset:[0, -2]
         checkbutton btn_odyemitter "Emitter" width:68 height:17 align:#right offset:[0, -2]
-        checkbutton btn_odylightsaber "Lightsaber" width:68 height:17 align:#left across:2 offset:[0, -2]
-        label lbl_placeholder "" width:68 height:17 align:#right offset:[0, -2]
+        checkbutton btn_odyreference "Reference" width:68 height:17 align:#left across:2 offset:[0, -2]
+        checkbutton btn_odylightsaber "Lightsaber" width:68 height:17 align:#right offset:[0, -2]
+        --label lbl_placeholder "" width:68 height:17 align:#right offset:[0, -2]
     )
     group "Odyssey Modifiers"
     (
@@ -65,6 +66,22 @@ rollout nx_util0 "Create" width:162
                 if not ctrlKey then
                 (
                     stopTool create_odyemitter
+                    #stop
+                )
+            )
+        )
+    )
+    tool create_odyreference
+    (
+        on mousePoint clickNo do
+        (
+            if clickNo > 1 then
+            (
+                local oObject = createOdysseyReference gridPoint
+                select oObject
+                if not ctrlKey then
+                (
+                    stopTool create_odyreference
                     #stop
                 )
             )
@@ -131,6 +148,15 @@ rollout nx_util0 "Create" width:162
             btn_odyemitter.state = false
         )
         else stopTool create_odyemitter
+	)
+	on btn_odyreference changed state do
+	(
+        if state then
+        (
+            startTool create_odyreference
+            btn_odyreference.state = false
+        )
+        else stopTool create_odyreference
 	)
 	on btn_odylightsaber changed state do
 	(
