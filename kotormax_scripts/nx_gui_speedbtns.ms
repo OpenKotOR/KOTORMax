@@ -721,6 +721,7 @@ rollout nx_util1 "General Utils" width:162 height:68
 		checkbox chk_odybase "OdysseyBase"
 		checkbox chk_odylight "OdysseyLight"
 		checkbox chk_odyemitter "OdysseyEmitter"
+		checkbox chk_odyreference "OdysseyReference"
 		checkbox chk_odysaber "OdysseyLightsaber"
 		checkbox chk_odywalk "OdysseyWalkmesh"
 		checkbox chk_odyflex "OdysseyFlex"
@@ -742,6 +743,7 @@ rollout nx_util1 "General Utils" width:162 height:68
 			if not bInclude and (chk_odybase.state and (iskindof obj.baseobject odysseybase or matchPattern obj.name pattern:"ignore_basepointer")) then bInclude = true
 			if not bInclude and (chk_odylight.state and iskindof obj.baseobject odysseylight) then bInclude = true
 			if not bInclude and (chk_odyemitter.state and iskindof obj.baseobject odysseyemitter) then bInclude = true
+			if not bInclude and (chk_odyreference.state and iskindof obj.baseobject odysseyreference) then bInclude = true
 			if not bInclude and (chk_odysaber.state and iskindof obj.baseobject odysseylightsaber) then bInclude = true
 			if not bInclude and (chk_odywalk.state and obj.modifiers[#OdysseyWalkmesh] != undefined) then bInclude = true
 			if not bInclude and (chk_odyflex.state and obj.modifiers[#OdysseyFlex] != undefined) then bInclude = true
@@ -751,6 +753,7 @@ rollout nx_util1 "General Utils" width:162 height:68
 								 not iskindof obj.baseobject odysseybase and \
 								 not iskindof obj.baseobject odysseylight and \
 								 not iskindof obj.baseobject odysseyemitter and \
+								 not iskindof obj.baseobject odysseyreference and \
 								 not iskindof obj.baseobject odysseylightsaber and \
 								 not obj.modifiers[#OdysseyWalkmesh] != undefined and \
 								 not obj.modifiers[#OdysseyFlex] != undefined and \

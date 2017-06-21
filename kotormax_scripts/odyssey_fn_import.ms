@@ -1219,6 +1219,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "emitter_unknown_2": objEmitterUnknown2 = tok.ReadInteger()
              -- end bead-v modification
                         -- Emitter key words end
+						
+                        -- Reference key words
+                        "refmodel": objRefModel = tok.ReadString()
+                        "reattachable": objReattachable = tok.ReadInteger()
+                        -- Reference key words end
 
                         -- Light key words
                         "radius": objRadius = tok.ReadFloat()
@@ -1526,6 +1531,15 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if objP2p_bezier3!=undefined then newObj.p2p_bezier3 = objP2p_bezier3
                                         if objGrav!=undefined then newObj.grav = objGrav
                                         if objDrag!=undefined then newObj.drag = objDrag
+                                    )
+                                    
+                                    (objType == "reference"):
+                                    (
+                                        newObj = createOdysseyReference [0,0,0]
+										newObj.name = objName
+                                        --newObj.delegate.boxsize = [5,5,5]
+                                        if objRefModel!=undefined then newObj.refModel = objRefModel
+                                        if objReattachable!=undefined then newObj.reattachable = objReattachable
                                     )
 
                                     ((objType == "trimesh") or

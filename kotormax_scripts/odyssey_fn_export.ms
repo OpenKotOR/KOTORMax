@@ -72,6 +72,26 @@ fn nx_progressUpdate =
         progressUpdate (((g_nodestotal * g_animprog + g_nodeprog) * 100 ) / g_exptotal)
 )
 
+fn nx_addstringints n1 n2 =
+(
+	n1 = n1 as string
+	n2 = n2 as string
+	if n1[1] == "-" then n1 = substring n1 2 (n1.count - 1)
+	if n2[1] == "-" then n2 = substring n2 2 (n2.count - 1)
+	local nSurplus = 0
+	local sReturn = ""
+	while n1.count > 0 or n2.count > 0 do
+	(
+		local int1 = (if n1.count > 0 then n1[n1.count] as integer else 0)
+		local int2 = (if n2.count > 0 then n2[n2.count] as integer else 0)
+		local str3 = (int1 + int2 + nSurplus) as string
+		sReturn = str3[str3.count] + sReturn
+		nSurplus = (substring str3 1 (str3.count - 1)) as integer
+		if n1.count > 0 then n1 = substring n1 1 (n1.count - 1)
+		if n2.count > 0 then n2 = substring n2 1 (n2.count - 1)
+	)
+	return sReturn
+)
 --------------------------------------------------------------------------------
 -- Utility functions
 --------------------------------------------------------------------------------
@@ -188,7 +208,7 @@ fn nx_isnodetreeanimated node firstframe lastframe =
     )
     if node_type == "lightsaber" then
     (
-        if nx_getcontrollerhaskeys node.baseobject.scale.controller firstframe lastframe then return true
+        if nx_getcontrollerhaskeys node.baseobject.saberscale.controller firstframe lastframe then return true
     )
     if(node_type == "light") then
     (
@@ -641,8 +661,23 @@ function do_emitter node =
 )
 
 /*
+    This function's job should be printing out all of the reference	props
+*/
+function do_reference node =
+(
+	if DEBUG then format "#do_reference%" g_delim to:g_strBuffer
+
+	-- Refernce Header properties
+    format "%refModel %%" strIndent1 (nx_fprints node.refModel) g_delim to:g_strBuffer
+    format "%reattachable %%" strIndent1 (nx_fprints node.reattachable) g_delim to:g_strBuffer
+	nx_FlushBuffer()
+	
+	if DEBUG then format "#do_reference:: End%" g_delim to:g_strBuffer
+)
+
+/*
     This function's job is printing out all the props for all the mesh-related modifiers.
-    In practice, this really only means OdysseyTrimesh and OdysseyFlex.
+    In practice, this really only means OdysseyTrimesh and OdysseyFlex, but also scale on OdysseyLightsaber.
     It is only inside this function that we care whether there is an OdysseyTrimesh modifier
     present on a mesh or not.
 */
@@ -651,17 +686,19 @@ fn do_modifier_props node mat =
     if DEBUG then format "#do_modifier_props%" g_delim to:g_strBuffer
 
     local odyssey_modifier = undefined
+	local bSaber = false
 
     if(classof node.baseobject as string == "odysseylightsaber") then
     (
         format "%scale %%" strIndent1 (nx_fprints node.saberscale) g_delim to:g_strBuffer
+		bSaber = true
     )
     nx_FlushBuffer()
 
     odyssey_modifier = node.modifiers["OdysseyTrimesh"]
     if(odyssey_modifier != undefined) then
     (
-        format "%scale %%" strIndent1 (nx_fprints odyssey_modifier.scale) g_delim to:g_strBuffer
+        if not bSaber then format "%scale %%" strIndent1 (nx_fprints odyssey_modifier.scale) g_delim to:g_strBuffer
         format "%alpha %%" strIndent1 (nx_fprints odyssey_modifier.alpha) g_delim to:g_strBuffer
         format "%selfillumcolor %%" strIndent1 (nx_fprints odyssey_modifier.selfillumcolor) g_delim to:g_strBuffer
 
@@ -804,17 +841,30 @@ fn do_mesh mesh mat =
 	for i=1 to mesh.numfaces do
 	(
 		local f, v0, v1, v2 ,s ,t0,t1,t2,matid
+		
+		-- Vert Indices
 		f = getface mesh i
 		-- remember to subtract 1 since maxscript indexes from 1 instead of 0
 		v0 = (f.x as integer) - 1  -- fix the index by 1 problem
 		v1 = (f.y as integer) - 1
 		v2 = (f.z as integer) - 1
+		
+		-- Smoothing Groups
 		s  = getFaceSmoothGroup mesh i
+		if s < 0 then
+		(
+			-- If the 32nd smoothing group is set, then s is negative because integers in maxscript are always signed.
+			-- We now need to remove the last bit, then add the two numbers together as strings.
+			local sSG32 = "2147483648"
+			s -= (2 ^ 31)
+			local sSGlow = s as string
+			s = nx_addstringints sSG32 sSGlow
+		)
+		
+		-- Tvert Indices
 		t0=0
 		t1=0
 		t2=0
-		matid=getfacematid mesh i
-		if matid == 65536 then matid = 0	-- if the value is 65536 then there is no matid assigned
 		if(mesh.numtverts>0) do
 		(
 			local f
@@ -823,8 +873,12 @@ fn do_mesh mesh mat =
 			t1 = (tvf.y as integer) - 1
 			t2 = (tvf.z as integer) - 1
 		)
+		
+		-- Material ID
+		matid = getfacematid mesh i
+		if matid == 65536 then matid = 0	-- if the value is 65536 then there is no matid assigned
 
-		format  "%% % %  %  % % %  %%" strIndent2 v0 v1 v2  s  t0 t1 t2 matid g_delim to:g_strBuffer
+		format  "%% % %  %  % % %  %%" strIndent2 v0 v1 v2  s  t0 t1 t2  matid g_delim to:g_strBuffer
 
 		nx_FlushBuffer()
 	)
@@ -1057,9 +1111,13 @@ function do_skin node =
 			if(bone_id > 0) do
 			(
 				local nMaxVersion = (maxversion())[1]
+				/*
 				if (nMaxVersion <= 14000) then bone_name = (skinops.getbonename m bone_id 1)  -- per VP, the above doesn't work in later versions of max. Instead we should try the following:
 				else if (nMaxVersion < 17000) then bone_name = (skinops.getbonenamebylistid m bone_id 1)
 				else bone_name = skinops.getbonename m (skinOps.GetBoneIDByListID m bone_id) 1
+				*/
+				if (nMaxVersion == 14000) then bone_name = (skinops.getbonenamebylistid m bone_id 1)
+				else bone_name = (skinops.getbonename m bone_id 1)
 			)
 			weight_i_j = (skinops.getvertexweight m i j )
 			if (weight_i_j != 0.0) then (
@@ -1358,6 +1416,14 @@ fn Node_Geometry node type:"mdl" root:false =
             format "endnode%" g_delim to:g_strBuffer
         )
 
+        (node_type == "reference" and type == "mdl"):
+        (
+        	format "node % %%" node_type node.name g_delim to:g_strBuffer
+            do_dummy node
+            do_reference node
+            format "endnode%" g_delim to:g_strBuffer
+        )
+
         (node_type == "trimesh"): -- for either pwk, dwk or mdl
         (
         	format "node % %%" node_type node.name g_delim to:g_strBuffer
@@ -1537,7 +1603,7 @@ fn DynBuildKeyList node firstframe lastframe datatype keyname mdlname:"" nodetyp
     if DEBUG then format "    #DEBUG: objController=% %" objController g_delim to:g_strBuffer
 
     local keycount = 0
-    local bBezier = true;
+    local bBezier = true
     -- test to ensure that the controller is defined
     if objController != undefined then (
         -- determine if we have bezier
@@ -1546,16 +1612,20 @@ fn DynBuildKeyList node firstframe lastframe datatype keyname mdlname:"" nodetyp
         else if(classof objController != bezier_point3 and datatype == "point3") then bBezier = false
         else if(classof objController != bezier_float and datatype == "float") then bBezier = false
         else if(datatype == "orientation") then bBezier = false
-        else (
+        else
+		(
+			bBezier = false
             t = firstframe
-            while(t < lastframe and bBezier) do (
+			--format "\nChecking bezier for % between frames % and %:      " node firstframe lastframe
+            while(t <= lastframe and not bBezier) do (
                 if ((getKeyIndex objController t) > 0) then(
                     try(
-                        ourkey = getKey objController (getKeyIndex objController t)
-                        if(ourkey.inTangentType == #linear and ourkey.outTangentType == #linear) then bBezier = false
+                        local theourkey = getKey objController (getKeyIndex objController t)
+						--format "\n%: inTangent = %, outTangent = %      " t theourkey.inTangentType theourkey.outTangentType
+                        if(theourkey.inTangentType != #linear or theourkey.outTangentType != #linear) then bBezier = true
                     )
                     catch(
-                        bBezier = false
+                        --bBezier = false
                     )
                 )
                 t += 1
@@ -1759,17 +1829,31 @@ fn ExportAnimKeys node firstframe lastframe root:false =
 	    --
 	    if DEBUG then format "        #DEBUG: Build orientation list%" g_delim to:g_strBuffer
 	    DynBuildKeyList node firstframe lastframe "orientation" "rotation" mdlname:"orientation" nodetype:node_type
+		
+		local bSaber = false
+		if node_type == "lightsaber" then
+		(
+            --
+            -- build scale from lightsaber object
+            --
+            if DEBUG then format "        #DEBUG: Build scale list%" g_delim to:g_strBuffer
+            DynBuildKeyList (node.baseObject) firstframe lastframe "float" "saberscale" mdlname:"scale"
+			bSaber = true
+		)
 
         if node.modifiers["OdysseyTrimesh"] != undefined and (node_type == "trimesh" or node_type == "danglymesh" or node_type == "skin" or node_type == "aabb" or node_type == "lightsaber") then
         (
             ----------------------------------------------------------------
             -- Joco 31-Mar-04: Modifer properties                         --
             ----------------------------------------------------------------
-            --
-            -- build scale from trimesh modifier
-            --
-            if DEBUG then format "        #DEBUG: Build scale list%" g_delim to:g_strBuffer
-            DynBuildKeyList (node.modifiers["OdysseyTrimesh"]) firstframe lastframe "float" "scale"
+			if not bSaber then
+			(
+				--
+				-- build scale from trimesh modifier
+				--
+				if DEBUG then format "        #DEBUG: Build scale list%" g_delim to:g_strBuffer
+				DynBuildKeyList (node.modifiers["OdysseyTrimesh"]) firstframe lastframe "float" "scale"
+			)
 
             --
             -- build alpha from trimesh modifier
