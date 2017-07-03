@@ -636,10 +636,9 @@ function do_emitter node =
     format "%chunkname %%" strIndent1 (nx_fprints node.chunkName) g_delim to:g_strBuffer
     format "%twosidedtex %%" strIndent1 (nx_fprints node.twosidedtex) g_delim to:g_strBuffer
     format "%loop %%" strIndent1 (nx_fprints node.loop) g_delim to:g_strBuffer
-    format "%emitter_unknown_1 %%" strIndent1 (nx_fprints node.unknown1) g_delim to:g_strBuffer
+    format "%renderorder %%" strIndent1 (nx_fprints node.renderorder) g_delim to:g_strBuffer
     format "%m_bFrameBlending %%" strIndent1 (nx_fprints node.m_bFrameBlending) g_delim to:g_strBuffer
     format "%m_sDepthTextureName %%" strIndent1 (nx_fprints node.m_sDepthTextureName) g_delim to:g_strBuffer
-    format "%emitter_unknown_2 %%" strIndent1 (nx_fprints node.unknown2) g_delim to:g_strBuffer
 	nx_FlushBuffer()
 	
 	-- Emitter flags
@@ -655,7 +654,7 @@ function do_emitter node =
     format "%splat %%" strIndent1 (nx_fprints node.splat) g_delim to:g_strBuffer
     format "%inherit_part %%" strIndent1 (nx_fprints node.inherit_part) g_delim to:g_strBuffer
     format "%depth_texture %%" strIndent1 (nx_fprints node.depth_texture) g_delim to:g_strBuffer
-    format "%renderorder %%" strIndent1 (nx_fprints node.renderorder) g_delim to:g_strBuffer
+    format "%emitterflag13 %%" strIndent1 (nx_fprints node.EmitterFlag13) g_delim to:g_strBuffer
 	nx_FlushBuffer()
 	
 	if DEBUG then format "#do_emitter:: End%" g_delim to:g_strBuffer
