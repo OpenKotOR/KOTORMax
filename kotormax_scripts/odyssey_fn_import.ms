@@ -1215,8 +1215,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "m_bframeblending": objFrameBlending = tok.ReadInteger()
                         "depth_texture": objDepth_texture = tok.ReadInteger()
                         "m_sdepthtexturename": objDepthTextureName = tok.ReadString()
-                        "emitter_unknown_1": objEmitterUnknown1 = tok.ReadInteger()
-                        "emitter_unknown_2": objEmitterUnknown2 = tok.ReadInteger()
+                        "emitterflag13": objEmitterFlag13 = tok.ReadInteger()
              -- end bead-v modification
                         -- Emitter key words end
 						
@@ -1440,7 +1439,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         )
                                         if objRender!=undefined then newObj.render = objRender
                                         if objRender_sel!=undefined then newObj.render_sel = objRender_sel
-                                        if objSpawnType!=undefined then newObj.spawnType = objSpawnType
+                                        if objSpawnType!=undefined then newObj.spawntype = objSpawnType
+                                        if objSpawnType!=undefined then newObj.spawntype_sel = objSpawnType + 1
                                         if objIconSize!=undefined then newObj.IconSize = objIconSize
                                         if objXsize!=undefined then newObj.xsize = objXsize
                                         if objYsize!=undefined then newObj.ysize = objYsize
@@ -1510,8 +1510,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if objFrameBlending!=undefined then newObj.m_bFrameBlending = objFrameBlending
                                         if objDepth_texture!=undefined then newObj.depth_texture = objDepth_texture
                                         if objDepthTextureName!=undefined then newObj.m_sDepthTextureName = objDepthTextureName
-                                        if objEmitterUnknown1!=undefined then newObj.unknown1 = objEmitterUnknown1
-                                        if objEmitterUnknown2!=undefined then newObj.unknown2 = objEmitterUnknown2
+                                        if objEmitterFlag13!=undefined then newObj.EmitterFlag13 = objEmitterFlag13
                                         -- end bead-v modification
                                         if objBlastRadius!=undefined then newObj.blastRadius = objBlastRadius
                                         if objBlastLength!=undefined then newObj.blastLength = objBlastLength

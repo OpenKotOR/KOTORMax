@@ -101,14 +101,10 @@ invisible:true
     	)
     	-- spawn type
     	spawntype_sel   type:#integer animatable:false ui:radio_spawnType default:1
-    	spawntype   type:#integer animatable:false
+    	spawntype       type:#integer animatable:false
     	on spawntype_sel set val do
     	(
-	    	spawnType = val - 1
-    	)
-    	on spawnType set val do
-    	(
-	    	spawntype_sel = val + 1
+	    	if val > 0 then spawntype = val - 1
     	)
 	)
 
@@ -116,15 +112,17 @@ invisible:true
 	(
     	-- display
     	iconSize        type:#float animatable:false default:100 --ui:spn_iconSize
+		
     	-- emitter size
     	xsize           type:#float animatable:true ui:spn_xSize default:0.0f
     	ysize           type:#float animatable:true ui:spn_ySize default:0.0f
-		-- geomdisp		type:#boolean default:on ui:chk_displayXYsize
+		
     	-- inherit props
     	inherit         type:#integer animatable:false ui:box_inherit default:0
     	inherit_local   type:#integer animatable:false ui:box_inherit_local default:0
     	inheritvel      type:#integer animatable:false ui:box_inheritvel default:0
     	inherit_part    type:#integer animatable:false ui:box_inherit_part default:0
+		
     	-- misc
     	renderorder     type:#integer animatable:false ui:spn_renderorder default:0
     	threshold       type:#float animatable:true ui:spn_threshold default:0  -- is this a p2p property?
@@ -134,8 +132,6 @@ invisible:true
 
     	-- new props -- bead-v modification: add kotor props
     	numBranches     type:#integer animatable:false default:0 ui:spn_branchnumber
-		unknown1        type:#integer animatable:false default:0
-		unknown2        type:#integer animatable:false default:0
     	-- end bead-v modification
 	)
 
@@ -176,7 +172,6 @@ invisible:true
     	detonate            type:#float animatable:true default:0.0 ui:spn_detonate
     	-- end bead-v modification
 
-    	loop        type:#integer animatable:false ui:box_loop default:0
     	bounce      type:#integer animatable:false ui:box_bounce default:0
     	m_isTinted  type:#integer animatable:false ui:box_m_isTinted default:0
     	splat       type:#integer animatable:false ui:box_Splat default:0
@@ -190,12 +185,14 @@ invisible:true
     	twosidedtex type:#integer animatable:false ui:box_twosidedtex default:0
     	--twosidedtext type:#integer animatable:false default:0 -- wrong, for backwards compat of loading
     	-- animation
-    	xgrid       type:#integer animatable:false	ui:spn_xgrid default:0
-    	ygrid       type:#integer animatable:false	ui:spn_ygrid default:0
-    	fps         type:#integer animatable:true		ui:spn_fps default:0
-    	frameStart  type:#integer animatable:true		ui:spn_frameStart default:0
-    	frameEnd    type:#integer animatable:true		ui:spn_frameEnd default:0
-    	random      type:#integer animatable:false	ui:box_random default:0
+    	xgrid         type:#integer animatable:false	ui:spn_xgrid default:0
+    	ygrid         type:#integer animatable:false	ui:spn_ygrid default:0
+    	fps           type:#integer animatable:true		ui:spn_fps default:0
+    	frameStart    type:#integer animatable:true		ui:spn_frameStart default:0
+    	frameEnd      type:#integer animatable:true		ui:spn_frameEnd default:0
+    	random        type:#integer animatable:false	ui:box_random default:0
+    	loop          type:#integer animatable:false    ui:box_loop default:0
+    	EmitterFlag13 type:#integer animatable:false	ui:box_flag13 default:0
 
     	-- new props -- bead-v modification: add kotor props
     	m_bFrameBlending    type:#integer animatable:false default:0 ui:box_frameblending
@@ -206,7 +203,6 @@ invisible:true
     	-- chunk
     	--chunky		type:#integer default:0		ui:chk_chunk
     	chunkName   type:#string  default:""
-    	--chunk		type:#string	-- for compatability, but: is wrong
 	)
 
 	parameters EmitAdv rollout:EmitAdvRollout
@@ -477,13 +473,11 @@ invisible:true
 		label lbl_2005 "Detonate:" align:#left across:2
     	spinner spn_detonate "" fieldwidth:40 height:16 range:[0,100,0]
 
+    	checkbox box_Splat "Splat" height:15
+    	checkbox box_affectedbyWind "Affected By Wind" height:15
     	checkbox box_bounce "Bounce"  width:61 height:15
 		label lbl_8 "Bounce Coef:" align:#left across:2
     	spinner spn_bounce_co ""  fieldwidth:40 height:16
-		--- WHAT IS THIS FOR 'Loop' ?
-    	checkbox box_loop "Loop"  height:15
-    	checkbox box_Splat "Splat" height:15
-    	checkbox box_affectedbyWind "Affected By Wind" height:15
 
 		on EmitParticlesRollout open do
 		(
@@ -514,7 +508,9 @@ invisible:true
 			label lbl_a4 "Last Frame:" align:#left across:2
 			spinner spn_frameEnd "" fieldwidth:40 height:16 range:[0,255,0] type:#integer
 			checkbox box_frameblending "Frame Blending"
-			checkbox box_random "Random Playback" width:111 height:15
+			checkbox box_loop "Loop"  height:15
+			checkbox box_random "Random" width:111 height:15
+			checkbox box_flag13 "Flag13" width:111 height:15
 		)
 		group "Depth Texture"
 		(
@@ -642,7 +638,7 @@ invisible:true
         if update_sel == 2 then
         (
             -- not sure about what goes in here
-            EmitParticlesRollout.box_loop.enabled = true
+            EmitTextChunkRollout.box_loop.enabled = true
         ) else
         (
             -- not sure what goes in here
@@ -661,12 +657,12 @@ invisible:true
         */
 
         if update_sel == 3 then
-            EmitParticlesRollout.box_loop.enabled = true
+            EmitTextChunkRollout.box_loop.enabled = true
         else
         (
             loop = 0
-            EmitParticlesRollout.box_loop.enabled = false
-            EmitParticlesRollout.box_loop.checked = false
+            EmitTextChunkRollout.box_loop.enabled = false
+            EmitTextChunkRollout.box_loop.checked = false
         )
 
         if update_sel == 4 then
