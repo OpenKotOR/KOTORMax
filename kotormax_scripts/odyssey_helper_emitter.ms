@@ -106,6 +106,10 @@ invisible:true
     	(
 	    	spawnType = val - 1
     	)
+    	on spawnType set val do
+    	(
+	    	spawntype_sel = val + 1
+    	)
 	)
 
 	parameters EmitParam rollout:EmitParamRollout
@@ -264,7 +268,7 @@ invisible:true
 		)
     	on EmitStyleRollout open do
     	(
-	    	format "EmitStyleRollout opened\r\n"
+	    	--format "EmitStyleRollout opened\r\n"
     	)
 
     	on radio_update changed state do update_ui()

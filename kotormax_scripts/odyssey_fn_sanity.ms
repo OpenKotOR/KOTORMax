@@ -1062,7 +1062,7 @@ function SanityCheck node =
     nx_FlushBuffer()
 	
 	-- Run the check on all the children, but skip any model bases. If you want a check on those, go run it separately.
-    for c in node.children where not iskindof c odysseybase do
+    for c in node.children where not iskindof c odysseybase and not matchPattern c.name pattern:"ignore_*" do
     (
         if (SanityCheck(c) == 0) then sc_acceptable = false
     )
