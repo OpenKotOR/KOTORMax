@@ -97,9 +97,12 @@ version:1
 
 	rollout OdysseyTrimeshParams "Odyssey Trimesh Params" width:162 height:319
 	(
-		button btn_tex "no texture" width:120 height:15 tooltip:"Applied Diffuse Texture, press to select all objects that use this texture."
-		button btn_tex_2 "no texture" width:120 height:15 tooltip:"Applied Ambient Texture, press to select all objects that use this texture."
-		button btn_parent "No parent" width:120 height:15 tooltip:"Parent. Press to select."
+		label lbl_diffuse "Diffuse:" across:2 align:#left
+		button btn_tex "no texture" width:100 offset:[-10,-3] /* height:15 */ tooltip:"Applied Diffuse texture, press to select all objects that use this texture."
+		label lbl_ambient "Ambient:" across:2 align:#left
+		button btn_tex2 "no texture" width:100 offset:[-10,-3] /* height:15 */ tooltip:"Applied Ambient texture, press to select all objects that use this texture."
+		label lbl_parent "Parent:" across:2 align:#left
+		button btn_parent "no parent" width:100 offset:[-10,-3] /* height:15 */ tooltip:"Parent. Press to select."
 		checkbox box_render "Render"   --height:15 align:#left across:2 -- pos:[13,7] width:95
 		checkbox box_shadow "Shadow"   --height:15 align:#right -- pos:[13,27] width:95
 		checkbox box_beaming "Beaming"  --height:15 align:#right -- pos:[13,47] width:65
@@ -225,7 +228,7 @@ version:1
 				)
 				else tempstring = "no texture" -- "No material set"
 			)
-			tempstring = lowercase (tempstring as string)
+			tempstring = nx_lowercase (tempstring as string)
 			return tempstring
 		)
 		
@@ -233,13 +236,12 @@ version:1
 		(
 			local tempstring = "no texture"
 			local m
-			if ( superclassof o == GeometryClass ) then
+			if superclassof o == GeometryClass then
 			(
 				if o.material != undefined then
 				(
 					m = o.material
-					--- multimaterial support
-					if(classof(m) == Multimaterial ) then return "no texture"
+					if classof(m) == Multimaterial then return "no texture"
 					try
 					(
 						local tokens = filterstring m.name " "
@@ -254,16 +256,33 @@ version:1
 				)
 				else tempstring = "no texture" -- "No material set"
 			)
-			tempstring = lowercase (tempstring as string)
+			tempstring = nx_lowercase (tempstring as string)
 			return tempstring
 		)
 		
 		on box_bumpmappable changed val do
 		(
-			local Trimeshes = for node in $objects where node.modifiers["OdysseyTrimesh"] != undefined collect node
-			for node in Trimeshes do
+			if get_material_name selection [1] != "no texture" then
 			(
-				if get_material_name selection[1] == get_material_name node then node.tangentspace = nx_btoi val
+				for node in $objects where node.modifiers["OdysseyTrimesh"] != undefined do
+				(
+					if get_material_name selection[1] == get_material_name node then node.modifiers["OdysseyTrimesh"].tangentspace = nx_btoi val
+				)
+			)
+		)
+		
+		on box_lightmapped changed val do
+		(
+			local ambientTexture = get_material_name2 selection[1]
+			if ambientTexture != "no texture" then
+			(
+				if (queryBox ("Apply 'lightmapped' setting to all Odyssey Trimeshes with ambient texture " + ambientTexture + "?") title:"Apply to all?" beep:false) then
+				(
+					for node in $objects where node.modifiers["OdysseyTrimesh"] != undefined do
+					(
+						if get_material_name2 selection[1] == get_material_name2 node then node.modifiers["OdysseyTrimesh"].lightmapped = nx_btoi val
+					)
+				)
 			)
 		)
 
@@ -283,9 +302,9 @@ version:1
 				if selection[1].parent != undefined then
 				    parentname = selection[1].parent.name
 				else
-				    parentname = "NONE"
+				    parentname = "no parent"
 
-				btn_parent.caption = ( "Parent: " + parentname )
+				btn_parent.caption = parentname
 				if selection[1].material != undefined then
 				(
 					try
@@ -309,7 +328,7 @@ version:1
 			else
 			(
 				local selectme = #()
-				local texname = lowercase (btn_tex.caption)
+				local texname = nx_lowercase (btn_tex.caption)
 				for obj in $geometry do
 				(
 					tempstring = get_material_name obj
@@ -325,7 +344,7 @@ version:1
 			else
 			(
 				local selectme = #()
-				local texname = lowercase (btn_tex.caption)
+				local texname = nx_lowercase (btn_tex2.caption)
 				for obj in $geometry do
 				(
 					tempstring = get_material_name2 obj

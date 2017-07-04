@@ -17,11 +17,11 @@ fn nx_findPoint3 aArray p3 =
 	(
 		local pCompare = aArray[i]
 		if not iskindof pCompare Point3 then continue
-		if abs (pCompare.x - p3.x) < 0.5 and abs (pCompare.y - p3.y) < 0.5 and abs (pCompare.z - p3.z) < 0.5 then return i
+		if abs (pCompare.x - p3.x) < 0.2 and abs (pCompare.y - p3.y) < 0.2 and abs (pCompare.z - p3.z) < 0.2 then return i
 	)
 	return 0
 )
-
+/*
 fn BitOR n1 n2 =
 (
 	-- Okay, another weird max situation. 2 ^ 31 comes out as minus the value it actually is, so we need to check this bit separately
@@ -38,7 +38,7 @@ fn BitOR n1 n2 =
 		if n2 >= n then n2 -= n
 	)
 	return nReturn
-)
+)*/
 
 fn CreatePatches patches =
 (
@@ -54,7 +54,7 @@ fn CreatePatches patches =
 			for ind in (meshop.getFacesUsingVert obj i) do
 			(
 				append FaceIndices ind
-				nSmoothing = BitOR nSmoothing (getFaceSmoothGroup obj ind)
+				nSmoothing = bit.or nSmoothing (getFaceSmoothGroup obj ind)
 			)
 			
 			if nIndex > 0 then append patches[nIndex] (nx_patch obj:obj nVertex:i FaceInds:FaceIndices nSmoothingGroups:nSmoothing)
@@ -66,7 +66,7 @@ fn CreatePatches patches =
 		)
 	)
 )
-
+/*
 fn CompareSmoothing sg1 sg2 =
 (
 	-- Okay, another weird max situation. 2 ^ 31 comes out as minus the value it actually is, so we need to check this bit separately
@@ -84,7 +84,7 @@ fn CompareSmoothing sg1 sg2 =
 		if sg2 >= n then sg2 -= n
 	)
 	return false
-)
+)*/
 
 fn CalculateVertexNormals bArea:true bAngle:false =
 (
@@ -96,7 +96,7 @@ fn CalculateVertexNormals bArea:true bAngle:false =
 		for patch1 in patch_group do
 		(
 			local vNormal = [0,0,0]
-			for patch2 in patch_group where patch1 == patch2 or CompareSmoothing patch1.nSmoothingGroups patch2.nSmoothingGroups do
+			for patch2 in patch_group where patch1 == patch2 or (bit.and patch1.nSmoothingGroups patch2.nSmoothingGroups > 0) do
 			(
 				for f in patch2.FaceInds do
 				(

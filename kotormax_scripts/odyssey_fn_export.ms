@@ -155,6 +155,7 @@ fn nx_getnodetype node =
     	(node_class == "odysseybase"): node_type = "base"
     	(node_class == "odysseylight"): node_type = "light"
     	(node_class == "odysseyemitter"): node_type = "emitter"
+    	(node_class == "odysseyreference"): node_type = "reference"
     	(node_class == "odysseylightsaber"): node_type = "lightsaber"
     	(node_superclass == "GeometryClass"):
     	(

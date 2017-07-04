@@ -1800,24 +1800,25 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 setFaceSmoothGroup newObj i smoothGroups[i]
                                             )
 
-                                            if DEBUG then format "%BUILD MESH OBJECT: add texture verts\r\n" strIndent1
                                             -- Add texture verts, if we have them
-                                            if numTVerts > 0 do
+                                            if TVerts.count > 0 do
                                             (
+												if DEBUG then format "%BUILD MESH OBJECT: add diffuse texture verts\r\n" strIndent1
                                                 if not meshop.getMapSupport newObj 1 then meshop.setMapSupport newObj 1 true
-                                                setNumTVerts newObj numTVerts
-                                                for i = 1 to numTVerts do setTVert newObj i TVerts[i]
-                                                buildTVFaces newObj
-                                                for i = 1 to numFaces do setTVFace newObj i TVfaces[i]
+                                                setNumTVerts newObj TVerts.count
+                                                for i = 1 to TVerts.count do setTVert newObj i TVerts[i]
+												meshop.setNumMapFaces newObj 1 TVfaces.count
+                                                for i = 1 to TVfaces.count do setTVFace newObj i TVfaces[i]
                                             )
-                                            if numTVerts1 > 0 do
+                                            if TVerts1.count > 0 do
                                             (
+												if DEBUG then format "%BUILD MESH OBJECT: add ambient texture verts\r\n" strIndent1
                                                 meshop.setNumMaps newObj 3
                                                 meshop.setMapSupport newObj 2 true
-                                                meshop.setNumMapVerts newObj 2 numTVerts1
-                                                for i = 1 to numTVerts1 do meshop.setMapVert newObj 2 i TVerts1[i]
-                                                meshop.buildMapFaces newObj 2
-                                                for i = 1 to numFaces do meshop.setMapFace newObj 2 i TVfaces1[i]
+                                                meshop.setNumMapVerts newObj 2 TVerts1.count
+                                                for i = 1 to TVerts1.count do meshop.setMapVert newObj 2 i TVerts1[i]
+												meshop.setNumMapFaces newObj 2 TVfaces1.count
+                                                for i = 1 to TVfaces1.count do meshop.setMapFace newObj 2 i TVfaces1[i]
                                             )
 
                                             if DEBUG then format "%BUILD MESH OBJECT: apply constraints if have them\r\n" strIndent1
