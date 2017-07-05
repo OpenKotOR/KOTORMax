@@ -552,9 +552,13 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 	baseRots = #() -- bead-v: reset the base rots
 
     -- Setup basis for model header
-    local newModelClassification = 1
+    local newModelClassification = 0
     local newModelAnimscale = 1.0
     local newModelSupermodel = "NULL"
+    local newModelIgnoreFog = 0
+    local newModelBMin = [-5,-5,-1]
+    local newModelBMax = [5,5,10]
+    local newModelRadius = 7.0
 
     -- handle to this files model base
     local model_base = undefined
@@ -583,6 +587,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 		local bNoSkipLine = false
 		local NameArray = #()
 		local line = ""
+		local bFirstNode = false
 
         while not (eof mdlStream) and not quitEarly do
         (
@@ -640,6 +645,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             if DEBUG then format "classification processing END\r\n"
                         )
                         "setanimationscale": newModelAnimscale = tok.ReadFloat()
+                        "ignorefog": newModelIgnoreFog = tok.ReadInteger()
                         "beginmodelgeom": mdl_pos = MDL_GEOM
                         -- trap anything not parsed
                         default: objProps += idToken + "=" + tok.ReadRemainingTokens() + "\r\n"
@@ -650,7 +656,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                 MDL_GEOM:
                 (
                     if DEBUG then format "MDL_GEOM:  Line:% :: % :: %\r\n" lineNum idToken tok.tokens
-                    case idToken of
+					if not bFirstNode and idToken == "bmin" then newModelBMin = tok.ReadPoint3()
+					else if not bFirstNode and idToken == "bmax" then newModelBMax = tok.ReadPoint3()
+					else if not bFirstNode and idToken == "radius" then newModelRadius = tok.ReadFloat()
+					else if not bFirstNode and idToken == "layoutposition" then objLayoutPos = tok.ReadPoint3() * 100.0
+                    else case idToken of
                     (
                         "#": () -- ignore comments
 						"name": -- name saving
@@ -659,6 +669,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 						)
                         "node": -- Node Struct
                         (
+							if not bFirstNode then bFirstNode = true
                             -- Define initial node data
                             objType = tok.ReadToken()
                             objName = tok.ReadToken()
@@ -788,7 +799,6 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             --objGrav=undefined
                             --objDrag=undefined
                         )
-                        "layoutposition": objLayoutPos = tok.ReadPoint3() * 100.0
                         "parent": parent = tok.ReadToken()
                         "position":
                         (
@@ -1329,6 +1339,10 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         newObj.classification_sel = newModelClassification
                                         newObj.setanimationscale = newModelAnimscale
                                         newObj.setsupermodel = newModelSupermodel
+										newObj.radius = newModelRadius
+										newObj.bmin = newModelBMin
+										newObj.bmax = newModelBMax
+										newObj.ignorefog = newModelIgnoreFog
                                         -- set the export path to import path
                                         newObj.export_path = currentPath
 

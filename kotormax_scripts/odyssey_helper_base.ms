@@ -62,6 +62,10 @@ invisible:true
 		classification  type:#string default:"other"
 		classification_sel  type:#integer default:1 ui:droplist_classui
 		setanimationscale   type:#float default:1.0 ui:spn_animscale
+		radius			type:#float default:7.0
+		bmin    		type:#point3 default:[-5,-5,-2]
+		bmax    		type:#point3 default:[5,5,10]
+		ignorefog		type:#integer default:0 ui:chk_ignorefog
 		layouttype      type:#integer default:1 ui:droplist_areatype
 		layoutnum       type:#integer default:-1
 		extranames      type:#stringtab tabsizevariable:true
@@ -90,13 +94,27 @@ invisible:true
 
 	rollout params "Odyssey Base Params"
 	(
-		--label modelname ""
-		edittext edit_supermodel "Supermodel:"
-		label classtype "Classification:" offset:[-6,0] across:2
-		dropdownlist droplist_classui offset:[-6,-3] items:odysseyClassTypes width:75
-		label lyttype "Layout Type:" offset:[-6,-2] across:2
-		dropdownlist droplist_areatype offset:[-6,-5] items:#("None", "Room", "Track", "Obstacle") width:75
-		label lytnum "" align:#left offset:[-2,-4]
+		label lbl_lyttype "Layout Type:" across:2 offset:[-2,3] align:#left
+		dropdownlist droplist_areatype items:#("None", "Room", "Track", "Obstacle") width:75 offset:[-4,0]
+		label lbl_lytnum "Layout Number:" across:2 align:#left offset:[-2,-3]
+		label lytnum "" offset:[-4,-3]
+		
+		group "Supermodel"
+		(
+			edittext edit_supermodel "" height:20
+		)
+		
+		group "Model Parameters"
+		(
+			label classtype "Classification:" across:2 offset:[-4,3]
+			dropdownlist droplist_classui items:odysseyClassTypes width:75 offset:[-4,0]
+			checkbox chk_ignorefog "Ignore Fog" 
+		)
+
+        group "Animation Parameters" (
+            spinner spn_animscale "Animation scale:" type:#float scale:0.01 range:[0,10,1] fieldwidth:45 align:#left
+            button btn_animeditor "Open Animation Editor"
+        )
 
 		-- export data button widgets
 		group "Export"
@@ -106,7 +124,6 @@ invisible:true
             button btn_exportreset "Reset" align:#right
             button  btn_export_mdl	"Export Model+Anim " align:#center width:140
             button  btn_export_noanims "Export Geom only" align:#center width:140 toolTip:"Export ONLY the geometry, no animations"
-            --checkbox chk_binary "Compile exported model" align:#left checked:false
             checkbox chk_uselyt "Export Layout Position" align:#left
             checkbox chk_check "Do Sanity Checks" align:#left
             checkbox chk_copytga "Copy TGAs" align:#left checked:false
@@ -114,14 +131,9 @@ invisible:true
             button btn_viewsanity "View Sanity Check Results" align:#center width:140
         )
 
-        group "Animation Parameters" (
-            spinner spn_animscale "Animation scale:" type:#float scale:0.01 range:[0,10,1] fieldwidth:40 align:#left
-            button btn_animeditor "Open Animation Editor"
-        )
-
 		on droplist_areatype selected val do
 		(
-			if val == 2 then lytnum.text = "Layout Number: " + this.layoutnum as string
+			if val == 2 then lytnum.text = this.layoutnum as string
 			else lytnum.text = ""
 		)
 		
