@@ -1523,6 +1523,9 @@ fn ExportOdysseyGeometry node =
     format "\n%" g_delim to:g_strBuffer
 	format "# GEOM ASCII%" g_delim to:g_strBuffer
 	format "beginmodelgeom %%" node.name g_delim to:g_strBuffer
+	format "  bmin % % %%" node.bmin.x node.bmin.y node.bmin.z g_delim to:g_strBuffer
+	format "  bmax % % %%" node.bmax.x node.bmax.y node.bmax.z g_delim to:g_strBuffer
+	format "  radius %%" node.radius g_delim to:g_strBuffer
 
 	--write lyt position if appropriate
 	if (node.uselyt != 0) then(
@@ -2390,6 +2393,7 @@ fn ExportOdysseyModel node anim:true showprogress:true =
 
 	format "setsupermodel % %%" node.name sm g_delim to:g_strBuffer
 	format "classification %%" node.classification g_delim to:g_strBuffer
+	format "ignorefog %%" node.ignorefog g_delim to:g_strBuffer
     format "setanimationscale %%" node.setanimationscale g_delim to:g_strBuffer
 
 	nx_FlushBuffer()
