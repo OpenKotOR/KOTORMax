@@ -341,7 +341,7 @@ invisible:true
 			current = 0;
 			edit_supermodel.text = setsupermodel
 			
-			if this.layouttype == 2 then lytnum.text = "Layout Number: " + this.layoutnum as string
+			if this.layouttype == 2 then lytnum.text = this.layoutnum as string
 			else lytnum.text = ""
 			
 			/*

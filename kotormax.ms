@@ -54,7 +54,7 @@ if ( heapSize < 80000000 ) then heapSize = 80000000
 if ( stackLimit < 80000000 ) then stackLimit = 80000000
 
 global gNX_maxver = (maxversion())[1]
-global gblVersion = "0.1"
+global gblVersion = "0.3.0"
 global g_kotormaxPath = scriptsPath + "KOTORmax\\"
 global kotormax_handle -- handle to the master floater window
 if autostart == undefined then autostart = false
