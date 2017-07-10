@@ -4,6 +4,7 @@ rollout nx_editvis "Edit Visibility"
 (
 	listbox lst_rooms " Rooms:" pos:[5, 5] width:120 across:2
 	listbox lst_vis " Visible:" pos:[130, 5] width:120
+	local ObjectVisibility = #()
 	
 	fn getRooms =
 	(
@@ -171,11 +172,20 @@ rollout nx_editvis "Edit Visibility"
 		-- update the listbox if no duplicates were found
 		if not bDuplicates then lst_rooms.items = RoomNames
 		else messagebox "Two or more rooms in the scene have the exact same name! Make sure all names are unique and try again!"
+		
+		-- record visibility for all nodes
+		ObjectVisibility = for obj in $objects collect #(obj, obj.isHidden)
 	)
 	
 	on nx_editvis close do
 	(
 		updateVisibility allvisible:true
+		for objvis in ObjectVisibility do
+		(
+			if objvis[2] then hide objvis[1]
+			else unhide objvis[1]
+		)
+		ObjectVisibility = #()
 		nx_editvis_flag = false
 	)
 )
