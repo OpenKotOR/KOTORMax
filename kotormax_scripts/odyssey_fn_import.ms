@@ -1051,14 +1051,9 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 tok.SetString (getNextNonBlankLine mdlStream)
                                 lineNum += 1
 
-                    -- bead-v modification: only read two floats for the UVs
                                 local bv1 = tok.ReadFloat()
                                 local bv2 = tok.ReadFloat()
                                 local p3 = [bv1, bv2, 0]
-
-                            -- Old code:
-                                --local p3 = tok.ReadPoint3()
-                    -- bead-v end modification
 
                                 append TVerts p3
                             )
@@ -2034,7 +2029,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 									(
 										-- Apply weight info to the skin modifer
 										addMDLSkin (weightsList[i]).Object (weightsList[i]).WeightsData model_base
-										(weightsList[i]).Object.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
+										--(weightsList[i]).Object.skin.always_deform = false -- bead-v: this should allow the skin to move with the bones
 										--(weightsList[i]).Object.skin.no_update = true -- bead-v: EDIT: and this.
 									)
                                 )
