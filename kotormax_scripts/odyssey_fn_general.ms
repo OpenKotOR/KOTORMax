@@ -739,7 +739,7 @@ fn nx_createWalkMaterial =
 -----------------------------------
 ---                             ---
 -----------------------------------
-fn nx_setinivalue datalist =
+fn nx_setinivalue datalist noClear:false noEnd:false =
 (
     /*
     Data list is an array of arrays.
@@ -756,14 +756,14 @@ fn nx_setinivalue datalist =
     ) else
     (
         -- gmax processing. Verbose data dumping
-        clearListener()
+        if not noClear then clearListener()
         format "<snoopstart file=%>~\n\n" (g_kotormaxPath + "scratch/setini.txt")
         for sublist in datalist do
         (
             format "<snoopset %,%,%,%,\>~\n" sublist[1] sublist[2] sublist[3] sublist[4]
         )
         format "</snoopstart>~\n"
-        format "</snoopend>~\n"
+        if not noEnd then format "</snoopend>~\n"
     )
 )
 

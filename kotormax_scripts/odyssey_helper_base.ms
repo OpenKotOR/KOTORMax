@@ -61,16 +61,17 @@ invisible:true
 		setsupermodel   type:#string  default:"NULL" ui:edit_supermodel
 		classification  type:#string default:"other"
 		classification_sel  type:#integer default:1 ui:droplist_classui
+		classification_unk1 type:#integer default:0
 		setanimationscale   type:#float default:1.0 ui:spn_animscale
 		radius			type:#float default:7.0
-		bmin    		type:#point3 default:[-5,-5,-2]
+		bmin    		type:#point3 default:[-5,-5,-1]
 		bmax    		type:#point3 default:[5,5,10]
 		ignorefog		type:#integer default:0 ui:chk_ignorefog
 		layouttype      type:#integer default:1 ui:droplist_areatype
 		layoutnum       type:#integer default:-1
 		extranames      type:#stringtab tabsizevariable:true
 		
-		export_path     type:#string default:(getdir #export) ui:edit_exportpath
+		export_path     type:#string default:g_exportPath ui:edit_exportpath
 		sanity_check	type:#integer default:1 ui:chk_check
 		uselyt      	type:#integer default:1 ui:chk_uselyt
 		copy_tga		type:#integer default:0 ui:chk_copytga
@@ -141,6 +142,11 @@ invisible:true
         (
             if not (nx_existDir val) then
                 messagebox "Directory does not exist!"
+			else
+			(
+				g_exportPath = val
+				nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+			)
         )
 
 		fn export_start doanim:true =
@@ -160,6 +166,7 @@ invisible:true
         		g_exportPath = export_path
 
                 mdlextn = "mdl"
+				if nx_itob g_dotAscii then mdlextn += ".ascii"
 				model_name = nx_CreateExportName node.name
 
 				-- we need to make sure that the model_name has no tabs in it
@@ -705,6 +712,7 @@ fn createOdysseyBase position =
     local oObject = odysseybase pos:position
     oObject.delegate.boxSize = [100,100,5]
     select oObject
+	oObject.export_path = g_exportPath
     -- make the pointer to the front
     if g_basepointer == 1 then
     (

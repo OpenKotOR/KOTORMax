@@ -123,6 +123,6 @@ rollout AboutRollout "KOTORmax" width:162 height:400
 
 	on btn_kotormax pressed do ( createDialog CreditDialogKOTORmax )
 	on btn_nwmax pressed do ( createDialog CreditDialogNWmax )
-    on AboutRollout open do ( lbl_ver.text = gblVersion )
+    on AboutRollout open do ( lbl_ver.text = "v" + gblVersion )
 )
 
