@@ -88,7 +88,7 @@ fn nx_importer =
 
 				if ImportRollout.edt_animname.text.count > 0 then
 				(
-					animname = filterstring (ImportRollout.edt_animname.text) " "
+					animname = filterstring (ImportRollout.edt_animname.text) ", "
 	    	        --append animname (ImportRollout.edt_animname.text)
     	        )
 
@@ -113,14 +113,16 @@ fn nx_importer =
     (
         clearListener()
         disableSceneRedraw()
-        local pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk"
-        local dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk"
+        local pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk.ascii"
+		if (not nx_existFile pwk_file) then pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk"
+        local dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk.ascii"
+		if (not nx_existFile dwk_file) then dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk"
 
         -- import MDL file
         ImportOdysseyModel \
             mdlFileName \                            -- filename
             bDoAnims \                               -- import anims
-            ImportRollout.warn_checkbox.checked \    -- show warnings
+            false \ --ImportRollout.warn_checkbox.checked \    -- show warnings
             loadGeom:bDoGeom \                       -- import geometry
             destinationBase:targetAnimBase \         -- target odysseybase (if importing anims only)
             loadanimlist:animname \                  -- specific animation to import
@@ -147,49 +149,51 @@ fn nx_importer =
 
         gc()
 
+		/*
         if ImportRollout.chk_resetctrl.checked then
         (
-					local objSum = $objects.count * 2.0
-					local cnt = 0.0
-					progressStart "Resetting Orientation"
-					format "Setting to tcb rotation\r\n"
-					for o in $objects do
-					(
-						format "Setting to tcb rotation for %\r\n" o.name
-						--/*
-						if hasProperty o "rotation" then
-						(
-							local CurrentController
-							try( CurrentController = o.rotation.controller )
-							catch( CurrentController = undefined )
-							o.position.controller = tcb_position()
-							if CurrentController != undefined then
-								o.rotation.controller = tcb_rotation()
-						)
-						--*/
-			    		cnt += 1.0
-			    		if (progressUpdate (((cnt*100)/objSum) as integer)) == false then exit
-					)
-					format "Setting back to linear rotation\r\n"
-					for o in $objects do
-					(
-						format "Setting back to linear rotation for %\r\n" o.name
-						--/*
-						if hasProperty o "rotation" then
-						(
-							local CurrentController
-							try( CurrentController = o.rotation.controller )
-							catch( CurrentController = undefined )
-							o.position.controller = linear_position()
-							if CurrentController != undefined then
-								o.rotation.controller = linear_rotation()
-						)
-						--*/
-			    		cnt += 1.0
-			    		if (progressUpdate (((cnt*100)/objSum) as integer)) == false then exit
-					)
-					progressEnd()
+			local objSum = $objects.count * 2.0
+			local cnt = 0.0
+			progressStart "Resetting Orientation"
+			format "Setting to tcb rotation\r\n"
+			for o in $objects do
+			(
+				format "Setting to tcb rotation for %\r\n" o.name
+				--/*
+				if hasProperty o "rotation" then
+				(
+					local CurrentController
+					try( CurrentController = o.rotation.controller )
+					catch( CurrentController = undefined )
+					o.position.controller = tcb_position()
+					if CurrentController != undefined then
+						o.rotation.controller = tcb_rotation()
+				)
+				--* /
+				cnt += 1.0
+				if (progressUpdate (((cnt*100)/objSum) as integer)) == false then exit
+			)
+			format "Setting back to linear rotation\r\n"
+			for o in $objects do
+			(
+				format "Setting back to linear rotation for %\r\n" o.name
+				--/*
+				if hasProperty o "rotation" then
+				(
+					local CurrentController
+					try( CurrentController = o.rotation.controller )
+					catch( CurrentController = undefined )
+					o.position.controller = linear_position()
+					if CurrentController != undefined then
+						o.rotation.controller = linear_rotation()
+				)
+				--* /
+				cnt += 1.0
+				if (progressUpdate (((cnt*100)/objSum) as integer)) == false then exit
+			)
+			progressEnd()
         )
+		*/
     )
 )
 
@@ -203,11 +207,11 @@ rollout ImportRollout "MDL Loading" width:162 height:250
 	Group "Options"
 	(
 		radioButtons rdo_options "" width:123 height:48 labels:#("Import Geom+Anims", "Import Geom Only", "Import Anims Only") default:1
-		label lbl_animname "Anim name to load:" enabled:false
+		label lbl_animname "Anim names to load:" enabled:false
 		edittext edt_animname enabled:false
 		spinner spn_startframe "Insert Frame:" type:#integer range:[-1,100000,-1] enabled:false
-		checkbox chk_resetctrl "Reset Orientation" checked:false --enabled:false
-		checkbox warn_checkbox "Show warnings" width:128 height:16
+		--checkbox chk_resetctrl "Reset Orientation" checked:false --enabled:false
+		--checkbox warn_checkbox "Show warnings" width:128 height:16
 		checkbox chk_uselyt "Use Layout Position" checked:true
 		spinner spn_loc_x "Import Loc X:" range:[0,1000000,0] enabled:false
 		spinner spn_loc_y "Import Loc Y:" range:[0,1000000,0] enabled:false
@@ -238,7 +242,10 @@ rollout ImportRollout "MDL Loading" width:162 height:250
 
 	on import_browse_button pressed do
 	(
-	    local filename = getOpenFileName caption:"Import mdl" types:"Odyssey Ascii Model (*.mdl)|*.mdl|"
+		local sPattern = "Odyssey Ascii Model (*.mdl)|*.mdl|Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|"
+		if nx_itob g_dotAscii then sPattern = "Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|Odyssey Ascii Model (*.mdl)|*.mdl|"
+		
+	    local filename = getOpenFileName caption:"Import mdl" types:sPattern
 	    if (filename == undefined) then filename = ""
 	    import_filename_edit.text = filename
 	)
@@ -288,6 +295,7 @@ rollout nx_util6 "Area Tools" width:162 height:68
 	on btn_importlyt pressed do
 	(
 	    local filename = getOpenFileName caption:"Import lyt" types:"Odyssey Layout (*.lyt)|*.lyt|"
+		g_exportPath = getFilenamePath filename
 	    if (filename != undefined) then
 			ImportOdysseyLayout filename \
 								showprogress:true \
@@ -295,7 +303,8 @@ rollout nx_util6 "Area Tools" width:162 height:68
 								withmodels:chk_withmodels.checked \
 								doanims:chk_withanims.checked \
 								suffix:edit_suffix.text
-			
+
+		nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))	
 	)
 
 	on btn_exportlyt pressed do
@@ -376,6 +385,8 @@ rollout nx_util6 "Area Tools" width:162 height:68
 			)
 
 			nx_FlushBuffer force:true
+
+			nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 
 			--format "Done exporting." to:g_strBuffer
 			--nx_FlushBuffer force:true

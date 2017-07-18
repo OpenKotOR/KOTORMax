@@ -54,7 +54,7 @@ if ( heapSize < 80000000 ) then heapSize = 80000000
 if ( stackLimit < 80000000 ) then stackLimit = 80000000
 
 global gNX_maxver = (maxversion())[1]
-global gblVersion = "0.3.0"
+global gblVersion = "0.3.2"
 global g_kotormaxPath = scriptsPath + "KOTORmax\\"
 global kotormax_handle -- handle to the master floater window
 if autostart == undefined then autostart = false
@@ -88,37 +88,10 @@ global gNX_visible = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "vis
 global gnx_sanity = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "sanity"
 global g_basepointer = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "basepointer"
 global g_exportwok = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "exportwok"
+global g_exportcolors = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "exportcolors"
+global g_dotAscii = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dotascii"
 global gnx_pos_kotormax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "position"
-
-/*
--- check to see if over-ride in nxlocalprefs
-if (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "verbose") != undefined and \
-   (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "verbose") != ""
-then g_verbose = getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "verbose"
-
-if (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "dock") != undefined and \
-   (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "dock") != ""
-then gNX_dock = getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "dock"
-
-if (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "visible") != undefined and \
-   (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "visible") != ""
-then gNX_visible = getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "visible"
-
-if (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "sanity") != undefined and \
-   (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "sanity") != ""
-then gnx_sanity = getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "sanity"
-
-if (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "basepointer") != undefined and \
-   (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "basepointer") != ""
-then g_basepointer = getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "basepointer"
-
-if (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "exportwok") != undefined and \
-   (getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "exportwok") != ""
-then g_basepointer = getINISetting (scriptsPath+"nxlocalprefs.ini") "init" "exportwok"
-
--- get nxlocalprefs specific data and convert types
-gnx_pos_kotormax = getINISetting (scriptsPath+"nxlocalprefs.ini") "position" "kotormax"
-*/
+global g_exportPath = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "lastexport"
 
 -- Correct ini vars for undefined and set required defaults and type conversion
 format "Correct ini vars\r\n"
@@ -139,8 +112,16 @@ else g_basepointer = (g_basepointer as integer)
 if g_exportwok == undefined then g_exportwok = 1
 else g_exportwok = (g_exportwok as integer)
 
+if g_exportcolors == undefined then g_exportcolors = 0
+else g_exportcolors = (g_exportcolors as integer)
+
+if g_dotAscii == undefined then g_dotAscii = 1
+else g_dotAscii = (g_dotAscii as integer)
+
 if gnx_pos_kotormax == undefined or (gnx_pos_kotormax == "") then gnx_pos_kotormax = [0,100]
 else gnx_pos_kotormax = execute(gnx_pos_kotormax)
+
+if g_exportPath == undefined or g_exportPath == "" then g_exportPath = GetDir #export
 
 -- set globals for 3dsmax vs gmax
 format "Set globals for 3dsmax vs gmax\r\n"
@@ -167,9 +148,6 @@ for i = 1 to 100 do
 )
 format "Maps search dirs:\r\n"
 print g_maps_path
-
--- Export path
-global g_exportPath = ""
 
 -- Global stack to be used for files and generic stack routines
 global g_FileHandles = #()

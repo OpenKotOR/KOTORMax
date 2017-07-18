@@ -406,7 +406,7 @@ rollout nx_util4 "Anim Tools" width:162 height:68
     button btn_animcopy "Copy Anim Keys" width:144 height:18 toolTip:"Copy Anim keys in the specified range to a target start frame"
     button btn_keyreduct "Reduce Anim Keys" width:144 height:18 toolTip:"Rationalise the animation keys for the selected nodes"
     button btn_bakeanim "Bake Anims" width:144 height:18
-    button btn_reset_controllers "Reset Orientation" width:144 height:18 toolTip:"Resets the rotation controller to tcb then back to linear"
+    --button btn_reset_controllers "Reset Orientation" width:144 height:18 toolTip:"Resets the rotation controller to tcb then back to linear"
 
     on btn_keymaster pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_animkeymaster.ms")) catch() )
 
@@ -495,7 +495,11 @@ rollout nx_prefs "Preferences" width:162 height:68
     checkbutton btn_rollup "Float Speedbar" width:144 height:14 offset:[0,-5] align:#center checked:false
     --checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
     checkbox chk_usepointer "Use Base Pointers" checked:(nx_itob(g_basepointer))
+    button btn_removepointer "Delete Base Arrow Pointers" width:144 height:18 align:#center
 	checkbox chk_exportwok "Export WOK File" checked:(nx_itob (g_exportwok))
+	checkbox chk_exportcolors "Export Vertex Colors" checked:(nx_itob (g_exportcolors))
+	checkbox chk_dotascii "Use .ascii By Default" checked:(nx_itob (g_dotAscii))
+    button btn_environ "Use Default Metric Units" width:144 height:18 align:#center toolTip:"Set default unit scales (cm)"
     group "Sanity Check Options"
     (
         checkbox box_RotationCheck "Base: No Rotation" checked:runRotationCheck
@@ -514,6 +518,23 @@ rollout nx_prefs "Preferences" width:162 height:68
         checkbox box_DuplicateNamesCheck "Node: Unique Names" checked:runDuplicateNamesCheck
         checkbox box_AabbCheck "Aabb: 1 per Model" checked:runAabbCheck
     )
+	
+    on btn_environ pressed do
+    (
+        units.displaytype = #Metric
+        units.metrictype = #Centimeters
+        units.SystemType = #Centimeters
+        units.SystemScale = 1.0
+    )
+
+	on btn_removepointer pressed do
+	(
+		for obj in $objects where matchPattern obj.name pattern:"ignore_NGon*" or matchPattern obj.name pattern:"ignore_basepointer" do
+		(
+			select obj
+			max delete
+		)
+	)
 
 	/*
     on chk_autodock changed state do
@@ -533,6 +554,18 @@ rollout nx_prefs "Preferences" width:162 height:68
 		-- Array contains the section, attrib, value, file
 		nx_setinivalue #(#("init", "exportwok", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
 		g_exportwok = (nx_btoi state)
+    )
+    on chk_exportcolors changed state do
+    (
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "exportcolors", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_exportcolors = (nx_btoi state)
+    )
+    on chk_dotascii changed state do
+    (
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "dotascii", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_dotAscii = (nx_btoi state)
     )
 
 	fn saveSanity =
@@ -665,23 +698,6 @@ rollout nx_prefs "Preferences" width:162 height:68
         if(gNX_dock == 0) then btn_rollup.checked = true
         else btn_rollup.checked = false
     )
-
-/*
-    label lbl_wip "This is WIP"
-
-    checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
-
-    button btn_exportpath "Export Path" width:144 height:18
-    label lbl_xpath ""
-
-    button btn_skinpath "SkinDumper Path" width:144 height:18
-    label lbl_xpathskin ""
-
-    button btn_xpathcryo "CyroMesh Path" width:144 height:18
-    label lbl_xpathcryp ""
-
-    spinner spn_animheight "Anim List Length:" type:#integer range:[5,30,g_guiAnimListSize]
-*/
 )
 
 rollout nx_util1 "General Utils" width:162 height:68
@@ -698,22 +714,15 @@ rollout nx_util1 "General Utils" width:162 height:68
     button btn_zoomextentsall "Zoom Out" width:68 height:18 align:#right toolTip:"Zooms all viewports to scene."
 
     -- speedbar #2
-    button btn_environ "Use Default Metric Units" width:144 height:18 align:#center toolTip:"Set default unit scales (cm)"
-    button btn_removepointer "Delete Base Arrow Pointers" width:144 height:18 align:#center
     button btn_orderchildren "Order Children" width:144 height:18 align:#center toolTip:"Manually reorder children of selected object"
     button btn_massops "Mass Operations" width:144 height:18 align:#center toolTip:"Mass Sanity Check, Export and Import."
     button btn_export_all "Export All/Selected" width:144 height:18 align:#center toolTip:"Export selected models or all models if none selected."
     group "Set Export Directory" (
-        edittext edt_resetdir "Dir:" text:(getdir #export)
+        edittext edt_resetdir "Dir:" text:g_exportPath
         button btn_resetdirbrowse "Browse" width:68 height:18 tooltip:"Select the export path" across:2
         button btn_resetdir "Set" width:68 height:18 tooltip:"Set as export directory for all selected model bases."
     )
-
-    group "Plug-Ins"
-    (
-        dropdownlist dpl_prefabs height:10 width:130 offset:[-6,0] align:#left across:2
-        button btn_prefab_do "Go" height:20 width:20 offset:[7,0] align:#right
-    )
+	
 	group "Hide / Unhide / Select"
 	(
 		radiobuttons rdo_hide labels:#("Only the following:", "All but the following:") default:1 columns:1
@@ -732,6 +741,12 @@ rollout nx_util1 "General Utils" width:162 height:68
 		button btn_show "Unhide" width:40
 		button btn_select "Select" width:40 offset:[-6,0]
 	)
+
+    group "Plug-Ins"
+    (
+        dropdownlist dpl_prefabs height:10 width:130 offset:[-6,0] align:#left across:2
+        button btn_prefab_do "Go" height:20 width:20 offset:[7,0] align:#right
+    )
 	
 	fn getObjectCollection =
 	(
@@ -783,17 +798,6 @@ rollout nx_util1 "General Utils" width:162 height:68
 		select obj_array
 	)
 
-	on btn_removepointer pressed do
-	(
-		for obj in $objects do
-		(
-			if (matchPattern obj.name pattern:"ignore_NGon*") then (
-				select obj
-				max delete
-			)
-		)
-	)
-
 	on btn_zoomextents pressed do
 	(
 		if selection.count > 0 then
@@ -843,47 +847,35 @@ rollout nx_util1 "General Utils" width:162 height:68
         )
     )
 
-    on btn_environ pressed do
-    (
-        units.displaytype = #Metric
-        units.metrictype = #Centimeters
-        units.SystemType = #Centimeters
-        units.SystemScale = 1.0
-    )
-
-
     on btn_linker pressed do
     (
-        -- First make sure only one aurabase is in the selection
-        local basecnt = 0
         local base = undefined
-        for obj in selection do (
-            if (iskindof obj odysseybase) then
-            (
-                basecnt += 1
-                base = obj
-                format "basecnt=%\r\n" basecnt
-                format "base=%\r\n" base
-            )
-        )
-        if basecnt > 1 then (
-            msg = "More than one OdysseyBase found in the selection"
-            messageBox msg title:"Fast Linker"
-            return 0
-        )
-        if base == undefined then (
-            msg = "No OdysseyBase found in the selection"
-            messageBox msg title:"Fast Linker"
-            return 0
-        )
+		local bases = #()
+		bases = for obj in $helpers where iskindof obj odysseybase collect obj
+		if bases.count == 1 then base = bases[1]
+		else if bases.count > 0 then
+		(
+			bases = for obj in $selection where iskindof obj odysseybase collect obj
+			if bases.count == 1 then base = bases[1]
+			else if bases.count > 1 then
+			(
+				msg = "More than one OdysseyBase found in the selection"
+				messageBox msg title:"Fast Linker"
+			)
+			else if bases.count == 0 then
+			(
+				msg = "No OdysseyBase found in the selection"
+				messageBox msg title:"Fast Linker"
+			)
+		)
+		
+		if base == undefined then return 0
 
         -- we only have one odysseybase so start the linking process
-        for obj in selection do
-        (
-            if obj != base then (
-                obj.parent = base
-            )
-        )
+		local linkobjects = #()
+		if selection.count == 0 then linkobjects = $objects
+		else linkobjects = selection
+        for obj in linkobjects where obj != base and not matchPattern obj.name pattern:"ignore_*" do obj.parent = base
     )
 
     on btn_makeintodummy pressed do

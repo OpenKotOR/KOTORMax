@@ -37,13 +37,16 @@
 
 --------------------------------------------------------------------------------
 -- Used to create model dialog for Ordering Children
-rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
+rollout nx_OrderChildren "Order Children" width:190
 (
     
-	listbox clist "Child Objects" pos:[27,18] width:135 height:18
-	button btn_up "Up" pos:[175,121] width:45 height:24
-	button btn_down "Down" pos:[175,171] width:45 height:24
-	button btn_ok "OK" pos:[79,290] width:74 height:24
+	listbox clist pos:[5, 5] height:16 width:180
+	button btn_up "Move Up" width:70 across:2
+	button btn_down "Move Down" width:70
+	--listbox clist "Child Objects" pos:[27,18] width:135 height:18
+	--button btn_up "Up" pos:[175,121] width:45 height:24
+	--button btn_down "Down" pos:[175,171] width:45 height:24
+	--button btn_ok "OK" pos:[79,290] width:74 height:24
 	--button btn_cancel "Cancel" pos:[160,291] width:74 height:24
 	
 	on nx_OrderChildren open do
@@ -63,7 +66,7 @@ rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
 	
 	on btn_up pressed do
 	(
-    	format "btn_up::start\n"
+    	--format "btn_up::start\n"
 		if clist.selection == 1 then return 0
 		local sel = selection[1]
 		local list = clist.items
@@ -75,7 +78,7 @@ rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
 		clist.items = list
 		clist.selection = index - 1
 		-- swap the underlying child items over by using their parents
-    	format "btn_up:: swap objects\n"
+    	--format "btn_up:: swap objects\n"
 		local childrenTemp = #()
 		for c in sel.children do
 		    append childrenTemp c
@@ -84,12 +87,12 @@ rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
 		childrenTemp[index] = childrenTemp[index-1]
 		childrenTemp[index-1] = objTmp
 		-- now reset the parents of all the child nodes
-    	format "btn_up:: reset\n"
+    	--format "btn_up:: reset\n"
 		for c in childrenTemp do
 		    deleteItem sel.children c
 	    
 	    -- re apply the children in new order
-    	format "btn_up:: reassign\n"
+    	--format "btn_up:: reassign\n"
 		for c in childrenTemp do
 	        append sel.children c
 	        
@@ -98,12 +101,12 @@ rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
 	)
 	on btn_down pressed do
 	(
-    	format "btn_down::start\n"
+    	--format "btn_down::start\n"
 		if clist.selection == clist.items.count then return 0
 		local sel = selection[1]
 		local list = clist.items
 		-- swap the text items over
-    	format "btn_down:: swap text in list\n"
+    	--format "btn_down:: swap text in list\n"
 		local index = clist.selection
 		local strTemp = list[index]
 		list[index] = list[index+1]
@@ -111,7 +114,7 @@ rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
 		clist.items = list
 		clist.selection = index + 1
 		-- swap the underlying child items over by using their parents
-    	format "btn_down:: swap objects\n"
+    	--format "btn_down:: swap objects\n"
 		local childrenTemp = #()
 		for c in sel.children do
 		    append childrenTemp c
@@ -120,22 +123,17 @@ rollout nx_OrderChildren "Order Selected Node's Children" width:232 height:328
 		childrenTemp[index] = childrenTemp[index+1]
 		childrenTemp[index+1] = objTmp
 		-- now reset the parents of all the child nodes
-    	format "btn_down:: reset\n"
+    	--format "btn_down:: reset\n"
 		for c in childrenTemp do
 		    deleteItem sel.children c
 	    
 	    -- re apply the children in new order
-    	format "btn_down:: reassign\n"
+    	--format "btn_down:: reassign\n"
 		for c in childrenTemp do
 	        append sel.children c
 	        
         -- release memory
         childrenTemp = #()
-	)
-	on btn_ok pressed do
-	(
-		-- finish
-		DestroyDialog nx_OrderChildren
 	)
 )
 

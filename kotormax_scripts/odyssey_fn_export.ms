@@ -792,7 +792,7 @@ fn do_modifier_props node mat =
     -- mesh = the mesh obj
     -- mat = the material
 */
-fn do_mesh mesh mat =
+fn do_mesh mesh mat bColors:true =
 (
     if mesh == undefined then return false
 
@@ -883,32 +883,6 @@ fn do_mesh mesh mat =
 		nx_FlushBuffer()
 	)
 
-
-	-- bead-v modification: texindices-style export	-- build faces entry
-    -- bead-v: check if there are more than the default number of channels (2)
-    if (meshop.getNumMaps mesh > 2 and meshop.getMapSupport mesh 2) then
-    (
-        if(meshop.getNumMapFaces mesh 2 > 0) do
-        (
-            format "%texindices1 %%" strIndent1 mesh.numfaces g_delim to:g_strBuffer
-            for i=1 to mesh.numfaces do(
-                local l0, l1, l2
-                l0=0
-                l1=0
-                l2=0
-
-                local l
-                tvl = meshop.getMapFace mesh 2 i
-                l0 = (tvl.x as integer) - 1
-                l1 = (tvl.y as integer) - 1
-                l2 = (tvl.z as integer) - 1
-
-                format  "%% % %%" strIndent2 l0 l1 l2 g_delim to:g_strBuffer
-                nx_FlushBuffer()
-            )
-         )
-	)
-
 	-- determine uv coordinate correction
 	local clipu,clipv,clipw,cliph
 	clipu=0
@@ -939,6 +913,31 @@ fn do_mesh mesh mat =
 		)
 	)
 
+	-- bead-v modification: texindices-style export	-- build faces entry
+    -- bead-v: check if there are more than the default number of channels (2)
+    if (meshop.getNumMaps mesh > 2 and meshop.getMapSupport mesh 2) then
+    (
+        if(meshop.getNumMapFaces mesh 2 > 0) do
+        (
+            format "%texindices1 %%" strIndent1 mesh.numfaces g_delim to:g_strBuffer
+            for i=1 to mesh.numfaces do(
+                local l0, l1, l2
+                l0=0
+                l1=0
+                l2=0
+
+                local l
+                tvl = meshop.getMapFace mesh 2 i
+                l0 = (tvl.x as integer) - 1
+                l1 = (tvl.y as integer) - 1
+                l2 = (tvl.z as integer) - 1
+
+                format  "%% % %%" strIndent2 l0 l1 l2 g_delim to:g_strBuffer
+                nx_FlushBuffer()
+            )
+         )
+	)
+
 
      -- MagnusLL: export lightmap coordinates if they exist (we are assuming lightmap channel = 2)
      -- bead-v modification: check if there are more than the default number of channels (2)
@@ -965,15 +964,44 @@ fn do_mesh mesh mat =
 	bead-v: the Odyssey MDL format seems to have an MDX struct dedicated to colors.
 	Therefore, this code should be preserved in case someday somebody figures out they actually do something.
 	However, in KOTORmax, colors are already used in OdysseyFlex and OdysseyWalkmesh
+	*/
 
-	if (mesh.numcpvverts > 0) then
+	if (bColors and meshop.getMapSupport mesh 0 and mesh.numcpvverts > 0) then
 	(
 		-- Taken from the MAXscript docs....
 		--//   The mesh class contains a list of color vertices which are completely independent of the regular vertices
 		--// in the mesh. There is no correlation between the number of vertices in a mesh and the number of color
 		--// vertices. In addition to the color vertices there are also color faces. There needs to be one color face for
 		--// every regular face in the mesh.
+		
+		
+		format "%colorindices %%" strIndent1 mesh.numfaces g_delim to:g_strBuffer
+		for i=1 to mesh.numfaces do(
+			local l0, l1, l2, tvl
+			l0=0
+			l1=0
+			l2=0
 
+			tvl = meshop.getMapFace mesh 0 i
+			l0 = (tvl.x as integer) - 1
+			l1 = (tvl.y as integer) - 1
+			l2 = (tvl.z as integer) - 1
+
+			format  "%% % %%" strIndent2 l0 l1 l2 g_delim to:g_strBuffer
+			nx_FlushBuffer()
+		)
+		
+        local colorverts = meshop.getNumMapVerts mesh 0
+		format "%colors %%" strIndent1 colorverts g_delim to:g_strBuffer
+		for i=1 to colorverts do
+		(
+			local v
+			v = meshop.getMapVert mesh 0 i
+			format "%% % %%" strIndent2 v.x v.y v.z g_delim to:g_strBuffer
+			nx_FlushBuffer()
+		)
+
+		/*
 		local colourVertIndices, faceIndices
 		local colourVerts = #()
 
@@ -1003,9 +1031,8 @@ fn do_mesh mesh mat =
 				colourVerts[i] = color 255 255 255
 			format "     % % %\r\n" (colourVerts[i].red/255.0) (colourVerts[i].green/255.0) (colourVerts[i].blue/255.0)
 		)
-
-	) 
-	*/
+		*/
+	)
 	
     if DEBUG then format "#do_mesh:: End%" g_delim to:g_strBuffer
     if SPEEDT then nx_stopStopWatch txt:"do_mesh"
@@ -1019,7 +1046,7 @@ fn do_mesh mesh mat =
     This function doesn't actually do all that work. All it does is determine
     the material, which it then passes to do_mesh() and do_modifier_props().
 */
-function do_trimesh node =
+function do_trimesh node bColors:true =
 (
     -- Joco: Code from Bioware's scripts with some enhancements/corrections
     -- based on data from Wayland's scripts and my own checking.
@@ -1059,7 +1086,7 @@ function do_trimesh node =
 
 	/* Export out the mesh itself */
 	-- NOTE: We pass a mesh to this function and the mesh has verts in object space.
-	do_mesh node.mesh mat
+	do_mesh node.mesh mat bColors:(nx_itob(g_exportcolors) and bColors)
 
     if DEBUG then format "#do_trimesh:: End%" g_delim to:g_strBuffer
 ) -- end fn
@@ -1231,7 +1258,9 @@ fn do_aabb node =
 fn exportWok node = 
 (
 	local filename
-	filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + ".wok" )
+	local mdlextn = ".wok"
+	if nx_itob g_dotAscii then mdlextn += ".ascii"
+	filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + mdlextn )
 	if g_ismax then (
 	   nx_push g_FileHandles g_strBuffer
 	   g_strBuffer = createFile filename
@@ -1350,7 +1379,9 @@ fn Node_Geometry node type:"mdl" root:false =
     (
 		bDoingWk = true
         local filename
-        filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + ".pwk" )
+		local mdlextn = ".pwk"
+		if nx_itob g_dotAscii then mdlextn += ".ascii"
+        filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + mdlextn )
         if g_ismax then (
            nx_push g_FileHandles g_strBuffer
            g_strBuffer = createFile filename
@@ -1367,7 +1398,9 @@ fn Node_Geometry node type:"mdl" root:false =
     (
 		bDoingWk = true
         local filename
-        filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + ".dwk" )
+		local mdlextn = ".dwk"
+		if nx_itob g_dotAscii then mdlextn += ".ascii"
+        filename = nx_lowercase( g_exportPath + (nx_CreateExportName g_ModelName) + mdlextn )
         if g_ismax then (
            nx_push g_FileHandles g_strBuffer
            g_strBuffer = createFile filename
@@ -1445,7 +1478,7 @@ fn Node_Geometry node type:"mdl" root:false =
         (
         	format "node % %%" node_type node.name g_delim to:g_strBuffer
             do_dummy node
-            do_trimesh node
+            do_trimesh node bColors:false
             do_dangly node
             format "endnode%" g_delim to:g_strBuffer
         )
@@ -1454,7 +1487,7 @@ fn Node_Geometry node type:"mdl" root:false =
         (
         	format "node % %%" node_type node.name g_delim to:g_strBuffer
             do_dummy node
-            do_trimesh node
+            do_trimesh node bColors:false
             do_aabb node
             format "endnode%" g_delim to:g_strBuffer
 			if g_exportwok != 0 then exportWok node
@@ -1464,7 +1497,7 @@ fn Node_Geometry node type:"mdl" root:false =
         (
         	format "node % %%" node_type node.name g_delim to:g_strBuffer
             do_dummy node
-            do_trimesh node
+            do_trimesh node bColors:false
             format "endnode%" g_delim to:g_strBuffer
         )
     )
@@ -2393,6 +2426,7 @@ fn ExportOdysseyModel node anim:true showprogress:true =
 
 	format "setsupermodel % %%" node.name sm g_delim to:g_strBuffer
 	format "classification %%" node.classification g_delim to:g_strBuffer
+	format "classification_unk1 %%" node.classification_unk1 g_delim to:g_strBuffer
 	format "ignorefog %%" node.ignorefog g_delim to:g_strBuffer
     format "setanimationscale %%" node.setanimationscale g_delim to:g_strBuffer
 
@@ -2476,7 +2510,7 @@ fn ExportOdysseyLayout pFile Rooms Tracks Obstacles Doorhooks withvis:true withm
 
     -- START WRITING
 	if DEBUG then format "#ExportOdysseyLayout: Begin%" g_delim to:g_strBuffer
-	format "#Exported from KOTORmax % at %%" gblVersion localtime g_delim to:g_strBuffer
+	format "#Exported from KOTORmax v% at %%" gblVersion localtime g_delim to:g_strBuffer
 	format "#%" g_delim to:g_strBuffer
 	format "#MAXLAYOUT ASCII%" g_delim to:g_strBuffer
 
@@ -2490,6 +2524,9 @@ fn ExportOdysseyLayout pFile Rooms Tracks Obstacles Doorhooks withvis:true withm
  	)
 
 	format "beginlayout%" g_delim to:g_strBuffer
+	
+	local mdlextn = ".mdl"
+	if nx_itob g_dotAscii then mdlextn += ".ascii"
 
 	-- rooms
 	format "%roomcount %%" strIndent1 Rooms.count g_delim to:g_strBuffer
@@ -2502,7 +2539,7 @@ fn ExportOdysseyLayout pFile Rooms Tracks Obstacles Doorhooks withvis:true withm
 
 		if withmodels and nx_basehascontent room then
 		(
-			local filename = nx_lowercase( g_exportPath + (nx_CreateExportName room.name) + ".mdl" )
+			local filename = nx_lowercase( g_exportPath + (nx_CreateExportName room.name) + mdlextn )
 
 			nx_exportmodelsilent room filename doanims
 		)
@@ -2522,7 +2559,7 @@ fn ExportOdysseyLayout pFile Rooms Tracks Obstacles Doorhooks withvis:true withm
 
 		if withmodels and nx_basehascontent track then
 		(
-			local filename = nx_lowercase( g_exportPath + (nx_CreateExportName track.name) + ".mdl" )
+			local filename = nx_lowercase( g_exportPath + (nx_CreateExportName track.name) + mdlextn )
 
 			nx_exportmodelsilent track filename doanims
 		)
@@ -2542,7 +2579,7 @@ fn ExportOdysseyLayout pFile Rooms Tracks Obstacles Doorhooks withvis:true withm
 
 		if withmodels and nx_basehascontent obstacle then
 		(
-			local filename = nx_lowercase( g_exportPath + (nx_CreateExportName obstacle.name) + ".mdl" )
+			local filename = nx_lowercase( g_exportPath + (nx_CreateExportName obstacle.name) + mdlextn )
 
 			nx_exportmodelsilent obstacle filename doanims
 		)
@@ -2731,6 +2768,7 @@ function ExportAll =
      			if (obj.export_path[obj.export_path.count] != "\\") then obj.export_path = obj.export_path + "\\"
     			g_exportPath = obj.export_path
         		mdlextn = "mdl"
+				if nx_itob g_dotAscii then mdlextn += ".ascii"
         		if not g_ismax then format "<snoopstart file=%%.%>%" obj.export_path (nx_CreateExportName obj.name) mdlextn g_delim to:g_strBuffer
         		-- we can now do some sanity checks and record the results for review
         		if g_ismax then (
@@ -2858,10 +2896,13 @@ fn massexport pattern:undefined target:undefined anims:true =
             -- export the file
             if isSceneRedrawDisabled() then enableSceneRedraw()
             modelBase.export_path = target
+			g_exportPath = modelBase.export_path
             select modelBase
             max modify mode
+			mdlextn = "mdl"
+			if nx_itob g_dotAscii then mdlextn += ".ascii"
             if not g_ismax then
-                format "<snoopstart file=%%.%>%" target (nx_CreateExportName( modelBase.name )) "mdl" g_delim to:g_strBuffer
+                format "<snoopstart file=%%.%>%" target (nx_CreateExportName( modelBase.name )) mdlextn g_delim to:g_strBuffer
 
             -- we can now do some sanity checks and record the results for review
             if g_ismax then (
@@ -2881,9 +2922,9 @@ fn massexport pattern:undefined target:undefined anims:true =
             nx_FlushBuffer()
             if g_ismax then
             (
-                g_strBuffer = createFile (target + (nx_CreateExportName( modelBase.name )) + ".mdl")
+                g_strBuffer = createFile (target + (nx_CreateExportName( modelBase.name )) + "." + mdlextn)
                 if g_strBuffer == undefined then
-                    format "ERROR: File creatin failure for: %\r\n" (target + nx_CreateExportName(modelBase.name) + ".mdl")
+                    format "ERROR: File creatin failure for: %\r\n" (target + nx_CreateExportName(modelBase.name) + "." + mdlextn)
             )
             ExportOdysseyModel modelBase anim:anims
             if g_ismax then

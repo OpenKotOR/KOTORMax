@@ -517,6 +517,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     local odyssey_helper
 
     local currentPath = getFilenamePath pFile
+	g_exportPath = currentPath
 
     -- only progress further if there IS a file available to process
     if not (nx_existFile pFile) then return false
@@ -553,6 +554,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
     -- Setup basis for model header
     local newModelClassification = 0
+	local newModelClassificationUnk1 = 0
     local newModelAnimscale = 1.0
     local newModelSupermodel = "NULL"
     local newModelIgnoreFog = 0
@@ -644,6 +646,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             if newModelClassification == 0 then newModelClassification = 1
                             if DEBUG then format "classification processing END\r\n"
                         )
+                        "classification_unk1": newModelClassificationUnk1 = tok.ReadInteger()
                         "setanimationscale": newModelAnimscale = tok.ReadFloat()
                         "ignorefog": newModelIgnoreFog = tok.ReadInteger()
                         "beginmodelgeom": mdl_pos = MDL_GEOM
@@ -722,6 +725,9 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             numTVerts3 = 0
                             TVerts3 = #()
                             TVfaces3 = #()
+                            numColors = 0
+                            Colors = #()
+                            Colorfaces = #()
                             smoothGroups = #()
                             surfacemats = #()
                             numConstraints = 0
@@ -1043,6 +1049,21 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             )
                         )
 
+                        "colorindices": -- Faces Struct
+                        (
+                            local p3
+                            --numFaces = tok.ReadInteger()
+                            for i = 1 to numFaces do
+                            (
+                                tok.SetString (getNextNonBlankLine mdlStream)
+                                lineNum += 1
+
+                                -- Get the current TVface
+                                p3 = (tok.ReadPoint3() + [1,1,1])
+                                append Colorfaces p3
+                            )
+                        )
+
                         "tverts": -- Verticies Struct
                         (
                             numTVerts = tok.ReadInteger()
@@ -1102,6 +1123,19 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 local p3 = [bv1, bv2, 0]
 
                                 append TVerts3 p3
+                            )
+                        )
+                        "colors": -- Vertices Struct
+                        (
+                            numColors = tok.ReadInteger()
+                            for i = 1 to numColors do
+                            (
+                                tok.SetString (getNextNonBlankLine mdlStream)
+                                lineNum += 1
+								
+                                local p3 = tok.ReadPoint3()
+
+                                append Colors p3
                             )
                         )
                         "roomlinks": --Walkmesh room links
@@ -1332,6 +1366,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         )
                                         newObj.name = objName
                                         newObj.classification_sel = newModelClassification
+										newObj.classification_unk1 = newModelClassificationUnk1
                                         newObj.setanimationscale = newModelAnimscale
                                         newObj.setsupermodel = newModelSupermodel
 										newObj.radius = newModelRadius
@@ -1864,6 +1899,16 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     )
                                                     setVCFace newObj i [cei[1], cei[2], cei[3]]
                                                 )
+                                            )
+
+                                            -- if not aabb, dangly or saber -> if trimesh or skin
+                                            if (objType == "trimesh" or objType == "skin" ) and Colors.count > 0 then
+                                            (
+                                                meshop.setMapSupport newObj 0 true
+                                                meshop.setNumMapVerts newObj 0 Colors.count
+                                                for i = 1 to Colors.count do meshop.setMapVert newObj 0 i Colors[i]
+												meshop.setNumMapFaces newObj 0 Colorfaces.count
+                                                for i = 1 to Colorfaces.count do meshop.setMapFace newObj 0 i Colorfaces[i]
                                             )
 
                                             --
@@ -3039,6 +3084,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     nx_FlushBuffer()
     if showprogress then progressEnd()
 	popPrompt()
+
+	nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 )
 
 
@@ -3120,7 +3167,8 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         if(oNode == undefined and withmodels) then
                         (
                             -- couldnt find node, try importing
-                            local sFile = currentPath+sNode+suffix+".mdl"
+                            local sFile = currentPath+sNode+suffix+".mdl.ascii"
+							if (not nx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3171,7 +3219,9 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         if(oNode == undefined and withmodels) then
                         (
                             -- couldnt find node, try importing
-                            local sFile = currentPath+sNode+suffix+".mdl"
+                            local sFile = currentPath+sNode+suffix+".mdl.ascii"
+							if (not nx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
+							
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3220,7 +3270,9 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         if(oNode == undefined and withmodels) then
                         (
                             -- couldnt find node, try importing
-                            local sFile = currentPath+sNode+suffix+".mdl"
+                            local sFile = currentPath+sNode+suffix+".mdl.ascii"
+							if (not nx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
+							
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3425,8 +3477,10 @@ fn massload pattern:undefined target:undefined anims:true =
     if target[target.count] != "\\" then target += "\\"
     for file in filesToLoad do
     (
-        local pwk_file = (getFilenamePath file)+(getFilenameFile  file)+".pwk"
-        local dwk_file = (getFilenamePath file)+(getFilenameFile  file)+".dwk"
+        local pwk_file = (getFilenamePath file)+(getFilenameFile  file)+".pwk.ascii"
+		if (not nx_existFile pwk_file) then pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk"
+        local dwk_file = (getFilenamePath file)+(getFilenameFile  file)+".dwk.ascii"
+		if (not nx_existFile dwk_file) then dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk"
 
         -- import the file
         ImportOdysseyModel file anims false

@@ -79,7 +79,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:5
 	button btn_deselectall2 "Desel All" pos:[471,203] width:50 height:16
 	button btn_delanim "Remove" pos:[526,202] width:50 height:16
 	button btn_import "Import" pos:[213,486] width:136 height:26
-	checkbox chk_resetorient "Reset Orientation" pos:[360,490] checked:false
+	--checkbox chk_resetorient "Reset Orientation" pos:[360,490] checked:false
 
 	fn RefreshTargetNodes =
 	(
@@ -473,6 +473,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:5
         )
         else format "Anim: Insert frame < 0\r\n"
 
+		/*
         if(chk_resetorient.checked) then
         (
             -- reset controllers after all anim import processing has completed.
@@ -499,6 +500,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:5
             )
             progressEnd()
         )
+		*/
 	)
 )
 
