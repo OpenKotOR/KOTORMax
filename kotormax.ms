@@ -80,7 +80,6 @@ global strIndent4 = "        "
 global strIndent5 = "          "
 --
 -- Load kotormax ini global vars
-format "KOTORmax ini load\r\n"
 global g_3dsmax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "usemax"
 global g_verbose = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "verbose"
 global gNX_dock = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dock"
@@ -92,6 +91,7 @@ global g_exportcolors = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "
 global g_dotAscii = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dotascii"
 global gnx_pos_kotormax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "position"
 global g_exportPath = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "lastexport"
+format "KOTORmax.ini loaded\r\n"
 
 -- Correct ini vars for undefined and set required defaults and type conversion
 format "Correct ini vars\r\n"
@@ -124,11 +124,12 @@ else gnx_pos_kotormax = execute(gnx_pos_kotormax)
 if g_exportPath == undefined or g_exportPath == "" then g_exportPath = GetDir #export
 
 -- set globals for 3dsmax vs gmax
-format "Set globals for 3dsmax vs gmax\r\n"
+format "Setting globals for 3dsmax vs gmax...\r\n"
 global g_fextn = ""
 global g_gmaxini = ""
 global g_ismax = false
-if g_3dsmax == "1" then (
+global g_maxVer = (maxversion())[1]
+if g_3dsmax == "1" or g_maxVer > 4200 then (
    g_fextn = ".max"
    g_gmaxini = "3dsmax.ini"
    g_ismax = true
@@ -139,12 +140,15 @@ if g_3dsmax == "1" then (
 )
 
 -- load in all paths from gmax.ini or max file
-format "Load in all paths from gmax.ini or max file\r\n"
+global g_ini_location = getDir #maxroot
+if g_maxVer >= 9000 then g_ini_location = getDir #maxdata
+if g_ini_location[g_ini_location.count] != "\\" then g_ini_location += "\\"
+format "Loading in all paths from %%...\r\n" g_ini_location g_gmaxini
 global g_maps_path = #()
 for i = 1 to 100 do
 (
-	if (getINISetting (scriptsPath+"..\\"+g_gmaxini) "BitmapDirs" ("Dir"+(i as string))) == "" then exit
-	append g_maps_path (getINISetting (scriptsPath+"..\\"+g_gmaxini) "BitmapDirs" ("Dir"+(i as string)))
+	if (getINISetting (g_ini_location+g_gmaxini) "BitmapDirs" ("Dir"+(i as string))) == "" then exit
+	append g_maps_path (getINISetting (g_ini_location+g_gmaxini) "BitmapDirs" ("Dir"+(i as string)))
 )
 format "Maps search dirs:\r\n"
 print g_maps_path
