@@ -2108,7 +2108,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "newanim": -- New animation
                         (
                             animName = tok.ReadToken()
-                            animRoot = getNodeByName(tok.ReadToken())
+                            animRoot = undefined --getNodeByName(tok.ReadToken())
                             -- deal with the loading of anims only as the model base will
                             -- not likely be the same as the base refered to src anim mdl
                             if destinationBase != undefined then
@@ -2343,7 +2343,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 for mapindex = 1 to mappingtbl.count by 2 do
                                 (
                                     if nx_lowercase(mappingtbl[mapindex]) == nx_lowercase(objName) then (
-                                        if DEBUG then format "mapping: % --> %\r\n" mappingtbl[mapindex] objName
+                                        --if DEBUG then 
+										format "mapping: % --> %\r\n" mappingtbl[mapindex] objName
                                         objName = mappingtbl[mapindex + 1]
                                         bMapped = true
                                     )
@@ -2355,8 +2356,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                             -- Get anim object, taking into account that it needs to be under the right odysseybase. This should uniquely identify the node (unless the ascii is faulty).
                             objAnim = undefined
-                            if objName != "" and objName != undefined then objAnim = (for p in objects where (p.name == objName and isdescendantof p animRoot) collect p)[1]
-
+                            if objName != "" and objName != undefined then objAnim = (for p in $objects where (nx_lowercase(p.name) == nx_lowercase(objName) and isdescendantof p animRoot) collect p)[1]
+							--if objAnim == undefined then messagebox ("Couldn't find objAnim: " + objName)
                             if (objAnim != undefined and objAnim != animRoot) then
                             (
 								-- make sure the position and orientation controllers are bezier and linear
@@ -2898,7 +2899,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 												if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRotNew
 												
 												-- The Euler Filter
-												if not loadGeom then objRotNew = nx_translateRotation objRotNew zeroRot2 zeroRot
+												--if not loadGeom then objRotNew = nx_translateRotation objRotNew zeroRot2 zeroRot
 												objRotNew = nx_eulerFilter objRotNew qPrev
 
 												if bDoAnimation then (

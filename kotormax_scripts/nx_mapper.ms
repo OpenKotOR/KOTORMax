@@ -143,9 +143,10 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:5
 
 	on btn_browse pressed do
 	(
-		local f = getOpenFileName \
-					caption:"MDL File with source animations" \
-					types:"MDL(*.mdl)|*.mdl|MDL Ascii(*.ascii)|*.ascii|"
+		local sPattern = "Odyssey Ascii Model (*.mdl)|*.mdl|Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|"
+		if nx_itob g_dotAscii then sPattern = "Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|Odyssey Ascii Model (*.mdl)|*.mdl|"
+		
+	    local f = getOpenFileName caption:"MDL file with source animations" types:sPattern
 
 		if f != undefined then
 		(
