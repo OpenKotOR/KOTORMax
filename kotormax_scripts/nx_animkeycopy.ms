@@ -35,217 +35,6 @@
      
 \-----------------------------------------------------------------------------*/
 
--- Recursive anim key copy
-fn animkeycopy node nodetrg dopos dorot doscale dochildren =
-(
-	local fr, idx, p, r, s, nf, tchild
-	local existingPosKey
-	local existingPos
-	local newPosKey
-	local sf = spn_startframe.value     -- start frame
-	local ef = spn_endframe.value       -- end frame
-	local tf = spn_targetframe.value    -- target frame
-	local span = ef - sf                -- source frames span (interval)
-	format "+++++++++++++ Anim Key Copy ++++++++++++++\r\n"
-	-- we have valid data so lets get into it.
-	-- 1. Work through the selected nodes
-	format "Node: %: Target:% Copy Type: %\r\n" node.name nodetrg.name rdo_abs.state
-	-- work through the frames in the source interval and look for keys
-	-- which are then copied to the target range
-	
-	-- Process the pos data
-	local masterpos_src = undefined
-	local masterpos_src_delta = undefined
-	local masterpos_trg = undefined
-	if dopos then
-	(
-		format "copy pos data\r\n"
-		for fr = sf to ef do
-		(
-			idx = getKeyIndex node.pos.controller fr
-			if idx > 0 then    -- we have an index!
-			(
-				in coordsys parent
-				(
-					-- check to see if is first pass on this obj.
-					-- If so setup delta vars, else calc them as normal
-					if masterpos_src == undefined then (
-						at time sf
-						(
-							masterpos_src = node.pos
-							masterpos_trg = nodetrg.pos
-							masterpos_src_delta = masterpos_src - masterpos_src
-						)
-					) else
-					(
-						masterpos_src_delta = (at time fr node.pos) - masterpos_src
-					)
-					case rdo_abs.state of
-					(
-						1: at time fr p = node.pos
-						2: p = nodetrg.pos + masterpos_src_delta
-					)
-					--p = node.pos.keys[idx].value
-					
-					-- deal with the mirroring calcs
-					/*
-					if chk_mirror.checked then
-					(
-						format "Processing mirror code: pos=%\r\n" r_euler
-						if chk_x.checked then (
-							-- mirror along the x axis
-							r_euler.x *= -1
-						)
-						if chk_y.checked then (
-							-- mirror along the y axis
-							r_euler.y *= -1
-						)
-						if chk_z.checked then (
-							-- mirror along the z axis
-							r_euler.z *= -1
-						)
-						
-						format "Finished mirror code: euler=%\r\n" r_euler
-						-- turn the euler back to a quat
-						r = eulerToQuat r_euler order:1
-					)
-					*/
-					-- end mirroring code
-					nf = tf+(fr-sf)
-					format "Source fr:%  Target fr:%  Pos:%\r\n" fr nf p
-					with animate on at time nf nodetrg.pos = p
-				)
-			)
-		)   -- end for fr
-	)
-	
-	-- process rotation data
-	local masterrot_src = undefined
-	local masterrot_src_delta = undefined
-	local masterrot_trg = undefined
-	if dorot then
-	(
-		format "copy rot data\r\n"
-		for fr = sf to ef do
-		(
-			idx = getKeyIndex node.rotation.controller fr
-			if idx > 0 then    -- we have an index!
-			(
-				in coordsys parent
-				(
-					-- check to see if is first pass on this obj.
-					-- If so setup delta vars, else calc them as normal
-					if masterrot_src == undefined then (
-						at time sf
-						(
-							masterrot_src = node.rotation
-							masterrot_trg = nodetrg.rotation
-							masterrot_src_delta = masterrot_src - masterrot_src
-						)
-					) else
-					(
-						masterrot_src_delta = (at time fr node.rotation) - masterrot_src
-					)
-					case rdo_abs.state of
-					(
-						1: at time fr r = node.rotation
-						2: r = nodetrg.rotation + masterrot_src_delta
-					)
-					-- deal with the mirroring calcs
-					if chk_mirror.checked then
-					(
-						-- we need to convert to euler rots for easy mirroring.
-						-- Might be a better way with quats??
-						local r_euler = quatToEuler r order:1
-						format "Processing mirror code: euler=%\r\n" r_euler
-						if chk_x.checked then (
-							-- mirror along the x axis
-							r_euler.x *= -1
-						)
-						if chk_y.checked then (
-							-- mirror along the y axis
-							r_euler.y *= -1
-						)
-						if chk_z.checked then (
-							-- mirror along the z axis
-							r_euler.z *= -1
-						)
-						
-						format "Finished mirror code: euler=%\r\n" r_euler
-						-- turn the euler back to a quat
-						r = eulerToQuat r_euler order:1
-					)
-
-					-- end mirroring code
-					nf = tf+(fr-sf)
-					existingPosKey = getKeyIndex nodetrg.pos.controller nf
-					existingPos = [0,0,0]
-					if (existingPosKey > 0) then
-					(
-						existingPos = nodetrg.pos.keys[existingPosKey].value
-					)
-					format "Source fr:%  Target fr:%  Pos:%\r\n" fr nf r
-					with animate on at time nf nodetrg.rotation = r
-					
-					if (existingPosKey == 0) then
-					(
-						format "existingPosKey==0\n"
-						newPosKey = getKeyIndex nodetrg.pos.controller nf
-						if (newPosKey != 0) then deleteKey nodetrg.pos.controller newPosKey
-					)
-					else
-					(
-						format "existingPosKey!=0\n"
-						format "existingPos=%; existingPosKey=%\n" existingPos existingPosKey
-						nodetrg.pos.keys[existingPosKey].value = existingPos
-					)
-				)
-			)
-		)   -- end for fr
-	)
-		
-	-- process scale data
-	if doscale then
-	(
-		for fr = sf to ef do
-		(
-			idx = getKeyIndex node.scale.controller fr
-			if idx != 0 then    -- we have an index!
-			(
-				in coordsys parent
-				(
-					at time fr s = node.scale
-					nf = tf+(fr-sf)
-					with animate on at time nf node.scale = s
-				)
-			)
-		)   -- end for fr
-	)
-	format "\r\n"
-	
-	-- Q: how to deal with target children for different hierarchy?
-	
-	-- process the nodes children
-	if dochildren then (
-		for child in node.children do (
-			trgHierIndex += 1
-			format "trgHierIndex=%\r\n" trgHierIndex
-			if trgHierObjs != undefined then
-				tchild = trgHierObjs[trgHierIndex]
-			else
-				tchild = child
-			
-			animkeycopy child \
-						tchild \
-						dopos \
-						dorot \
-						doscale \
-						dochildren
-			
-		)
-	)
-)		
-
 -- Animation key copy rollout. Used for Dialog creation
 rollout AnimKeyCopy "Animation Key Copier" width:162
 (
@@ -266,7 +55,7 @@ rollout AnimKeyCopy "Animation Key Copier" width:162
     group "" (
 	-- not yet implemented. Trying to figure out the math needed here
 	    --label lbl_notyet "Not implimented:Researching."			enabled:false
-        checkbox chk_mirror "Mirror on axises - Rot only" checked:false  enabled:true
+        checkbox chk_mirror "Mirror on axes - Rot only" checked:false  enabled:true
         checkbox chk_x "X" across:3                       enabled:true
         checkbox chk_y "Y"                                enabled:true
         checkbox chk_z "Z"                                enabled:true
@@ -421,6 +210,217 @@ rollout AnimKeyCopy "Animation Key Copier" width:162
     				chk_scl.checked \
     				chk_children.checked
 	)
+	
+	-- Recursive anim key copy
+	fn animkeycopy node nodetrg dopos dorot doscale dochildren =
+	(
+		local fr, idx, p, r, s, nf, tchild
+		local existingPosKey
+		local existingPos
+		local newPosKey
+		local sf = spn_startframe.value     -- start frame
+		local ef = spn_endframe.value       -- end frame
+		local tf = spn_targetframe.value    -- target frame
+		local span = ef - sf                -- source frames span (interval)
+		format "+++++++++++++ Anim Key Copy ++++++++++++++\r\n"
+		-- we have valid data so lets get into it.
+		-- 1. Work through the selected nodes
+		format "Node: %: Target:% Copy Type: %\r\n" node.name nodetrg.name rdo_abs.state
+		-- work through the frames in the source interval and look for keys
+		-- which are then copied to the target range
+		
+		-- Process the pos data
+		local masterpos_src = undefined
+		local masterpos_src_delta = undefined
+		local masterpos_trg = undefined
+		if dopos then
+		(
+			format "copy pos data\r\n"
+			for fr = sf to ef do
+			(
+				idx = getKeyIndex node.pos.controller fr
+				if idx > 0 then    -- we have an index!
+				(
+					in coordsys parent
+					(
+						-- check to see if is first pass on this obj.
+						-- If so setup delta vars, else calc them as normal
+						if masterpos_src == undefined then (
+							at time sf
+							(
+								masterpos_src = node.pos
+								masterpos_trg = nodetrg.pos
+								masterpos_src_delta = masterpos_src - masterpos_src
+							)
+						) else
+						(
+							masterpos_src_delta = (at time fr node.pos) - masterpos_src
+						)
+						case rdo_abs.state of
+						(
+							1: at time fr p = node.pos
+							2: p = nodetrg.pos + masterpos_src_delta
+						)
+						--p = node.pos.keys[idx].value
+						
+						-- deal with the mirroring calcs
+						/*
+						if chk_mirror.checked then
+						(
+							format "Processing mirror code: pos=%\r\n" r_euler
+							if chk_x.checked then (
+								-- mirror along the x axis
+								r_euler.x *= -1
+							)
+							if chk_y.checked then (
+								-- mirror along the y axis
+								r_euler.y *= -1
+							)
+							if chk_z.checked then (
+								-- mirror along the z axis
+								r_euler.z *= -1
+							)
+							
+							format "Finished mirror code: euler=%\r\n" r_euler
+							-- turn the euler back to a quat
+							r = eulerToQuat r_euler order:1
+						)
+						*/
+						-- end mirroring code
+						nf = tf+(fr-sf)
+						format "Source fr:%  Target fr:%  Pos:%\r\n" fr nf p
+						with animate on at time nf nodetrg.pos = p
+					)
+				)
+			)   -- end for fr
+		)
+		
+		-- process rotation data
+		local masterrot_src = undefined
+		local masterrot_src_delta = undefined
+		local masterrot_trg = undefined
+		if dorot then
+		(
+			format "copy rot data\r\n"
+			for fr = sf to ef do
+			(
+				idx = getKeyIndex node.rotation.controller fr
+				if idx > 0 then    -- we have an index!
+				(
+					in coordsys parent
+					(
+						-- check to see if is first pass on this obj.
+						-- If so setup delta vars, else calc them as normal
+						if masterrot_src == undefined then (
+							at time sf
+							(
+								masterrot_src = node.rotation
+								masterrot_trg = nodetrg.rotation
+								masterrot_src_delta = masterrot_src - masterrot_src
+							)
+						) else
+						(
+							masterrot_src_delta = (at time fr node.rotation) - masterrot_src
+						)
+						case rdo_abs.state of
+						(
+							1: at time fr r = node.rotation
+							2: r = nodetrg.rotation + masterrot_src_delta
+						)
+						-- deal with the mirroring calcs
+						if chk_mirror.checked then
+						(
+							-- we need to convert to euler rots for easy mirroring.
+							-- Might be a better way with quats??
+							local r_euler = quatToEuler r order:1
+							format "Processing mirror code: euler=%\r\n" r_euler
+							if chk_x.checked then (
+								-- mirror along the x axis
+								r_euler.x *= -1
+							)
+							if chk_y.checked then (
+								-- mirror along the y axis
+								r_euler.y *= -1
+							)
+							if chk_z.checked then (
+								-- mirror along the z axis
+								r_euler.z *= -1
+							)
+							
+							format "Finished mirror code: euler=%\r\n" r_euler
+							-- turn the euler back to a quat
+							r = eulerToQuat r_euler order:1
+						)
+
+						-- end mirroring code
+						nf = tf+(fr-sf)
+						existingPosKey = getKeyIndex nodetrg.pos.controller nf
+						existingPos = [0,0,0]
+						if (existingPosKey > 0) then
+						(
+							existingPos = nodetrg.pos.keys[existingPosKey].value
+						)
+						format "Source fr:%  Target fr:%  Pos:%\r\n" fr nf r
+						with animate on at time nf nodetrg.rotation = r
+						
+						if (existingPosKey == 0) then
+						(
+							format "existingPosKey==0\n"
+							newPosKey = getKeyIndex nodetrg.pos.controller nf
+							if (newPosKey != 0) then deleteKey nodetrg.pos.controller newPosKey
+						)
+						else
+						(
+							format "existingPosKey!=0\n"
+							format "existingPos=%; existingPosKey=%\n" existingPos existingPosKey
+							nodetrg.pos.keys[existingPosKey].value = existingPos
+						)
+					)
+				)
+			)   -- end for fr
+		)
+			
+		-- process scale data
+		if doscale then
+		(
+			for fr = sf to ef do
+			(
+				idx = getKeyIndex node.scale.controller fr
+				if idx != 0 then    -- we have an index!
+				(
+					in coordsys parent
+					(
+						at time fr s = node.scale
+						nf = tf+(fr-sf)
+						with animate on at time nf node.scale = s
+					)
+				)
+			)   -- end for fr
+		)
+		format "\r\n"
+		
+		-- Q: how to deal with target children for different hierarchy?
+		
+		-- process the nodes children
+		if dochildren then (
+			for child in node.children do (
+				trgHierIndex += 1
+				format "trgHierIndex=%\r\n" trgHierIndex
+				if trgHierObjs != undefined then
+					tchild = trgHierObjs[trgHierIndex]
+				else
+					tchild = child
+				
+				animkeycopy child \
+							tchild \
+							dopos \
+							dorot \
+							doscale \
+							dochildren
+				
+			)
+		)
+	)		
 )
 
 createDialog AnimKeyCopy

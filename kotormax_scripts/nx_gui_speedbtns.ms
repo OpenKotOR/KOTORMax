@@ -82,12 +82,18 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
     button btn_copyreset "Reset" width:44 height:18 align:#right toolTip:"Clear copy link buffer"
     button btn_desparkle "\"Desparkle\" Model" width:144 height:18 align:#center toolTip:"Desparkle by rounding all verts to nearest cm"
     button btn_modelscaler "Scale Wizard" width:144 height:18 align:#center
+    button btn_limitweights "Delete Extra Vertex Weights" width:144 height:18 align:#center toolTip:"Preserve the 4 weights with the largest influence on all skin verts in the scene and delete the rest."
     --button btn_chilliskinner "Chilli Skinner" width:144 height:18 align:#center
 	group "Smoothing"
 	(
 		button btn_smooth "Apply Smoothing" width:144 height:18 align:#center toolTip:"This will recalculate the vertex normals in the same way they are calculated by the compilers, using smoothing groups. Warning: This is an expensive operation on larger models!"
 		checkbox chk_areaweight "Use Area Weighting" checked:true
 		checkbox chk_angleweight "Use Angle Weighting" checked:false
+	)
+	
+	on btn_limitweights pressed do undo on
+	(
+		nx_LimitAllWeights()
 	)
 	
 	on btn_smooth pressed do undo on
@@ -492,13 +498,14 @@ rollout nx_util5 "Texture Tools" width:162 height:68
 
 rollout nx_prefs "Preferences" width:162 height:68
 (
-    checkbutton btn_rollup "Float Speedbar" width:144 height:14 offset:[0,-5] align:#center checked:false
+    checkbutton btn_rollup "Float Speedbar" width:144 height:18 align:#center checked:false
     --checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
     checkbox chk_usepointer "Use Base Pointers" checked:(nx_itob(g_basepointer))
     button btn_removepointer "Delete Base Arrow Pointers" width:144 height:18 align:#center
 	checkbox chk_exportwok "Export WOK File" checked:(nx_itob (g_exportwok))
 	checkbox chk_exportcolors "Export Vertex Colors" checked:(nx_itob (g_exportcolors))
 	checkbox chk_dotascii "Use .ascii By Default" checked:(nx_itob (g_dotAscii))
+	checkbox chk_lowercase "Lowercase Filename" checked:(nx_itob (g_expLower))
     button btn_environ "Use Default Metric Units" width:144 height:18 align:#center toolTip:"Set default unit scales (cm)"
     group "Sanity Check Options"
     (
@@ -566,6 +573,13 @@ rollout nx_prefs "Preferences" width:162 height:68
 		-- Array contains the section, attrib, value, file
 		nx_setinivalue #(#("init", "dotascii", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
 		g_dotAscii = (nx_btoi state)
+    )
+
+    on chk_lowercase changed state do
+    (
+		-- Array contains the section, attrib, value, file
+		nx_setinivalue #(#("init", "lowercase", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_expLower = (nx_btoi state)
     )
 
 	fn saveSanity =

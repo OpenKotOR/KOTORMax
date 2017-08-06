@@ -117,6 +117,7 @@ function AnimrootCheck inputNode =
 
 -- This check is for skinned characters - a vertex cannot be affected by more than
 -- 4 bones; if it is, the offending bones are printed to the Listener Window
+global gbl_sanity_weight_alwaysfix = 0
 function BoneCountCheck node = (
     if DEBUG then format "BoneCountCheck%" g_delim to:g_strBuffer
 
@@ -145,6 +146,7 @@ function BoneCountCheck node = (
             continue
         boneNames = #()
         zeroNames = #()
+		local vertWeights = #()
         for j = 1 to w_num do -- for each of the weights on the current vertex...
         (
             local bone_id   = (skinops.getvertexweightboneid skinMod i j )
@@ -157,20 +159,42 @@ function BoneCountCheck node = (
             if (weight_i_j != 0.0) then (
                 append boneNames bone_name
                 append boneNames weight_i_j
+				append vertWeights #(bone_id, weight_i_j)
             )
             else
                 append zeroNames bone_name
         )
         -- This is 8 because we're storing the bone name as well as it's weight
         if (boneNames.count > 8) then (
-            acceptable = false
-            format "More than 4 bones are affecting vertex %. Bones: [" i to:g_strBuffer
-            for e in boneNames do (
-                format "  %" e to:g_strBuffer
-                nx_FlushBuffer()
-            )
-            format "  ]%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+			if gbl_sanity_weight_alwaysfix == 0 then
+			(
+				local bReponse = QueryBox ("Your model contains skin vertices that are affected by more than four bones. The MDL format can only handle four bones and will deform the skin in the games if this is not fixed.\n\n" + \
+					"Do you want to automatically delete the least significant extra weights for all the problematic skin vertices in this model?") \
+					title:"Skin problem" beep:true
+				if bReponse then gbl_sanity_weight_alwaysfix = 1
+				else gbl_sanity_weight_alwaysfix = 2
+			)
+			if gbl_sanity_weight_alwaysfix == 1 then
+			(
+				qsort vertWeights sortBones
+				local nTotal = 0
+				for m = 1 to 4 where m <= vertWeights.count do nTotal += vertWeights[m][2]
+				for m = 1 to 4 where m <= vertWeights.count do vertWeights[m][2] += (1 - nTotal) * (vertWeights[m][2] / nTotal)
+				skinOps.ReplaceVertexWeights skinMod i \
+					(for m = 1 to 4 where m <= vertWeights.count collect vertWeights[m][1]) \
+					(for m = 1 to 4 where m <= vertWeights.count collect vertWeights[m][2]) 
+			)
+			else
+			(
+				acceptable = false
+				format "More than 4 bones are affecting vertex %. Bones: [" i to:g_strBuffer
+				for e in boneNames do (
+					format "  %" e to:g_strBuffer
+					nx_FlushBuffer()
+				)
+				format "  ]%" g_delim to:g_strBuffer
+				nx_FlushBuffer()
+			)
         )
         -- The following check really should be ignored, as the exporter already takes care of it.
         if (zeroNames.count == w_num) then (
@@ -919,6 +943,9 @@ function SanityCheck node =
 		
 		-- make sure we restart looking for aabbs
 		global FoundCollisionMesh = false
+		
+		-- ask the user whether we want to fix the weights for this one
+		gbl_sanity_weight_alwaysfix = 0
 
         --
         -- RotationCheck will verify that the OdysseyBase nodes
