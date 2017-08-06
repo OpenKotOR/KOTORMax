@@ -105,14 +105,14 @@ fn nx_fprints data =
     	(
     		return ( ((data.r/255.0)as string) + " " + \
     		         ((data.g/255.0)as string) + " " + \
-    		         ((data.b/255.0)as string) + " " )
+    		         ((data.b/255.0)as string))
         )
 
     	((classof data) == point3):
     	(
     		return ( (data.x as string) + " " + \
     		         (data.y as string) + " " + \
-    		         (data.z as string) + " " )
+    		         (data.z as string))
         )
 
     	((classof data) == quat):
@@ -121,7 +121,7 @@ fn nx_fprints data =
     	((classof data) == angleaxis):
     	(
     		local a = data.axis
-    		return (nx_fprints a + " " + ((degtorad(data.angle)) as string) + " ")
+    		return (nx_fprints a + " " + ((degtorad(data.angle)) as string))
     	)
     )
 
@@ -704,8 +704,8 @@ fn do_modifier_props node mat =
 
         if odyssey_modifier.extra_mat_data != 0 then
         (
-            format "%ambient %%" strIndent1 (nx_fprints odyssey_modifier.ambient) g_delim to:g_strBuffer
             format "%diffuse %%" strIndent1 (nx_fprints odyssey_modifier.diffuse) g_delim to:g_strBuffer
+            format "%ambient %%" strIndent1 (nx_fprints odyssey_modifier.ambient) g_delim to:g_strBuffer
             --format "%specular %%" strIndent1 (nx_fprints odyssey_modifier.specular) g_delim to:g_strBuffer
             --format "%shininess %%" strIndent1 (nx_fprints odyssey_modifier.shininess) g_delim to:g_strBuffer
         )
@@ -720,27 +720,27 @@ fn do_modifier_props node mat =
 
             --format "%alpha %%" strIndent1 (nx_fprints alpha) g_delim to:g_strBuffer
             --format "%selfillumcolor %%" strIndent1 (nx_fprints illum) g_delim to:g_strBuffer
-            format "%ambient %%"  strIndent1 (nx_fprints a) g_delim to:g_strBuffer
             format "%diffuse %%"  strIndent1 (nx_fprints d) g_delim to:g_strBuffer
+            format "%ambient %%"  strIndent1 (nx_fprints a) g_delim to:g_strBuffer
             --format "%specular %%"  strIndent1 (nx_fprints sp) g_delim to:g_strBuffer
             --format "%shininess %%"  strIndent1 (nx_fprints sh) g_delim to:g_strBuffer
         )
-        format "%render %%" strIndent1 (nx_fprints odyssey_modifier.render) g_delim to:g_strBuffer
-        format "%shadow %%" strIndent1 (nx_fprints odyssey_modifier.shadow) g_delim to:g_strBuffer
-        format "%beaming %%" strIndent1 (nx_fprints odyssey_modifier.beaming) g_delim to:g_strBuffer
-        format "%rotatetexture %%" strIndent1 (nx_fprints odyssey_modifier.rotatetexture) g_delim to:g_strBuffer
-        format "%lightmapped %%" strIndent1 (nx_fprints odyssey_modifier.lightmapped) g_delim to:g_strBuffer
-        format "%hologram_donotdraw %%" strIndent1 (nx_fprints odyssey_modifier.hologram_donotdraw) g_delim to:g_strBuffer
-        format "%m_blsBackgroundGeometry %%" strIndent1 (nx_fprints odyssey_modifier.m_blsBackgroundGeometry) g_delim to:g_strBuffer
         format "%transparencyhint %%" strIndent1 (nx_fprints odyssey_modifier.transparencyhint) g_delim to:g_strBuffer
-        format "%dirt_enabled %%" strIndent1 (nx_fprints odyssey_modifier.dirt_enabled) g_delim to:g_strBuffer
-        format "%dirt_texture %%" strIndent1 (nx_fprints odyssey_modifier.dirt_texture) g_delim to:g_strBuffer
-        format "%dirt_worldspace %%" strIndent1 (nx_fprints odyssey_modifier.dirt_worldspace) g_delim to:g_strBuffer
         format "%animateuv %%" strIndent1 (nx_fprints odyssey_modifier.animateuv) g_delim to:g_strBuffer
         format "%uvdirectionx %%" strIndent1 (nx_fprints odyssey_modifier.uvdirectionx) g_delim to:g_strBuffer
         format "%uvdirectiony %%" strIndent1 (nx_fprints odyssey_modifier.uvdirectiony) g_delim to:g_strBuffer
         format "%uvjitter %%" strIndent1 (nx_fprints odyssey_modifier.uvjitter) g_delim to:g_strBuffer
         format "%uvjitterspeed %%" strIndent1 (nx_fprints odyssey_modifier.uvjitterspeed) g_delim to:g_strBuffer
+        format "%lightmapped %%" strIndent1 (nx_fprints odyssey_modifier.lightmapped) g_delim to:g_strBuffer
+        format "%rotatetexture %%" strIndent1 (nx_fprints odyssey_modifier.rotatetexture) g_delim to:g_strBuffer
+        format "%m_blsBackgroundGeometry %%" strIndent1 (nx_fprints odyssey_modifier.m_blsBackgroundGeometry) g_delim to:g_strBuffer
+        format "%shadow %%" strIndent1 (nx_fprints odyssey_modifier.shadow) g_delim to:g_strBuffer
+        format "%beaming %%" strIndent1 (nx_fprints odyssey_modifier.beaming) g_delim to:g_strBuffer
+        format "%render %%" strIndent1 (nx_fprints odyssey_modifier.render) g_delim to:g_strBuffer
+        format "%dirt_enabled %%" strIndent1 (nx_fprints odyssey_modifier.dirt_enabled) g_delim to:g_strBuffer
+        format "%dirt_texture %%" strIndent1 (nx_fprints odyssey_modifier.dirt_texture) g_delim to:g_strBuffer
+        format "%dirt_worldspace %%" strIndent1 (nx_fprints odyssey_modifier.dirt_worldspace) g_delim to:g_strBuffer
+        format "%hologram_donotdraw %%" strIndent1 (nx_fprints odyssey_modifier.hologram_donotdraw) g_delim to:g_strBuffer
         format "%tangentspace %%" strIndent1 (nx_fprints odyssey_modifier.tangentspace) g_delim to:g_strBuffer
     )
     else if mat != undefined then
@@ -755,13 +755,14 @@ fn do_modifier_props node mat =
 
         format "%alpha %%" strIndent1 (nx_fprints alpha) g_delim to:g_strBuffer
 		format "%selfillumcolor %%" strIndent1 (nx_fprints illum) g_delim to:g_strBuffer
-		format "%ambient %%"  strIndent1 (nx_fprints a) g_delim to:g_strBuffer
 		format "%diffuse %%"  strIndent1 (nx_fprints d) g_delim to:g_strBuffer
+		format "%ambient %%"  strIndent1 (nx_fprints a) g_delim to:g_strBuffer
 		--format "%specular %%"  strIndent1 (nx_fprints sp) g_delim to:g_strBuffer
 		--format "%shininess %%"  strIndent1 (nx_fprints sh) g_delim to:g_strBuffer
     )
     nx_FlushBuffer()
 
+	/* MOVED TO DANGLY OUTPUT
     odyssey_modifier = node.modifiers["OdysseyFlex"]
     if(odyssey_modifier != undefined) then
     (
@@ -770,6 +771,7 @@ fn do_modifier_props node mat =
         format "%displacement %%" strIndent1 (nx_fprints odyssey_modifier.displacement) g_delim to:g_strBuffer
     )
     nx_FlushBuffer()
+	*/
 
     if DEBUG then format "#do_modifier_props:: End%" g_delim to:g_strBuffer
 )
@@ -1148,13 +1150,13 @@ function do_skin node =
 			)
 			weight_i_j = (skinops.getvertexweight m i j )
 			if (weight_i_j != 0.0) then (
-				format " % % "  bone_name weight_i_j to:g_strBuffer
+				format " % %"  bone_name weight_i_j to:g_strBuffer
 				counter += 1
 			)
 		)
 		if(( w_num ==0 ) or (counter == 0) ) do
 		(
-			format " root 1.00 " to:g_strBuffer
+			format " root 1.00" to:g_strBuffer
 		)
 		format "%" g_delim to:g_strBuffer
 		nx_FlushBuffer()
@@ -1171,6 +1173,9 @@ function do_dangly node =
     -- Code from BioWare & Wayland.
 	-- Export the vertex constraints.
 	-- The other parameters got exported with the rest of the OdysseyPoly stuff
+	format "%displacement %%" strIndent1 (nx_fprints node.modifiers["OdysseyFlex"].displacement) g_delim to:g_strBuffer
+	format "%tightness %%" strIndent1 (nx_fprints node.modifiers["OdysseyFlex"].tightness) g_delim to:g_strBuffer
+	format "%period %%" strIndent1 (nx_fprints node.modifiers["OdysseyFlex"].period) g_delim to:g_strBuffer
 	format "%constraints %%" strIndent1 node.numverts g_delim to:g_strBuffer
 
 	-- Taken from the MAXscript docs....

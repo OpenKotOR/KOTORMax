@@ -54,7 +54,7 @@ if ( heapSize < 80000000 ) then heapSize = 80000000
 if ( stackLimit < 80000000 ) then stackLimit = 80000000
 
 global gNX_maxver = (maxversion())[1]
-global gblVersion = "0.3.2"
+global gblVersion = "0.3.3"
 global g_kotormaxPath = scriptsPath + "KOTORmax\\"
 global kotormax_handle -- handle to the master floater window
 if autostart == undefined then autostart = false
@@ -89,6 +89,7 @@ global g_basepointer = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "b
 global g_exportwok = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "exportwok"
 global g_exportcolors = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "exportcolors"
 global g_dotAscii = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dotascii"
+global g_expLower = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "lowercase"
 global gnx_pos_kotormax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "position"
 global g_exportPath = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "lastexport"
 format "KOTORmax.ini loaded\r\n"
@@ -117,6 +118,9 @@ else g_exportcolors = (g_exportcolors as integer)
 
 if g_dotAscii == undefined then g_dotAscii = 1
 else g_dotAscii = (g_dotAscii as integer)
+
+if g_expLower == undefined then g_expLower = 1
+else g_expLower = (g_expLower as integer)
 
 if gnx_pos_kotormax == undefined or (gnx_pos_kotormax == "") then gnx_pos_kotormax = [0,100]
 else gnx_pos_kotormax = execute(gnx_pos_kotormax)

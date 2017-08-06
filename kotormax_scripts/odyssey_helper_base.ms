@@ -131,6 +131,11 @@ invisible:true
             checkbox chk_convdds "Convert to DDS" align:#left checked:false enabled:false
             button btn_viewsanity "View Sanity Check Results" align:#center width:140
         )
+		
+		on chk_check changed state do
+		(
+			if state == false then messagebox ("KOTORmax has its own version of the sanity check. If it fails, then something is seriously wrong with the setup, which may result in deformed meshes or your game crashing. If you're turning this off you better know what you're doing!") title:"Warning!" beep:true
+		)
 
 		on droplist_areatype selected val do
 		(
@@ -206,8 +211,10 @@ invisible:true
 				if bSanityCheck == 0 then
 				(
 					-- Ask user if want to continue export anyway
-	  				str = "SanityCheck failed for "+model_name+". Push YES to continue export."
-	  				if (queryBox str title:"Failed Sanity Check" beep:true) then
+	  				str = "Please fix the issues listed in the sanity check report. " + \
+						"If you do not, your model may crash the game or its meshes may be deformed. " + \ 
+						"If you want to have a look at the ascii anyway, push YES to continue export. Just don't compile it, unless your goal is to crash your game!"
+	  				if (queryBox str title:("SanityCheck failed for " + model_name) beep:true) then
 	  				    bSanityCheck = 1    -- over-ride and export
 	      		)
 

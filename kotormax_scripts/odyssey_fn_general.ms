@@ -1083,7 +1083,58 @@ fn nx_unhideSubtree TreeRoot =
 
 fn nx_CreateExportName sModel =
 (
-	return ((nx_lowercase sModel) + "-kotormax")
+	local sName = sModel
+	if nx_itob g_expLower then sName = nx_lowercase sName
+	return (sName + "-kotormax")
+)
+
+fn sortBones p1 p2 = 
+(
+	if p1[2] == p2[2] then return 0
+	else if p1[2] > p2[2] then return -1
+	else return 1
+)
+
+function nx_LimitAllWeights =
+(
+    local save_selection = selection
+	
+	local ourSkins = for obj in $objects where obj.modifiers[#skin] != undefined collect obj
+	for node in ourSkins do
+	(
+		max modify mode
+		select node
+		local skinMod = node.modifiers[#skin]
+		local n = skinops.getnumbervertices skinMod
+		local i
+		for i = 1 to n do
+		(
+			local w_num = skinops.getvertexweightcount skinMod i
+			if w_num <= 4 then continue
+			
+			local vertWeights = #()
+			local j
+			for j = 1 to w_num do -- for each of the weights on the current vertex...
+			(
+				local bone_id = skinops.getvertexweightboneid skinMod i j
+				local weight_i_j = skinops.getvertexweight skinMod i j
+				
+				if weight_i_j > 0.0 then append vertWeights #(bone_id, weight_i_j)
+			)
+			
+			qsort vertWeights sortBones
+			local nTotal = 0
+			for m = 1 to 4 where m <= vertWeights.count do nTotal += vertWeights[m][2]
+			for m = 1 to 4 where m <= vertWeights.count do vertWeights[m][2] += (1 - nTotal) * (vertWeights[m][2] / nTotal)
+			skinOps.ReplaceVertexWeights skinMod i \
+				(for m = 1 to 4 where m <= vertWeights.count collect vertWeights[m][1]) \
+				(for m = 1 to 4 where m <= vertWeights.count collect vertWeights[m][2]) 
+		)
+	)
+	
+    if save_selection != undefined do select save_selection
+	
+	return 0
 )
 
 /*
