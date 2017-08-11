@@ -359,6 +359,7 @@ version:1
 			-- nothing to do.
 		)
 
+		/* This changes the opacity of all nodes with the same material, which is not welcome.
 		on spn_alpha changed val do
 		(
 			local node
@@ -378,6 +379,7 @@ version:1
 				)
 			)
 		)
+		*/
 
 		on chk_xtra_mat_data changed val do
 		(
