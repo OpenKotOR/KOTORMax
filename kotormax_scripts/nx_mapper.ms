@@ -43,7 +43,7 @@
 
 global nx_animpartsmapper_flag
 -- parts anim mapper gui
-rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:524
+rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:524
 (
     local oTargetBase = undefined
 
@@ -61,25 +61,155 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:5
 	listbox lst_trgnobhs "Target MDL Nodes" pos:[13,300] width:136 height:12
 	button btn_refresh "Refresh Target Nodes" pos:[20,485] width:121 height:21
 
-	button btn_addmap ">>" pos:[165,335] width:40 height:28
-	button btn_delmap "<<" pos:[165,375] width:40 height:28
-	button btn_automap "Auto" pos:[165,414] width:40 height:28
 
-	GroupBox grp3 "Mappings: Source --> Target" pos:[213,280] width:374 height:190
-	listbox lst_mappings "" pos:[225,296] width:354 height:12
-	GroupBox grp4 "2. Anim Data" pos:[213,8] width:373 height:264
-	button btn_selectall "Sel All" pos:[225,202] width:50 height:16
-	button btn_deselectall "Desel All" pos:[280,202] width:50 height:16
-	button btn_addanim "Add" pos:[335,203] width:50 height:16
-	multiListBox lst_availanims "Anim names available:" pos:[224,30] width:161 height:11
-	dropdownList drp_options "Options" pos:[226,221] width:146 height:40 items:#("Append To End", "Use Insert Point")
-	spinner spn_inserrtpoint "Insert Point:" pos:[422,240] width:125 height:16 enabled:false range:[0,100000,0] type:#integer scale:1
-	multiListBox lst_animstoproc "Anims to process:" pos:[415,30] width:161 height:11
-	button btn_selectall2 "Sel All" pos:[416,203] width:50 height:16
-	button btn_deselectall2 "Desel All" pos:[471,203] width:50 height:16
-	button btn_delanim "Remove" pos:[526,202] width:50 height:16
-	button btn_import "Import" pos:[213,486] width:136 height:26
+	GroupBox grp4 "2. Anim Data" pos:[163,7] width:373 height:264
+	button btn_selectall "Sel All" pos:[175,202] width:50 height:16
+	button btn_deselectall "Desel All" pos:[230,202] width:50 height:16
+	button btn_addanim "Add" pos:[285,203] width:50 height:16
+	multiListBox lst_availanims "Anim names available:" pos:[174,30] width:161 height:11
+	multiListBox lst_animstoproc "Anims to process:" pos:[365,30] width:161 height:11
+	button btn_selectall2 "Sel All" pos:[366,203] width:50 height:16
+	button btn_deselectall2 "Desel All" pos:[421,203] width:50 height:16
+	button btn_delanim "Remove" pos:[476,202] width:50 height:16
+	dropdownList drp_options "Options" pos:[176,221] width:146 height:40 items:#("Append To End", "Use Insert Point")
+	spinner spn_inserrtpoint "Insert Point:" pos:[372,240] width:125 height:16 enabled:false range:[0,100000,0] type:#integer scale:1
+	
+	GroupBox grp3 "Mappings: Source --> Target" pos:[163,277] width:374 height:190
+	button btn_addmap ">>" pos:[173,300] width:40 height:28
+	button btn_delmap "<<" pos:[173,330] width:40 height:28
+	button btn_automap "Auto" pos:[173,360] width:40 height:28
+	button btn_mapimport "Import" pos:[173,390] width:40 height:28
+	button btn_mapexport "Export" pos:[173,420] width:40 height:28
+	listbox lst_mappings "" pos:[220,293] width:309 height:12
+	
+	button btn_import "Import" pos:[273,485] width:136 height:26
 	--checkbox chk_resetorient "Reset Orientation" pos:[360,490] checked:false
+	
+	
+
+	on btn_mapimport pressed do
+	(
+		local sPattern = "Mapping file (*.txt)|*.txt|"
+		
+	    local f = getOpenFileName caption:"Import mapping file" types:sPattern
+
+		if f != undefined then
+		(
+			format ("Importing: " + f + "\n")
+			
+			local tmp = #()
+
+			-- only progress further if there IS a file available to process
+			if not nx_existFile f then return false
+
+			-- Open up the file
+			local mdlStream = openFile f mode:"r"
+
+			try (
+				local lineNum = 0
+				
+				while not eof mdlStream do
+				(
+					local tok = nx_Tokenizer()
+					local line = getNextNonBlankLine mdlStream
+					tok.SetString (line)
+					lineNum += 1
+
+					-- Read the data ID tag
+					local idToken = tok.ReadToken()
+
+					if idToken[1] == "#" or idToken == "" or idToken == undefined then continue
+					
+					local idToken2 = tok.ReadToken()
+					if idToken2[1] == "#" or idToken2 == "" or idToken2 == undefined then
+					(
+						--messageBox ("Error: no target node for " + idToken + " provided in the mapping file")
+						throw ("Error: no target node for " + idToken + " provided in the mapping file")
+					)
+					
+					append tmp (idToken + " --> " + idToken2)
+					
+				) -- END while()
+			) -- END try()
+			catch
+			(
+				messageBox ("Mapper Script Error reading Mapping File at line:" + lineNum as string)
+				close mdlStream
+				throw
+			)
+			close mdlStream
+			
+			lst_mappings.items = tmp
+		)
+		return false
+	)
+	
+	on btn_mapexport pressed do
+	(
+		local sPattern = "Mapping file (*.txt)|*.txt|"
+		
+	    local f = getSaveFileName caption:"Export mapping file" types:sPattern
+
+		if f != undefined then
+		(
+			format ("Exporting: " + f + "\n")
+			
+			g_exportPath = getFilenamePath f
+
+			if (matchPattern (getFilenameFile f) pattern:"*	") then
+			(
+				messageBox "Model name contains a tab. ERROR!! Processing Halted."
+				return -1
+			)
+
+			clearListener()
+
+			-- set the external control snoop bracket.
+			if not g_ismax then
+			(
+				format "<snoopstart file=%%>%" g_kotormaxPath "scratch\\exportcontrol.txt" g_delim to:g_strBuffer
+				format "\r\n" g_delim to:g_strBuffer
+	    		format "<snoopstart file=%>%" f g_delim to:g_strBuffer
+				format "\r\n" g_delim to:g_strBuffer
+			)
+			else g_strBuffer = createFile f
+			
+			-- EXPORT CONTENTS
+			
+			for m in lst_mappings.items do
+			(
+				local mtoks = filterString m " ->"
+				format "% %%" mtoks[1] mtoks[2] g_delim to:g_strBuffer
+			)
+			
+			-- DONE EXPORTING CONTENTS
+			
+			if not g_ismax then
+			(
+				format "\r\n" g_delim to:g_strBuffer
+				format "</snoopstart>%" g_delim to:g_strBuffer  -- closes model export
+				format "\r\n" g_delim to:g_strBuffer
+				format "</snoopstart>%" g_delim to:g_strBuffer  -- closes exportcontrol.txt
+				format "\r\n" g_delim to:g_strBuffer
+				format "</snoopend>%" g_delim to:g_strBuffer
+				--format "\r\n" to:g_strBuffer
+			)
+			else
+			(
+				flush g_strBuffer
+				close g_strBuffer
+			)
+
+			nx_FlushBuffer force:true
+			
+			-- do a general clean up as we eat some memory in these scripts
+			gc()
+
+			--nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+		)
+		
+		return false
+	)
 
 	fn RefreshTargetNodes =
 	(
@@ -93,6 +223,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:598 height:5
             )
             lst_trgnobhs.items = temp
         )
+		return false
     )
 
 	on nx_animpartsmapper open do
