@@ -35,6 +35,86 @@
 
 \-----------------------------------------------------------------------------*/
 
+fn nx_deletekeysinblock obj framestart frameend typeslist =
+(
+	/*
+	work through the objects in the scene and delete the keys
+	*/
+	local cntrl
+	local propnames
+	local mctrl
+
+	cntrl = #(undefined, undefined, undefined)
+	-- get the standard controllers
+	if typeslist[1] then (
+		try (
+			cntrl[1] = obj.pos.controller
+		) catch (
+			cntrl[1] = undefined
+		)
+	)
+	if typeslist[2] then (
+		try (
+			cntrl[2] = obj.rotation.controller
+		) catch (
+			cntrl[2] = undefined
+		)
+	)
+
+	if typeslist[3] then (
+		try (
+			cntrl[3] = obj.scale.controller
+		) catch (
+			cntrl[3] = undefined
+		)
+	)
+
+	-- delete the standard controllers
+	for c in cntrl do
+	(
+		if c != undefined then
+		(
+			for k = c.keys.count to 1 by -1 do
+			(
+				if (c.keys[k].time >= framestart) and (c.keys[k].time <= frameend) then
+				(
+					deleteKey c.keys k
+				)
+			)
+		)
+	)
+
+	-- now deal with modifiers on obj with animated properties
+	if typeslist[4] then
+	(
+		for m in obj.modifiers do
+		(
+			propnames = getPropNames m
+			for prop in propnames do
+			(
+				mctrl = getPropertyController m prop
+				-- if there is a controller then deal with its keys
+				if mctrl != undefined then
+				(
+					for k = mctrl.keys.count to 1 by -1 do
+					(
+						if (mctrl.keys[k].time >= framestart) and (mctrl.keys[k].time <= frameend) then
+						(
+							deleteKey mctrl.keys k
+						)
+					)
+				)
+			)
+		)
+	)
+
+	-- work through children
+	for child in obj.children do
+	(
+		nx_deletekeysinblock child framestart frameend typeslist
+	)
+)
+
 fn nx_movekeyblock obj framestart movesize frametarget =
 (
 	/*
@@ -418,7 +498,7 @@ fn nx_reorder_modelbase_anims obj workfloor =
 )
 
 
-rollout nx_animkeymaster "Key Master"
+rollout nx_animkeymaster "Animation Ops"
 (
 	local modelbase
 	fn isaurorbase obj = ( iskindof obj odysseybase )
@@ -434,6 +514,7 @@ rollout nx_animkeymaster "Key Master"
 		button btn_animrootrename "Rename"
 	)
 
+	/*
 	group "Insert/Delete Frames"
 	(
 		spinner spn_insertpoint "Insert Point:" type:#integer range:[0,100000,0]
@@ -461,6 +542,7 @@ rollout nx_animkeymaster "Key Master"
 		checkbox chk_mod "Modifier"
 		button btn_delkeys "Delete" enabled:false
 	)
+	*/
 
 	group "Reorganise Anim Keys"
 	(
@@ -471,7 +553,39 @@ rollout nx_animkeymaster "Key Master"
 
 	on nx_animkeymaster open do
 	(
-		modelbase = undefined
+        modelbase = undefined
+	    local base = undefined
+        local basecount = 0
+	    for o in $selection do
+        (
+            if (iskindof o odysseybase) then
+            (
+                basecount += 1
+                base = o
+            )
+        )
+        if basecount == 0 then
+        (
+    	    -- no model base was selected so see if only 1 in the scene.
+    	    -- If there is only 1 then select it
+    	    for o in $objects do
+    	    (
+        	    if (iskindof o odysseybase) then
+        	    (
+            	    basecount += 1
+            	    base = o
+        	    )
+    	    )
+	    )
+        if basecount == 1 then (
+            modelbase = base
+			lbl_base.text = modelbase.name
+			--btn_insert.enabled = true
+			--btn_move.enabled = true
+			--btn_delkeys.enabled = true
+			btn_reorder.enabled = true
+        )
+		
 		nx_animkeymaster_flag = true
 	)
 
@@ -485,9 +599,9 @@ rollout nx_animkeymaster "Key Master"
 	(
 		lbl_base.text = obj.name
 		modelbase = obj
-		btn_insert.enabled = true
-		btn_move.enabled = true
-		btn_delkeys.enabled = true
+		--btn_insert.enabled = true
+		--btn_move.enabled = true
+		--btn_delkeys.enabled = true
 		btn_reorder.enabled = true
 	)
 
@@ -620,5 +734,5 @@ rollout nx_animkeymaster "Key Master"
 )
 
 if not nx_animkeymaster_flag then (
-	createdialog nx_animkeymaster style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox)
+	createdialog nx_animkeymaster --style:#(#style_titlebar, #style_border, #style_sysmenu)
 )

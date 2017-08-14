@@ -407,9 +407,9 @@ rollout nx_util4 "Anim Tools" width:162 height:68
 (
     button btn_animeditor "Anim Editor" width:144 height:18
     button btn_animapper "Anim Mapper" width:144 height:18 toolTip:"Import animations off nodes in an MDL and map to scene nodes"
-    button btn_keymaster "Key Master" width:144 height:18 toolTip:"A number of mass key manipulation functions"
+    button btn_keymaster "Anim Ops" width:144 height:18 toolTip:"Some operations on animations"
+    button btn_animcopy "Key Ops" width:144 height:18 toolTip:"A number of animation key manipulation operations"
     button btn_keytweak "Mass Key Tweaker" width:144 height:18 toolTip:"Mass tweaking of rot and pos keys"
-    button btn_animcopy "Copy Anim Keys" width:144 height:18 toolTip:"Copy Anim keys in the specified range to a target start frame"
     button btn_keyreduct "Reduce Anim Keys" width:144 height:18 toolTip:"Rationalise the animation keys for the selected nodes"
     button btn_bakeanim "Bake Anims" width:144 height:18
     --button btn_reset_controllers "Reset Orientation" width:144 height:18 toolTip:"Resets the rotation controller to tcb then back to linear"
