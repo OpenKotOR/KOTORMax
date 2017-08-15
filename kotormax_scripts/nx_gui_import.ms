@@ -295,15 +295,18 @@ rollout nx_util6 "Area Tools" width:162 height:68
 	on btn_importlyt pressed do
 	(
 	    local filename = getOpenFileName caption:"Import lyt" types:"Odyssey Layout (*.lyt)|*.lyt|"
+		if filename == undefined then return 0
+		local sSuffix = edit_suffix.text
+		if matchPattern sSuffix pattern:"*.mdl.ascii" then sSuffix = substring sSuffix 0 (sSuffix.count - 10)
+		else if matchPattern sSuffix pattern:"*.mdl" then sSuffix = substring sSuffix 0 (sSuffix.count - 4)
 		g_exportPath = getFilenamePath filename
-	    if (filename != undefined) then
-			ImportOdysseyLayout filename \
-								showprogress:true \
-								withvis:chk_withvis.checked \
-								withmodels:chk_withmodels.checked \
-								doanims:chk_withanims.checked \
-								suffix:edit_suffix.text
-
+		ImportOdysseyLayout filename \
+							showprogress:true \
+							withvis:chk_withvis.checked \
+							withmodels:chk_withmodels.checked \
+							doanims:chk_withanims.checked \
+							suffix:sSuffix
+		
 		nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))	
 	)
 
