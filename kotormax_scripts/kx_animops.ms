@@ -35,7 +35,7 @@
 
 \-----------------------------------------------------------------------------*/
 
-fn nx_deletekeysinblock obj framestart frameend typeslist =
+fn kx_deletekeysinblock obj framestart frameend typeslist =
 (
 	/*
 	work through the objects in the scene and delete the keys
@@ -111,11 +111,11 @@ fn nx_deletekeysinblock obj framestart frameend typeslist =
 	-- work through children
 	for child in obj.children do
 	(
-		nx_deletekeysinblock child framestart frameend typeslist
+		kx_deletekeysinblock child framestart frameend typeslist
 	)
 )
 
-fn nx_movekeyblock obj framestart movesize frametarget =
+fn kx_movekeyblock obj framestart movesize frametarget =
 (
 	/*
 	work through the objects in the scene and move the keys
@@ -194,11 +194,11 @@ fn nx_movekeyblock obj framestart movesize frametarget =
 	-- work through children
 	for child in obj.children do
 	(
-		nx_movekeyblock child framestart movesize frametarget
+		kx_movekeyblock child framestart movesize frametarget
 	)
 )
 
-fn nx_insertkeyspace obj framestart insertsize =
+fn kx_insertkeyspace obj framestart insertsize =
 (
 	/*
 	work through the objects in the scene and move the keys defined at and
@@ -273,17 +273,17 @@ fn nx_insertkeyspace obj framestart insertsize =
 	-- work through children
 	for child in obj.children do
 	(
-		nx_insertkeyspace child framestart insertsize
+		kx_insertkeyspace child framestart insertsize
 	)
 )
 
 
-fn nx_recalcanimbaseinsert modelbase framestart insertsize =
+fn kx_recalcanimbaseinsert modelbase framestart insertsize =
 (
 	-- make sure is a modelbase
 	if not (iskindof modelbase odysseybase) then
 	(
-		format "nx_recalcanimbase::No modelbase selected\r\n"
+		format "kx_recalcanimbase::No modelbase selected\r\n"
 		return false
 	)
 
@@ -365,12 +365,12 @@ fn nx_recalcanimbaseinsert modelbase framestart insertsize =
 --------------------------------------------------------------------------------
 -- Recalc modelbase anim and event data based on moving whole animation
 -- blocks only.  DO NOT USE FOR BLOCKS THAT DO NOT EQUAL A WHOLE ANIMATION
-fn nx_recalcanimbasemove modelbase framestart movesize frametarget =
+fn kx_recalcanimbasemove modelbase framestart movesize frametarget =
 (
 	-- make sure is a modelbase
 	if not (iskindof modelbase odysseybase) then
 	(
-		format "nx_recalcanimbasemove::No modelbase selecetd\r\n"
+		format "kx_recalcanimbasemove::No modelbase selecetd\r\n"
 		return false
 	)
 
@@ -448,12 +448,12 @@ fn nx_recalcanimbasemove modelbase framestart movesize frametarget =
 
 
 
-fn nx_reorder_modelbase_anims obj workfloor =
+fn kx_reorder_modelbase_anims obj workfloor =
 (
 	-- make sure we have a modelbase
 	if not (iskindof obj odysseybase) then
 	(
-		format "nx_reorder_modelbase_anims::no modelbase selected\r\n"
+		format "kx_reorder_modelbase_anims::no modelbase selected\r\n"
 		return false
 	)
 
@@ -482,23 +482,23 @@ fn nx_reorder_modelbase_anims obj workfloor =
 
         -- 1. we move the block with -1 and +1 frame each side to deal with the
         -- normal bracketing keys found there.
-        nx_movekeyblock obj (first_frame-1) ((last_frame - first_frame)+3) movepoint
+        kx_movekeyblock obj (first_frame-1) ((last_frame - first_frame)+3) movepoint
         -- 2. recalc the data on the model base based on the move.
-		nx_recalcanimbasemove obj first_frame ((last_frame - first_frame)+1) (movepoint+1)
+		kx_recalcanimbasemove obj first_frame ((last_frame - first_frame)+1) (movepoint+1)
 
 		movepoint += (last_frame - first_frame) + 3 + 10
 	)
 
 	-- everything is moved now so lets tidy up
 	-- 1. cleanout unwanted keys
-	nx_deletekeysinblock obj 0 (workfloor-1) #(true,true,true,true)
+	kx_deletekeysinblock obj 0 (workfloor-1) #(true,true,true,true)
 	-- 2. delete out the blank frames
-	nx_insertkeyspace obj 0 -(workfloor - 9)
-	nx_recalcanimbaseinsert obj 0 -(workfloor - 9)
+	kx_insertkeyspace obj 0 -(workfloor - 9)
+	kx_recalcanimbaseinsert obj 0 -(workfloor - 9)
 )
 
 
-rollout nx_animkeymaster "Animation Ops"
+rollout kx_animkeymaster "Animation Ops"
 (
 	local modelbase
 	fn isaurorbase obj = ( iskindof obj odysseybase )
@@ -551,7 +551,7 @@ rollout nx_animkeymaster "Animation Ops"
 		button btn_reorder "Reorder Anims" enabled:false
 	)
 
-	on nx_animkeymaster open do
+	on kx_animkeymaster open do
 	(
         modelbase = undefined
 	    local base = undefined
@@ -586,12 +586,12 @@ rollout nx_animkeymaster "Animation Ops"
 			btn_reorder.enabled = true
         )
 		
-		nx_animkeymaster_flag = true
+		kx_animkeymaster_flag = true
 	)
 
-	on nx_animkeymaster close do
+	on kx_animkeymaster close do
 	(
-		nx_animkeymaster_flag = false
+		kx_animkeymaster_flag = false
 	)
 
 	-- activation functions
@@ -673,8 +673,8 @@ rollout nx_animkeymaster "Animation Ops"
 
 	on btn_insert pressed do
 	(
-		nx_insertkeyspace modelbase spn_insertpoint.value spn_sinsertsize.value
-		nx_recalcanimbaseinsert modelbase spn_insertpoint.value spn_sinsertsize.value
+		kx_insertkeyspace modelbase spn_insertpoint.value spn_sinsertsize.value
+		kx_recalcanimbaseinsert modelbase spn_insertpoint.value spn_sinsertsize.value
 		-- update ui
 		select modelbase
 		max create mode
@@ -683,13 +683,13 @@ rollout nx_animkeymaster "Animation Ops"
 
 	on btn_move pressed do
 	(
-		nx_movekeyblock modelbase \
+		kx_movekeyblock modelbase \
 						spn_movestartframe.value \
 						( 1 + spn_moveendframe.value - spn_movestartframe.value) \
 						spn_movetarget.value
 
 		if chk_recalcbase.checked then (
-			nx_recalcanimbasemove modelbase \
+			kx_recalcanimbasemove modelbase \
 						(spn_movestartframe.value + 1) \
 						( spn_moveendframe.value - spn_movestartframe.value - 1) \
 						(spn_movetarget.value + 1)
@@ -704,7 +704,7 @@ rollout nx_animkeymaster "Animation Ops"
 	(
 		--print spn_delstart.value
 		--print spn_delend.value
-		nx_deletekeysinblock modelbase \
+		kx_deletekeysinblock modelbase \
 							spn_delstart.value \
 							spn_delend.value \
 							#(chk_pos.checked, chk_rot.checked, chk_scale.checked, chk_mod.checked)
@@ -713,7 +713,7 @@ rollout nx_animkeymaster "Animation Ops"
 	on btn_reorder pressed do
 	(
 		disableSceneRedraw()
-		nx_reorder_modelbase_anims modelbase spn_workspace.value
+		kx_reorder_modelbase_anims modelbase spn_workspace.value
 		enableSceneRedraw()
 		-- update ui
 		select modelbase
@@ -733,6 +733,6 @@ rollout nx_animkeymaster "Animation Ops"
 
 )
 
-if not nx_animkeymaster_flag then (
-	createdialog nx_animkeymaster --style:#(#style_titlebar, #style_border, #style_sysmenu)
+if not kx_animkeymaster_flag then (
+	createdialog kx_animkeymaster --style:#(#style_titlebar, #style_border, #style_sysmenu)
 )

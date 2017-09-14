@@ -53,8 +53,8 @@
 if ( heapSize < 80000000 ) then heapSize = 80000000
 if ( stackLimit < 80000000 ) then stackLimit = 80000000
 
-global gNX_maxver = (maxversion())[1]
-global gblVersion = "0.3.3"
+global gkx_maxver = (maxversion())[1]
+global gblVersion = "0.4.0"
 global g_kotormaxPath = scriptsPath + "KOTORmax\\"
 global kotormax_handle -- handle to the master floater window
 if autostart == undefined then autostart = false
@@ -82,15 +82,15 @@ global strIndent5 = "          "
 -- Load kotormax ini global vars
 global g_3dsmax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "usemax"
 global g_verbose = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "verbose"
-global gNX_dock = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dock"
-global gNX_visible = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "visible"
-global gnx_sanity = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "sanity"
+global gkx_dock = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dock"
+global gkx_visible = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "visible"
+global gkx_sanity = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "sanity"
 global g_basepointer = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "basepointer"
 global g_exportwok = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "exportwok"
 global g_exportcolors = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "exportcolors"
 global g_dotAscii = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "dotascii"
 global g_expLower = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "lowercase"
-global gnx_pos_kotormax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "position"
+global gkx_pos_kotormax = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "position"
 global g_exportPath = getINISetting (g_kotormaxPath + "kotormax.ini") "init" "lastexport"
 format "KOTORmax.ini loaded\r\n"
 
@@ -99,13 +99,13 @@ format "Correct ini vars\r\n"
 if g_verbose == undefined then g_verbose = 0
 else g_verbose = (g_verbose as integer)
    
-if gNX_dock == undefined then gNX_dock = 0
-else gNX_dock = (gNX_dock as integer)
+if gkx_dock == undefined then gkx_dock = 0
+else gkx_dock = (gkx_dock as integer)
 	
-if gNX_visible == undefined then gNX_visible = 0
-else gNX_visible = (gNX_visible as integer)
+if gkx_visible == undefined then gkx_visible = 0
+else gkx_visible = (gkx_visible as integer)
 	
-if gnx_sanity == undefined or gnx_sanity == "" then gnx_sanity = "111110111111111"
+if gkx_sanity == undefined or gkx_sanity == "" then gkx_sanity = "111110111111111"
 	
 if g_basepointer == undefined then g_basepointer = 1
 else g_basepointer = (g_basepointer as integer)
@@ -122,8 +122,8 @@ else g_dotAscii = (g_dotAscii as integer)
 if g_expLower == undefined then g_expLower = 1
 else g_expLower = (g_expLower as integer)
 
-if gnx_pos_kotormax == undefined or (gnx_pos_kotormax == "") then gnx_pos_kotormax = [0,100]
-else gnx_pos_kotormax = execute(gnx_pos_kotormax)
+if gkx_pos_kotormax == undefined or (gkx_pos_kotormax == "") then gkx_pos_kotormax = [0,100]
+else gkx_pos_kotormax = execute(gkx_pos_kotormax)
 
 if g_exportPath == undefined or g_exportPath == "" then g_exportPath = GetDir #export
 
@@ -189,44 +189,53 @@ global LastAnimNumber = undefined
 global LastAnimEventNumber = undefined
 
 -- UI flags for active dialogs
-global nx_animkeymaster_flag = false
-global nx_skindumper_flag = false
+global kx_animkeymaster_flag = false
+global kx_skindumper_flag = false
 
 -- global execute str - execution requires global scope, so this has to be preserved
-global nx_exec_str
+global kx_exec_str
 
 -- These are for the Sanity Check Preferences
 -- Originally per Bioware's export scripts code. Legacy system.
 format "Set Sanity check default settings\r\n"
-global runRotationCheck = (gnx_sanity[1] as integer != 0)
-global runAnimCheck = (gnx_sanity[2] as integer != 0)
-global runNameCheck = (gnx_sanity[3] as integer != 0)
-global runScaleCheck = (gnx_sanity[4] as integer != 0)
-global runPartTextureCheck = (gnx_sanity[5] as integer != 0)
-global runWeldCheck = (gnx_sanity[6] as integer != 0)
-global runClassCheck = (gnx_sanity[7] as integer != 0)
-global runControllerCheck = (gnx_sanity[8] as integer != 0)
-global runDoganCheck = (gnx_sanity[9] as integer != 0)
-global runBitmapNameCheck = (gnx_sanity[10] as integer != 0)
-global runFaceCheck = (gnx_sanity[11] as integer != 0)
-global runAnimrootCheck = (gnx_sanity[12] as integer != 0)
-global runBoneCountCheck = (gnx_sanity[13] as integer != 0)
-global runDuplicateNamesCheck = (gnx_sanity[14] as integer != 0)
-global runAabbCheck = (gnx_sanity[15] as integer != 0)
+global runRotationCheck = (gkx_sanity[1] as integer != 0)
+global runAnimCheck = (gkx_sanity[2] as integer != 0)
+global runNameCheck = (gkx_sanity[3] as integer != 0)
+global runScaleCheck = (gkx_sanity[4] as integer != 0)
+global runPartTextureCheck = (gkx_sanity[5] as integer != 0)
+global runWeldCheck = (gkx_sanity[6] as integer != 0)
+global runClassCheck = (gkx_sanity[7] as integer != 0)
+global runControllerCheck = (gkx_sanity[8] as integer != 0)
+global runDoganCheck = (gkx_sanity[9] as integer != 0)
+global runBitmapNameCheck = (gkx_sanity[10] as integer != 0)
+global runFaceCheck = (gkx_sanity[11] as integer != 0)
+global runAnimrootCheck = (gkx_sanity[12] as integer != 0)
+global runBoneCountCheck = (gkx_sanity[13] as integer != 0)
+global runDuplicateNamesCheck = (gkx_sanity[14] as integer != 0)
+global runAabbCheck = (gkx_sanity[15] as integer != 0)
 
 -- this function might work well for testing
-fn nx_coderefresh =
+fn kx_coderefresh =
 (
 	filein (g_kotormaxPath+"kotormax_scripts/odyssey_fn_general.ms")
 	filein (g_kotormaxPath+"kotormax_scripts/odyssey_fn_sanity.ms")
 	filein (g_kotormaxPath+"kotormax_scripts/odyssey_fn_export.ms")
 	filein (g_kotormaxPath+"kotormax_scripts/odyssey_fn_import.ms")
-	filein (g_kotormaxPath+"kotormax_scripts/nx_gui_create.ms")
-	filein (g_kotormaxPath+"kotormax_scripts/nx_gui_speedbtns.ms")
-	filein (g_kotormaxPath+"kotormax_scripts/nx_gui_import.ms")
-	filein (g_kotormaxPath+"kotormax_scripts/nx_gui_about.ms")
+	filein (g_kotormaxPath+"kotormax_scripts/kx_gui_create.ms")
+	filein (g_kotormaxPath+"kotormax_scripts/kx_gui_speedbtns.ms")
+	filein (g_kotormaxPath+"kotormax_scripts/kx_gui_import.ms")
+	filein (g_kotormaxPath+"kotormax_scripts/kx_gui_about.ms")
 	max views redraw
 )
+
+-- Map channels
+global kx_colorChannel = 0
+global kx_diffuseChannel = 1
+global kx_ambientChannel = 2
+global kx_texture0Channel = 3
+global kx_texture1Channel = 4
+global kx_constraintChannel = 5
+global kx_roomlinkChannel = 6
 
 --
 -- Start progress for loading
@@ -272,10 +281,10 @@ filein (g_kotormaxPath+"kotormax_scripts/odyssey_fn_import.ms")
 ---   Rollout definitions
 ---
 --------------------------------------------------------------------------------
-filein (g_kotormaxPath+"kotormax_scripts/nx_gui_create.ms")
-filein (g_kotormaxPath+"kotormax_scripts/nx_gui_speedbtns.ms")
-filein (g_kotormaxPath+"kotormax_scripts/nx_gui_import.ms")
-filein (g_kotormaxPath+"kotormax_scripts/nx_gui_about.ms")
+filein (g_kotormaxPath+"kotormax_scripts/kx_gui_create.ms")
+filein (g_kotormaxPath+"kotormax_scripts/kx_gui_speedbtns.ms")
+filein (g_kotormaxPath+"kotormax_scripts/kx_gui_import.ms")
+filein (g_kotormaxPath+"kotormax_scripts/kx_gui_about.ms")
 
 
 --------------------------------------------------------------------------------
@@ -284,25 +293,26 @@ filein (g_kotormaxPath+"kotormax_scripts/nx_gui_about.ms")
 ---
 --------------------------------------------------------------------------------
 
-fn nx_make_floater =
+fn kx_make_floater =
 (
 	kotormax_handle = newRolloutFloater "KOTORmax" 200 600 0 100 -- 192 600 0 100
-	addRollout nx_util0			kotormax_handle rolledUp:true
-	addRollout nx_util1			kotormax_handle rolledUp:true
-	--addRollout nx_util2			kotormax_handle rolledUp:true
-	addRollout nx_util3			kotormax_handle rolledUp:true
-	addRollout nx_util4			kotormax_handle rolledUp:true
-	--addRollout nx_util5			kotormax_handle rolledUp:true
-	addRollout nx_util6			kotormax_handle rolledUp:true
+	addRollout kx_util0			kotormax_handle rolledUp:true
+	addRollout kx_util1			kotormax_handle rolledUp:true
+	--addRollout kx_util2			kotormax_handle rolledUp:true
+	addRollout kx_util3			kotormax_handle rolledUp:true
+	addRollout kx_util4			kotormax_handle rolledUp:true
+	--addRollout kx_util5			kotormax_handle rolledUp:true
+	addRollout kx_util6			kotormax_handle rolledUp:true
 	addRollout ImportRollout    kotormax_handle rolledUp:true
-	addRollout nx_prefs			kotormax_handle rolledUp:true
+	addRollout kx_util_export   kotormax_handle rolledUp:true
+	addRollout kx_prefs			kotormax_handle rolledUp:true
 	addRollout AboutRollout     kotormax_handle rolledUp:false
 
 	-- load in old position from local ini file
-	kotormax_handle.pos = gnx_pos_kotormax
+	kotormax_handle.pos = gkx_pos_kotormax
 )
 
-fn nx_destroy_floater =
+fn kx_destroy_floater =
 (
 	if kotormax_handle != undefined do
 	(
@@ -317,13 +327,13 @@ fn nx_destroy_floater =
 )
 
 -- try to close out a floater if it already exists
-nx_destroy_floater()
+kx_destroy_floater()
 
 -- CREATE KOTORMAX WINDOW
-if gNX_visible == 1 then
+if gkx_visible == 1 then
 (
-	nx_make_floater()
-	if gNX_dock == 1 then
+	kx_make_floater()
+	if gkx_dock == 1 then
 	(
 		-- Register floater as a dockable bar
 		cui.RegisterDialogBar kotormax_handle \

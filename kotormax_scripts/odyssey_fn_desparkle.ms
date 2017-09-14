@@ -35,9 +35,9 @@
 
 \-----------------------------------------------------------------------------*/
 
-fn nx_mesh_desparkle node =
+fn kx_mesh_desparkle node =
 (
-    if DEBUG then format "#nx_mesh_desparkle\r\n"
+    if DEBUG then format "#kx_mesh_desparkle\r\n"
 
     -- only fix IF is a trimesh.
     if (canConvertTo node Editable_mesh) then
@@ -66,7 +66,7 @@ fn nx_mesh_desparkle node =
     		v = getvert node i
     		-- We round to the nearest centimetre.
     		-- MAXscript doesn't have a round function, so we make our own
-			p3 = nx_roundp3 v
+			p3 = kx_roundp3 v
     		format "  Vertex [%]: % % % --> % % %\r\n" i v.x v.y v.z p3.x p3.y p3.z
     		setVert node i p3
     	)
@@ -94,7 +94,7 @@ fn nx_mesh_desparkle node =
 
 	for child in node.children do
 	(
-    	nx_mesh_desparkle child
+    	kx_mesh_desparkle child
 	)
 
 ) -- end fn

@@ -184,7 +184,7 @@ rollout NXanimbaker "Animation Baker"
 				-- start processing selection for key reduction
 				for s in newobjs do
 				(
-					nx_reduct s (spn_startframe.value) \
+					kx_reduct s (spn_startframe.value) \
 				            (spn_endframe.value) \
 				            pos:true \
 				            rot:true \

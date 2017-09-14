@@ -23,7 +23,7 @@
 
 \-----------------------------------------------------------------------------*/
 format "load: odyssey_geom_lightsaber.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 plugin simpleobject odysseylightsaber
 name:"OdysseyLightsaber"
@@ -312,7 +312,7 @@ invisible:true
         for i = 1 to 12 do setFaceSmoothGroup mesh i 1
         for i = 13 to 24 do setFaceSmoothGroup mesh i 2
 
-        if not meshop.getMapSupport mesh 1 then meshop.setMapSupport mesh 1 true
+		kx_enableMapChannel mesh 1
         setNumTVerts mesh tverts.count
         for i = 1 to tverts.count do setTVert mesh i tverts[i]
         buildTVFaces mesh

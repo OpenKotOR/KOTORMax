@@ -69,7 +69,7 @@ fn isdescendantof oCheck oAncestor =
 -----------------------------------
 -- The Euler Filter              --
 -----------------------------------
-fn nx_eulerFilter curQuat prevQuat =
+fn kx_eulerFilter curQuat prevQuat =
 (
 	if prevQuat == undefined then return curQuat
 	
@@ -92,7 +92,7 @@ fn nx_eulerFilter curQuat prevQuat =
 	return (curAA as quat)
 )
 
-fn nx_translateRotation curQuat baseQuat1 baseQuat2 =
+fn kx_translateRotation curQuat baseQuat1 baseQuat2 =
 (
 	-- diff * q1 = q2
 	-- diff = q2 * inverse(q1)
@@ -114,13 +114,13 @@ fn ListKeys obj keyfirst keylast datatype =
 	)
 )
 
-fn nx_applyOrientationKey obj nTime qValue =
+fn kx_applyOrientationKey obj nTime qValue =
 (
 	in coordsys parent with animate on at time nTime (obj.rotation.controller.value = inverse qValue)
 )
 
 global baseRots = #()
-fn nx_getNodeBaseRot node_name =
+fn kx_getNodeBaseRot node_name =
 (
 	for entry in baseRots do
 	(
@@ -180,7 +180,7 @@ fn addMDLSkin node buf mdl_base =
     for data in buf do
     (
         v += 1; -- increment vertex
-        tok = nx_Tokenizer()
+        tok = kx_Tokenizer()
         tok.SetString(data)
         --format "v: % " v
 
@@ -298,7 +298,7 @@ fn ImportOdysseyWalkmesh pFile type =
         -- Go through the whole file
         while not (eof mdlStream) and not quitEarly do
         (
-            local tok = nx_Tokenizer()
+            local tok = kx_Tokenizer()
             local line = getNextNonBlankLine mdlStream
             tok.SetString (line)
             local idToken = tok.ReadToken()
@@ -397,7 +397,7 @@ fn ImportOdysseyWalkmesh pFile type =
                             -- in having a texture/bitmap for a pwk mesh
                             -- if we are in a trimesh in a pwk or dwk file it
                             -- needs a walkmesh material against it
-                            objMaterial = nx_createWalkMaterial()
+                            objMaterial = kx_createWalkMaterial()
 
                             -- Make an editable mesh
                             local newObj = mesh name:objName \
@@ -414,7 +414,7 @@ fn ImportOdysseyWalkmesh pFile type =
                             update newObj
 
                             --set vertex colors to work
-                            meshop.setMapSupport newObj 0 true
+                            kx_enableMapChannel newObj 0 true
                             setNumCPVVerts newObj 1
                             meshop.setMapVert newObj 0 1 [1, 1, 1]
                             buildVCFaces newObj
@@ -520,7 +520,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 	g_exportPath = currentPath
 
     -- only progress further if there IS a file available to process
-    if not (nx_existFile pFile) then return false
+    if not (kx_existFile pFile) then return false
 
     -- Open up the file and check to see if its a binary file
     local binMdlStream = fopen pFile "rb"
@@ -558,6 +558,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     local newModelAnimscale = 1.0
     local newModelSupermodel = "NULL"
     local newModelIgnoreFog = 0
+    local newModelCompressQuats = 0
+    local newModelHeadLink = 0
     local newModelBMin = [-5,-5,-1]
     local newModelBMax = [5,5,10]
     local newModelRadius = 7.0
@@ -585,7 +587,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
     try (
         -- Go through the whole mdl file
         if showprogress then progressStart "Importing MDL"
-        local fsize = nx_filesize mdlStream
+        local fsize = kx_filesize mdlStream
 		local bNoSkipLine = false
 		local NameArray = #()
 		local line = ""
@@ -594,7 +596,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
         while not (eof mdlStream) and not quitEarly do
         (
             if showprogress then progressUpdate ((((filepos mdlStream) as float)/fsize) * 100)
-            local tok = nx_Tokenizer()
+            local tok = kx_Tokenizer()
 			if not bNoSkipLine then
 			(
 				line = getNextNonBlankLine mdlStream
@@ -608,7 +610,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
             local idToken = tok.ReadToken()
 
             -- if idToken is a string token the convert to lowercase
-            if (isKindOf idToken string) then idToken = nx_lowercase idToken
+            if (isKindOf idToken string) then idToken = kx_lowercase idToken
 
             if (idToken[1] == "#") then idToken = "#"
             if (idToken == "donemodel") then
@@ -639,7 +641,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "classification":
                         (
                             if DEBUG then format "classification processing START\r\n"
-                            local tempStr = nx_lowercase (tok.ReadString())
+                            local tempStr = kx_lowercase (tok.ReadString())
                             -- deal with case where effect comes through as effects
                             if tempStr == "effects" then tempStr = "effect"
                             newModelClassification = findItem odysseyClassTypes tempStr
@@ -649,6 +651,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "classification_unk1": newModelClassificationUnk1 = tok.ReadInteger()
                         "setanimationscale": newModelAnimscale = tok.ReadFloat()
                         "ignorefog": newModelIgnoreFog = tok.ReadInteger()
+                        "compress_quaternions": newModelCompressQuats = tok.ReadInteger()
+                        "headlink": newModelHeadLink = tok.ReadInteger()
                         "beginmodelgeom": mdl_pos = MDL_GEOM
                         -- trap anything not parsed
                         default: objProps += idToken + "=" + tok.ReadRemainingTokens() + "\r\n"
@@ -870,11 +874,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         )
                         "render":
                         (
-                            if (nx_lowercase objType) == "emitter" then
+                            if (kx_lowercase objType) == "emitter" then
                             (
                                 objRender = tok.ReadString()
                                 -- set render_sel
-                                case nx_lowercase(objRender) of
+                                case kx_lowercase(objRender) of
                                 (
                                     "normal": objRender_sel=1
                                     "linked": objRender_sel=2
@@ -913,7 +917,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         "uvjitter": objUvjitter = tok.ReadFloat()
                         "uvjitterspeed": objUvjitterspeed = tok.ReadFloat()
                         "lightmapped": objLightmapped = tok.ReadInteger()
-                        "m_blsbackgroundgeometry": objBackgroundgeometry = tok.ReadInteger()
+                        "m_bisbackgroundgeometry": objBackgroundgeometry = tok.ReadInteger()
                         "dirt_enabled": objDirt_enabled = tok.ReadInteger()
                         "dirt_texture": objDirt_texture = tok.ReadInteger()
                         "dirt_worldspace": objDirt_worldspace = tok.ReadInteger()
@@ -1353,8 +1357,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         else
                                         (
                                             local oNode = (for node in helpers where node.name == objName and iskindof node odysseybase collect node)[1]
-                                            --format "Same named node: %, has content: %\n" oNode (nx_basehascontent oNode)
-                                            if(oNode != undefined and not (nx_basehascontent oNode)) then newObj = oNode
+                                            --format "Same named node: %, has content: %\n" oNode (kx_basehascontent oNode)
+                                            if(oNode != undefined and not (kx_basehascontent oNode)) then newObj = oNode
                                             else
                                             (
                                                 local vBasePosition
@@ -1373,6 +1377,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 										newObj.bmin = newModelBMin
 										newObj.bmax = newModelBMax
 										newObj.ignorefog = newModelIgnoreFog
+										newObj.compressquats = newModelCompressQuats
+										newObj.headlink = newModelHeadLink
                                         -- set the export path to import path
                                         newObj.export_path = currentPath
 
@@ -1459,7 +1465,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         -- assign data values
                                         if objUpdate!=undefined then (
                                             newObj.update = objUpdate
-                                            case nx_lowercase(objUpdate) of
+                                            case kx_lowercase(objUpdate) of
                                             (
                                                 "fountain":     objUpdate_sel=1
                                                 "single":       objUpdate_sel=2
@@ -1470,7 +1476,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if objUpdate_sel!=undefined then newObj.update_sel = objUpdate_sel
                                         if objBlend!=undefined then (
                                             newObj.blend = objBlend
-                                            case nx_lowercase(objBlend) of
+                                            case kx_lowercase(objBlend) of
                                             (
                                                 "normal": objBlend_sel = 1
                                                 "punch-through":  objBlend_sel = 2
@@ -1563,7 +1569,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if objP2p_type!=undefined then
                                         (
                                             newObj.p2p_type = objP2p_type
-                                            case nx_lowercase(objP2p_type) of
+                                            case kx_lowercase(objP2p_type) of
                                             (
                                                 "bezier": objP2p_sel = 1
                                                 "gravity": objP2p_sel = 2
@@ -1614,7 +1620,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         if (objType == "aabb") then
                                         (
                                             if DEBUG then format "%BUILD MESH OBJECT: make aabb material\r\n" strIndent1
-                                            objMaterial = nx_createWalkMaterial()
+                                            objMaterial = kx_createWalkMaterial()
                                             --objProps = ""
                                         )
 
@@ -1643,7 +1649,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 tgaFilename = currentPath + textureName + ".tga"
                                                 bmpFilename = currentPath + textureName + ".bmp"
                                                 --format "Texture files 1 done\n"
-                                                if not ((nx_existFile tgaFilename) or (nx_existFile bmpFilename)) then
+                                                if not ((kx_existFile tgaFilename) or (kx_existFile bmpFilename)) then
                                                 (
                                                     -- search through the global bitmap paths taken from gmax
                                                     if DEBUG then format "Searching gmax global paths: %\r\n" g_maps_path
@@ -1651,19 +1657,19 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     (
                                                         tgaFilename = g_maps_path[i] + "\\" + textureName + ".tga"
                                                         bmpFilename = g_maps_path[i] + "\\" + textureName + ".bmp"
-                                                        if ((nx_existFile tgaFilename) or (nx_existFile bmpFilename)) then exit
+                                                        if ((kx_existFile tgaFilename) or (kx_existFile bmpFilename)) then exit
                                                     )
                                                 )
-                                                if ((nx_existFile tgaFilename) or (nx_existFile bmpFilename)) then
+                                                if ((kx_existFile tgaFilename) or (kx_existFile bmpFilename)) then
                                                 (
-                                                    if (nx_existFile tgaFilename) then
+                                                    if (kx_existFile tgaFilename) then
                                                         bmp = openBitMap(tgaFilename)
                                                     else
                                                         bmp = openBitMap(bmpFilename)
 
                                                     if loadtiff then
                                                     (
-                                                        texMap = BitmapTexture bitmap:(nx_tiff_from_tex bmp) name:textureName
+                                                        texMap = BitmapTexture bitmap:(kx_tiff_from_tex bmp) name:textureName
                                                     ) else
                                                     (
                                                         texMap = BitmapTexture bitmap:bmp name:textureName
@@ -1687,7 +1693,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 if DEBUG then format "Look in local dir for texture1\r\n"
                                                 tgaFilename = currentPath + textureName1 + ".tga"
                                                 bmpFilename = currentPath + textureName1 + ".bmp"
-                                                if not ((nx_existFile tgaFilename) or (nx_existFile bmpFilename)) then
+                                                if not ((kx_existFile tgaFilename) or (kx_existFile bmpFilename)) then
                                                 (
                                                     -- search through the global bitmap paths taken from gmax
                                                     if DEBUG then format "Searching gmax global paths: %\r\n" g_maps_path
@@ -1695,19 +1701,19 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                     (
                                                         tgaFilename = g_maps_path[i] + "\\" + textureName1 + ".tga"
                                                         bmpFilename = g_maps_path[i] + "\\" + textureName1 + ".bmp"
-                                                        if ((nx_existFile tgaFilename) or (nx_existFile bmpFilename)) then exit
+                                                        if ((kx_existFile tgaFilename) or (kx_existFile bmpFilename)) then exit
                                                     )
                                                 )
-                                                if ((nx_existFile tgaFilename) or (nx_existFile bmpFilename)) then
+                                                if ((kx_existFile tgaFilename) or (kx_existFile bmpFilename)) then
                                                 (
-                                                    if (nx_existFile tgaFilename) then
+                                                    if (kx_existFile tgaFilename) then
                                                         bmp = openBitMap(tgaFilename)
                                                     else
                                                         bmp = openBitMap(bmpFilename)
 
                                                     if loadtiff then
                                                     (
-                                                        texMap = BitmapTexture bitmap:(nx_tiff_from_tex bmp) name:textureName1
+                                                        texMap = BitmapTexture bitmap:(kx_tiff_from_tex bmp) name:textureName1
                                                     ) else
                                                     (
                                                         texMap = BitmapTexture bitmap:bmp name:textureName1
@@ -1833,60 +1839,93 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 setVert newObj verti verts[verti]
                                             )
                                             update newObj
-
                                             if DEBUG then format "%BUILD MESH OBJECT: Created type: %\r\n" strIndent1 (classof newObj)
 
+                                            -- Smoothing Groups
                                             if DEBUG then format "%BUILD MESH OBJECT: set up smoothing groups\r\n" strIndent1
-                                            -- Assign smoothing groups
                                             for i = 1 to smoothGroups.count do
                                             (
                                                 setFaceSmoothGroup newObj i smoothGroups[i]
                                             )
-
-                                            -- Add texture verts, if we have them
-                                            if TVerts.count > 0 do
+											format "smoothing done\n"
+											
+											-- Tverts
+                                            if TVerts.count > 0 then
                                             (
-												if DEBUG then format "%BUILD MESH OBJECT: add diffuse texture verts\r\n" strIndent1
-                                                if not meshop.getMapSupport newObj 1 then meshop.setMapSupport newObj 1 true
-                                                setNumTVerts newObj TVerts.count
-                                                for i = 1 to TVerts.count do setTVert newObj i TVerts[i]
-												meshop.setNumMapFaces newObj 1 TVfaces.count
-                                                for i = 1 to TVfaces.count do setTVFace newObj i TVfaces[i]
+												if DEBUG then format "%BUILD MESH OBJECT: add diffuse tverts\r\n" strIndent1
+                                                kx_enableMapChannel newObj kx_diffuseChannel
+												--format "map channel 1 enabled\n"
+                                                meshop.setNumMapVerts newObj kx_diffuseChannel TVerts.count
+                                                for i = 1 to TVerts.count do meshop.setMapVert newObj kx_diffuseChannel i TVerts[i]
+												meshop.setNumMapFaces newObj kx_diffuseChannel TVfaces.count
+                                                for i = 1 to TVfaces.count do meshop.setMapFace newObj kx_diffuseChannel i TVfaces[i]
                                             )
-                                            if TVerts1.count > 0 do
+											else kx_disableMapChannel newObj kx_diffuseChannel
+											
+											-- Tverts1
+                                            if TVerts1.count > 0 then
                                             (
-												if DEBUG then format "%BUILD MESH OBJECT: add ambient texture verts\r\n" strIndent1
-                                                meshop.setNumMaps newObj 3
-                                                meshop.setMapSupport newObj 2 true
-                                                meshop.setNumMapVerts newObj 2 TVerts1.count
-                                                for i = 1 to TVerts1.count do meshop.setMapVert newObj 2 i TVerts1[i]
-												meshop.setNumMapFaces newObj 2 TVfaces1.count
-                                                for i = 1 to TVfaces1.count do meshop.setMapFace newObj 2 i TVfaces1[i]
+												if DEBUG then format "%BUILD MESH OBJECT: add ambient tverts\r\n" strIndent1
+                                                kx_enableMapChannel newObj kx_ambientChannel
+												--format "map channel 2 enabled\n"
+                                                meshop.setNumMapVerts newObj kx_ambientChannel TVerts1.count
+                                                for i = 1 to TVerts1.count do meshop.setMapVert newObj kx_ambientChannel i TVerts1[i]
+												meshop.setNumMapFaces newObj kx_ambientChannel TVfaces1.count
+                                                for i = 1 to TVfaces1.count do meshop.setMapFace newObj kx_ambientChannel i TVfaces1[i]
                                             )
+											else kx_disableMapChannel newObj kx_ambientChannel
+											
+											-- Tverts2
+                                            if TVerts2.count > 0 then
+                                            (
+												if DEBUG then format "%BUILD MESH OBJECT: add texture0 tverts\r\n" strIndent1
+                                                kx_enableMapChannel newObj kx_texture0Channel
+												--format "map channel 3 enabled\n"
+                                                meshop.setNumMapVerts newObj kx_texture0Channel TVerts2.count
+                                                for i = 1 to TVerts2.count do meshop.setMapVert newObj kx_texture0Channel i TVerts2[i]
+												meshop.setNumMapFaces newObj kx_texture0Channel TVfaces2.count
+                                                for i = 1 to TVfaces2.count do meshop.setMapFace newObj kx_texture0Channel i TVfaces2[i]
+                                            )
+											else kx_disableMapChannel newObj kx_texture0Channel
+											
+											-- Tverts3
+                                            if TVerts3.count > 0 then
+                                            (
+												if DEBUG then format "%BUILD MESH OBJECT: add texture1 tverts\r\n" strIndent1
+                                                kx_enableMapChannel newObj kx_texture1Channel
+												--format "map channel 4 enabled\n"
+                                                meshop.setNumMapVerts newObj kx_texture1Channel TVerts3.count
+                                                for i = 1 to TVerts3.count do meshop.setMapVert newObj kx_texture1Channel i TVerts3[i]
+												meshop.setNumMapFaces newObj kx_texture1Channel TVfaces3.count
+                                                for i = 1 to TVfaces3.count do meshop.setMapFace newObj kx_texture1Channel i TVfaces3[i]
+                                            )
+											else kx_disableMapChannel newObj kx_texture1Channel
 
+											-- Constraints
                                             if DEBUG then format "%BUILD MESH OBJECT: apply constraints if have them\r\n" strIndent1
-                                            if (objType == "danglymesh") then
+                                            if objType == "danglymesh" then
                                             (
                                                 -- we have a danglymesh so apply constraints
-                                                if numConstraints > 0 then
-                                                (
-                                                    for i = 1 to numConstraints do
-                                                    (
-                                                        local c = (color danglyConstraints[i] danglyConstraints[i] danglyConstraints[i])
-                                                        if DEBUG then format "%apply constraint: % %\r\n" strIndent2 i c
-                                                        meshop.SetVertColor newObj 0 i c
-                                                    )
-                                                )
+												kx_enableMapChannel newObj kx_constraintChannel
+												--format "map channel 5 enabled\n"
+												meshop.setNumMapVerts newObj kx_constraintChannel numConstraints keep:false
+												for i = 1 to numConstraints do
+												(
+													local c = (color danglyConstraints[i] danglyConstraints[i] danglyConstraints[i])
+													if DEBUG then format "%apply constraint: % %\r\n" strIndent2 i c
+													meshop.SetVertColor newObj kx_constraintChannel i c
+												)
                                             )
 
-                                            -- if aabb, import links
-                                            if (objType == "aabb") then
+                                            -- Roomlinks
+                                            if objType == "aabb" then
                                             (
-                                                meshop.setMapSupport newObj 0 true
-                                                setNumCPVVerts newObj (edgeIndices.count + 1)
-                                                meshop.setMapVert newObj 0 1 [1, 1, 1]
-                                                for i = 2 to (edgeTransitions.count + 1) do meshop.setMapVert newObj 0 i [0, ((100 + edgeTransitions[i-1]) / 255.0), 0]
-                                                buildVCFaces newObj
+												kx_enableMapChannel newObj kx_roomlinkChannel
+												--format "map channel 6 enabled\n"
+												meshop.setNumMapVerts newObj kx_roomlinkChannel (edgeIndices.count + 1)
+                                                meshop.setMapVert newObj kx_roomlinkChannel 1 [1, 1, 1]
+                                                for i = 2 to (edgeTransitions.count + 1) do meshop.setMapVert newObj kx_roomlinkChannel i [0, ((100 + edgeTransitions[i-1]) / 255.0), 0]
+												meshop.setNumMapFaces newObj kx_roomlinkChannel numFaces
                                                 for i = 1 to numFaces do
                                                 (
                                                     local cei = #(1, 1, 1)
@@ -1897,18 +1936,18 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                                 cei[nindex] = j+1
                                                         )
                                                     )
-                                                    setVCFace newObj i [cei[1], cei[2], cei[3]]
+													meshop.setMapFace newObj kx_roomlinkChannel i [cei[1], cei[2], cei[3]]
                                                 )
                                             )
 
-                                            -- if not aabb, dangly or saber -> if trimesh or skin
-                                            if (objType == "trimesh" or objType == "skin" ) and Colors.count > 0 then
+                                            -- Colors
+                                            if objType != "lightsaber" and Colors.count > 0 then
                                             (
-                                                meshop.setMapSupport newObj 0 true
-                                                meshop.setNumMapVerts newObj 0 Colors.count
-                                                for i = 1 to Colors.count do meshop.setMapVert newObj 0 i Colors[i]
-												meshop.setNumMapFaces newObj 0 Colorfaces.count
-                                                for i = 1 to Colorfaces.count do meshop.setMapFace newObj 0 i Colorfaces[i]
+												kx_enableMapChannel newObj kx_colorChannel
+                                                meshop.setNumMapVerts newObj kx_colorChannel Colors.count
+                                                for i = 1 to Colors.count do meshop.setMapVert newObj kx_colorChannel i Colors[i]
+												meshop.setNumMapFaces newObj kx_colorChannel Colorfaces.count
+                                                for i = 1 to Colorfaces.count do meshop.setMapFace newObj kx_colorChannel i Colorfaces[i]
                                             )
 
                                             --
@@ -1938,7 +1977,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                                 if objUvjitter != undefined then odyssey_mod.uvjitter = objUvjitter
                                                 if objUvjitterspeed != undefined then odyssey_mod.uvjitterspeed = objUvjitterspeed
                                                 if objLightmapped != undefined then odyssey_mod.lightmapped = objLightmapped
-                                                if objBackgroundgeometry != undefined then odyssey_mod.m_blsBackgroundGeometry = objBackgroundgeometry
+                                                if objBackgroundgeometry != undefined then odyssey_mod.m_bIsBackgroundGeometry = objBackgroundgeometry
                                                 if objDirt_enabled != undefined then odyssey_mod.dirt_enabled = objDirt_enabled
                                                 if objDirt_texture != undefined then odyssey_mod.dirt_texture = objDirt_texture
                                                 if objDirt_worldspace != undefined then odyssey_mod.dirt_worldspace = objDirt_worldspace
@@ -2012,7 +2051,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                         -- at time 0 newObj.scale = objScale
 								--format "Rotation Debug 7\n"
                                         --at time 0 newObj.rotation = inverse objRot
-										nx_applyOrientationKey newObj 0 objRot
+										kx_applyOrientationKey newObj 0 objRot
                                         at time 0 newObj.position = objPos
 								--format "Rotation Debug 7 End\n"
                                         --with animate off newObj.rotation = inverse objRot
@@ -2052,7 +2091,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                     -- Add data to the list of Weights structures
                                     -- for post processing once all the bones
                                     -- are in place
-                                    append weightsList (nx_SkinWeights newObj weightBuffer)
+                                    append weightsList (kx_SkinWeights newObj weightBuffer)
                                 )
                             ) -- End If for loadGeom
                         ) -- End endnode case and create mesh block
@@ -2169,17 +2208,17 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 										if not loadGeom then
 										(
 											-- First, apply base rotation to insert point. In case we did geometry, then this will just be overwriting what we already did above
-											nx_applyOrientationKey obj (insertpoint + 1) (nx_getNodeBaseRot obj.name)
-											local zeroRot = (in coordsys parent at time (insertpoint + 1) obj.rotation) --nx_getNodeBaseRot obj.name -- 
+											kx_applyOrientationKey obj (insertpoint + 1) (kx_getNodeBaseRot obj.name)
+											local zeroRot = (in coordsys parent at time (insertpoint + 1) obj.rotation) --kx_getNodeBaseRot obj.name -- 
 											
 											-- create boundary keys
-											nx_applyOrientationKey obj (insertpoint + 2) zeroRot
-											--nx_applyOrientationKey obj (lastFrame + 2) zeroRot
+											kx_applyOrientationKey obj (insertpoint + 2) zeroRot
+											--kx_applyOrientationKey obj (lastFrame + 2) zeroRot
 										)
 										else
 										(
-											local zeroRot = (in coordsys parent at time 0 obj.rotation) --nx_getNodeBaseRot obj.name -- 
-											nx_applyOrientationKey obj 1 zeroRot
+											local zeroRot = (in coordsys parent at time 0 obj.rotation) --kx_getNodeBaseRot obj.name -- 
+											kx_applyOrientationKey obj 1 zeroRot
 										)
 									)
 								)
@@ -2193,7 +2232,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         )
                         "length": -- animtion length
                         (
-                            animLength = nx_round((tok.ReadToken() as float) * frameRate) as integer
+                            animLength = kx_round((tok.ReadToken() as float) * frameRate) as integer
 
                             if bDoAnimation then
                             (
@@ -2213,8 +2252,8 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 									local zeroRot = (in coordsys parent at time 0 obj.rotation)
 									
 									-- create boundary keys
-									nx_applyOrientationKey obj (firstFrame - 2) zeroRot
-									nx_applyOrientationKey obj (lastFrame + 2) zeroRot
+									kx_applyOrientationKey obj (firstFrame - 2) zeroRot
+									kx_applyOrientationKey obj (lastFrame + 2) zeroRot
 								)
 								*/
                             )
@@ -2244,7 +2283,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                 (
 									if animRootPlay != undefined and mappingtbl != undefined then
 										for mapindex = 1 to mappingtbl.count by 2 do 
-											if nx_lowercase(mappingtbl[mapindex]) == nx_lowercase(animRootPlay) then 
+											if kx_lowercase(mappingtbl[mapindex]) == kx_lowercase(animRootPlay) then 
 												animRootPlay = mappingtbl[mapindex + 1]
 									
 									if animRootPlay == undefined then
@@ -2263,7 +2302,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                         (
                             if bDoAnimation then
                             (
-                                local event_frame = nx_round((tok.ReadFloat()*frameRate) + firstFrame)
+                                local event_frame = kx_round((tok.ReadFloat()*frameRate) + firstFrame)
                                 local event_name = tok.ReadString()
                                 local bDupEvent = false
                                 -- test to see if this event is already at this frame
@@ -2298,7 +2337,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
                                 if bDoAnimation then
                                 (
-                                    local event_frame = nx_round((tok.ReadFloat()*frameRate) + firstFrame)
+                                    local event_frame = kx_round((tok.ReadFloat()*frameRate) + firstFrame)
                                     local event_name = tok.ReadString()
                                     local bDupEvent = false
                                     -- test to see if this event is already at this frame
@@ -2342,7 +2381,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                             (
                                 for mapindex = 1 to mappingtbl.count by 2 do
                                 (
-                                    if nx_lowercase(mappingtbl[mapindex]) == nx_lowercase(objName) then (
+                                    if kx_lowercase(mappingtbl[mapindex]) == kx_lowercase(objName) then (
                                         --if DEBUG then 
 										format "mapping: % --> %\r\n" mappingtbl[mapindex] objName
                                         objName = mappingtbl[mapindex + 1]
@@ -2356,7 +2395,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                             -- Get anim object, taking into account that it needs to be under the right odysseybase. This should uniquely identify the node (unless the ascii is faulty).
                             objAnim = undefined
-                            if objName != "" and objName != undefined then objAnim = (for p in $objects where (nx_lowercase(p.name) == nx_lowercase(objName) and isdescendantof p animRoot) collect p)[1]
+                            if objName != "" and objName != undefined then objAnim = (for p in $objects where (kx_lowercase(p.name) == kx_lowercase(objName) and isdescendantof p animRoot) collect p)[1]
 							--if objAnim == undefined then messagebox ("Couldn't find objAnim: " + objName)
                             if (objAnim != undefined and objAnim != animRoot) then
                             (
@@ -2377,26 +2416,30 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 											local zeroRot = (in coordsys parent at time 0 objAnim.rotation)
 											
 											-- create boundary keys
-											nx_applyOrientationKey objAnim (firstFrame - 2) zeroRot
-											nx_applyOrientationKey objAnim (lastFrame + 2) zeroRot
+											kx_applyOrientationKey objAnim (firstFrame - 2) zeroRot
+											kx_applyOrientationKey objAnim (lastFrame + 2) zeroRot
                                         )
 									)
                                 )
                             ) -- end if
 
-                        ) -- end 'Node' case
+                        )
+                        "parent": ()
+						"extra_data":
+						(
+							setUserProp (objAnim) ("extra_" + animName) (tok.ReadInteger())
+						)
                         "endnode":
                         (
 							if DEBUG then format "endnode processing START\r\n"
                             if DEBUG then format "objName = % : objAnim = %\r\n" objName objAnim
                             objAnim = undefined
                             if DEBUG then format "endnode (in anim) processing END\r\n"
-                        )   -- end "endnode"
+                        )
                         "doneanim":
                         (
                             bDoAnimation = false
                         )
-                        "parent": ()
                         default:
                         (
                             -- this traps all the other stuff in animations, including all the controller data
@@ -2794,7 +2837,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 
                                                 while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
 
-                                                    local keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
+                                                    local keytime = kx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
                                                     local p3 = tok.ReadPoint3()
                                                     p3 *= 100
@@ -2889,7 +2932,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 											while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
 												-- next line
 												lineNum += 1
-												local keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
+												local keytime = kx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
 												-- read data
 												local axis = tok.ReadPoint3()
@@ -2899,18 +2942,18 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 												if DEBUG then format "line:% keytime:%  axis:%  angle:% quaternion:%\r\n" lineNum keytime axis angle objRotNew
 												
 												-- The Euler Filter
-												--if not loadGeom then objRotNew = nx_translateRotation objRotNew zeroRot2 zeroRot
-												objRotNew = nx_eulerFilter objRotNew qPrev
+												--if not loadGeom then objRotNew = kx_translateRotation objRotNew zeroRot2 zeroRot
+												objRotNew = kx_eulerFilter objRotNew qPrev
 
 												if bDoAnimation then (
 													-- check if we still need to do the initial key
 													if not bInitial then
 													(
-														nx_applyOrientationKey objAnimTemp (firstFrame - 1) objRotNew
+														kx_applyOrientationKey objAnimTemp (firstFrame - 1) objRotNew
 														bInitial = true
 													)
 													
-													nx_applyOrientationKey objAnimTemp keytime objRotNew
+													kx_applyOrientationKey objAnimTemp keytime objRotNew
 												)
 												
 												qPrev = copy objRotNew
@@ -2925,7 +2968,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
 											
 											-- write last key
 											if bDoAnimation and bKeysPresent then (
-												nx_applyOrientationKey objAnimTemp (lastFrame + 1) qPrev
+												kx_applyOrientationKey objAnimTemp (lastFrame + 1) qPrev
 											)											
                                         )
                                         "color":(
@@ -2946,7 +2989,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                             while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
                                                 lineNum += 1
 
-                                                local keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
+                                                local keytime = kx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
                                                 local this_value = tok.ReadColor()
                                                 local in_value
@@ -3003,7 +3046,7 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
                                             local newkey
                                             while ((tok.PeekToken() != "endlist") and (keyCount != 0)) do (
                                                 lineNum += 1
-                                                local keytime = nx_round(firstFrame + (frameRate*tok.ReadFloat()))
+                                                local keytime = kx_round(firstFrame + (frameRate*tok.ReadFloat()))
 
                                                 local this_value = tok.ReadFloat()
                                                 if str_token == "radius" then this_value *= 100
@@ -3082,11 +3125,11 @@ fn ImportOdysseyModel pFile importAnims showWarnings \
         throw
     )
     close mdlStream
-    nx_FlushBuffer()
+    kx_FlushBuffer()
     if showprogress then progressEnd()
 	popPrompt()
 
-	nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+	kx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 )
 
 
@@ -3098,7 +3141,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
     local currentPath = getFilenamePath pFile
 
     -- only progress further if there IS a file available to process
-    if not (nx_existFile pFile) then return false
+    if not (kx_existFile pFile) then return false
 
     -- make sure we reset base panel status
     setCommandPanelTaskMode mode:#create -- same as: max mode create ;)
@@ -3112,13 +3155,13 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
     try (
         -- Go through the whole mdl file
         if showprogress and not withmodels then progressStart "Importing LYT"
-        local fsize = nx_filesize mdlStream
+        local fsize = kx_filesize mdlStream
 
         local sModuleName = (getFilenameFile pFile)
         while not (eof mdlStream) and not quitEarly do
         (
             if showprogress and not withmodels then progressUpdate ((((filepos mdlStream) as float)/fsize) * 100)
-            local tok = nx_Tokenizer()
+            local tok = kx_Tokenizer()
             local line = getNextNonBlankLine mdlStream
             tok.SetString (line)
             lineNum += 1
@@ -3127,7 +3170,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
             local idToken = tok.ReadToken()
 
             -- if idToken is a string token then convert to lowercase
-            if (isKindOf idToken string) then idToken = nx_lowercase idToken
+            if (isKindOf idToken string) then idToken = kx_lowercase idToken
 
             if (idToken[1] == "#") then idToken = "#"
             if (idToken == "donelayout") then quitEarly = true
@@ -3169,7 +3212,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         (
                             -- couldnt find node, try importing
                             local sFile = currentPath+sNode+suffix+".mdl.ascii"
-							if (not nx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
+							if (not kx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
                             ImportOdysseyModel \
                                 sFile \                   -- filename
                                 doanims \                -- import anims
@@ -3221,7 +3264,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         (
                             -- couldnt find node, try importing
                             local sFile = currentPath+sNode+suffix+".mdl.ascii"
-							if (not nx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
+							if (not kx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
 							
                             ImportOdysseyModel \
                                 sFile \                   -- filename
@@ -3272,7 +3315,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         (
                             -- couldnt find node, try importing
                             local sFile = currentPath+sNode+suffix+".mdl.ascii"
-							if (not nx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
+							if (not kx_existFile sFile) then sFile = currentPath+sNode+suffix+".mdl"
 							
                             ImportOdysseyModel \
                                 sFile \                   -- filename
@@ -3371,7 +3414,7 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
 	
 	-- check if we also need to import the .vis file
 	local visfile = getFilenamePath pFile + getFilenameFile pFile + ".vis"
-    if withvis and nx_existFile visfile then
+    if withvis and kx_existFile visfile then
 	(
 		-- Open up the file
 		local mdlStream = openFile visfile mode:"r"
@@ -3382,12 +3425,12 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
 		try (
 			-- Go through the whole vis file
 			if showprogress then progressStart "Importing VIS"
-			local fsize = nx_filesize mdlStream
+			local fsize = kx_filesize mdlStream
 
 			while not (eof mdlStream) and not quitEarly do
 			(
 				if showprogress then progressUpdate ((((filepos mdlStream) as float)/fsize) * 100)
-				local tok = nx_Tokenizer()
+				local tok = kx_Tokenizer()
 				local line = getNextNonBlankLine mdlStream
 				tok.SetString (line)
 				lineNum += 1
@@ -3396,14 +3439,14 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
 				local idToken = tok.ReadToken()
 
 				-- if idToken is a string token then convert to lowercase
-				if (isKindOf idToken string) then idToken = nx_lowercase idToken
+				if (isKindOf idToken string) then idToken = kx_lowercase idToken
 
 				if (idToken[1] == "#") then idToken = "#"
 				
 				if idToken != "#" then
 				(
 					local sRoom = idToken
-					local room = (for obj in $helpers where (nx_lowercase obj.name) == (nx_lowercase sRoom) and iskindof obj odysseybase and obj.layouttype == 2 collect obj)[1]
+					local room = (for obj in $helpers where (kx_lowercase obj.name) == (kx_lowercase sRoom) and iskindof obj odysseybase and obj.layouttype == 2 collect obj)[1]
 					
 					--messagebox sRoom
 					-- clear existing list, no turning back after this
@@ -3423,8 +3466,8 @@ fn ImportOdysseyLayout pFile showprogress:false withvis:true withmodels:false do
                         ---- DO STUFF
 						local sVisible = tok.ReadToken()
 						--messagebox ("Visible: "+sVisible)
-						local visible = (for obj in $helpers where (nx_lowercase obj.name) == (nx_lowercase sVisible) and iskindof obj odysseybase and obj.layouttype == 2 collect obj)[1]
-						if room != undefined and visible != undefined then append room.visrooms (nx_lowercase sVisible)
+						local visible = (for obj in $helpers where (kx_lowercase obj.name) == (kx_lowercase sVisible) and iskindof obj odysseybase and obj.layouttype == 2 collect obj)[1]
+						if room != undefined and visible != undefined then append room.visrooms (kx_lowercase sVisible)
                         -- DONE WITH STUFF
 
                         -- read in next line from import data stream
@@ -3465,7 +3508,7 @@ fn massload pattern:undefined target:undefined anims:true =
         return 0
     )
 
-    if not (nx_existDir target) then
+    if not (kx_existDir target) then
     (
         messageBox "Target directory does not exist"
         return 0
@@ -3478,20 +3521,22 @@ fn massload pattern:undefined target:undefined anims:true =
     if target[target.count] != "\\" then target += "\\"
     for file in filesToLoad do
     (
-        local pwk_file = (getFilenamePath file)+(getFilenameFile  file)+".pwk.ascii"
-		if (not nx_existFile pwk_file) then pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk"
-        local dwk_file = (getFilenamePath file)+(getFilenameFile  file)+".dwk.ascii"
-		if (not nx_existFile dwk_file) then dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk"
+		local StrictFilename = file
+		while matchPattern StrictFilename pattern:"*.*" do StrictFilename = getFilenameFile  StrictFilename
+        local pwk_file = (getFilenamePath file)+StrictFilename+".pwk.ascii"
+		if (not kx_existFile pwk_file) then pwk_file = (getFilenamePath file)+StrictFilename+".pwk"
+        local dwk_file = (getFilenamePath file)+StrictFilename+".dwk.ascii"
+		if (not kx_existFile dwk_file) then dwk_file = (getFilenamePath file)+StrictFilename+".dwk"
 
         -- import the file
         ImportOdysseyModel file anims false
 
          -- import pwk file if available
-        if ( nx_existFile pwk_file ) then
+        if ( kx_existFile pwk_file ) then
             ImportOdysseyWalkmesh pwk_file "pwk"
 
         -- import dwk file if available
-        if ( nx_existFile dwk_file ) then
+        if ( kx_existFile dwk_file ) then
             ImportOdysseyWalkmesh dwk_file "dwk"
 
 		local modelBase

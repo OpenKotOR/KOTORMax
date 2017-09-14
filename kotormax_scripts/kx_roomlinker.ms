@@ -1,13 +1,9 @@
 /*-----------------------------------------------------------------------------\
 
-    Animation Editor
+    Roommlink Editor
 
 	KOTORmax
 	by bead-v
-	
-	Derived from:
-    NWmax
-    by Joco (jameswalker@clear.net.nz)
 
     Legal Stuff
     1. This is free software and is provided with no explicit or implied
@@ -23,8 +19,8 @@
 
 \-----------------------------------------------------------------------------*/
 
-global nx_roomlinker_flag
-rollout nx_roomlinker "Room Link Editor"
+global kx_roomlinker_flag
+rollout kx_roomlinker "Room Link Editor"
 (
     local nodesel = undefined
 
@@ -91,10 +87,10 @@ rollout nx_roomlinker "Room Link Editor"
 		
 		for f = 1 to (meshop.getNumFaces mesh) do
 		(
-			local ClrVertInds = getVCFace mesh f
+			local ClrVertInds = meshop.getMapFace mesh kx_roomlinkChannel f --getVCFace mesh f
 			for i = 1 to 3 do
 			(
-				local VertColor = getVertColor mesh ClrVertInds[i]
+				local VertColor = ((meshop.getMapVert mesh kx_roomlinkChannel ClrVertInds[i]) * 255.0) as color  --getVertColor mesh ClrVertInds[i]
 				if(VertColor.b == 0 and VertColor.r == 0 and VertColor.g >= 100) then
 				(
 					append temp ("Edge " + ((f - 1)* 3 + i) as string + " to Room " + ((VertColor.g as Integer) - 100) as string)
@@ -138,9 +134,9 @@ rollout nx_roomlinker "Room Link Editor"
 		local nNewIndex = 0
 		if(room == -1) then nNewIndex = 1
 		else(
-			for i = 1 to (meshop.getNumMapVerts mesh 0) do
+			for i = 1 to (meshop.getNumMapVerts mesh kx_roomlinkChannel) do
 			(
-				local ColorVert = meshop.getMapVert mesh 0 i
+				local ColorVert = meshop.getMapVert mesh kx_roomlinkChannel i
 				--local ColorVert = color (p3.x * 255.0) (p3.y * 255.0) (p3.z * 255.0)
 				--format "Comparing colors: % and % \n" (ColorVert as color) cColor
 				if((ColorVert as color) == cColor) then
@@ -151,25 +147,25 @@ rollout nx_roomlinker "Room Link Editor"
 			)
 			if(nNewIndex == 0) then
 			(
-				nNewIndex = (meshop.getNumMapVerts mesh 0) + 1
-				meshop.setNumMapVerts mesh 0 nNewIndex keep:true
-				meshop.setMapVert mesh 0 nNewIndex (cColor)
+				nNewIndex = (meshop.getNumMapVerts mesh kx_roomlinkChannel) + 1
+				meshop.setNumMapVerts mesh kx_roomlinkChannel nNewIndex keep:true
+				meshop.setMapVert mesh kx_roomlinkChannel nNewIndex (cColor)
 			)
 		)
 		for i in selEdges do
 		(
 			local nFace = (i - 1) / 3
 			local nEdge = mod (i - 1) 3
-			local FaceInds = meshop.getMapFace mesh 0 (nFace+1)
+			local FaceInds = meshop.getMapFace mesh kx_roomlinkChannel (nFace+1)
 			FaceInds[nEdge+1] = nNewIndex
-			meshop.setMapFace mesh 0 (nFace+1) FaceInds
+			meshop.setMapFace mesh kx_roomlinkChannel (nFace+1) FaceInds
 		)
 		GetLinks()
 		redrawViews()
 	)
 	
-	on list_links selected ind do
-	(
+	on list_links selectionEnd /*ind*/ do
+	(	
 		-- get selected node, and make sure it's a mesh, otherwise return
 		local mesh = GetValidBaseObject()
 		if mesh == undefined then return false
@@ -223,15 +219,15 @@ rollout nx_roomlinker "Room Link Editor"
 		(
 			local nFace = nIndex / 3
 			local nEdge = mod nIndex 3
-			local FaceInds = meshop.getMapFace mesh 0 (nFace+1)
+			local FaceInds = meshop.getMapFace mesh kx_roomlinkChannel (nFace+1)
 			FaceInds[nEdge+1] = 1
-			meshop.setMapFace mesh 0 (nFace+1) FaceInds
+			meshop.setMapFace mesh kx_roomlinkChannel (nFace+1) FaceInds
 		)
 		GetLinks()
 		redrawViews()
 	)
 		
-	on nx_roomlinker open do
+	on kx_roomlinker open do
 	(
 		if modpanel.getcurrentobject() == undefined then return false
 		nodesel = selection[1]
@@ -240,20 +236,23 @@ rollout nx_roomlinker "Room Link Editor"
 		subobjectlevel = 2
 		
 		-- setup the colors if needed
-		if(not (meshop.GetMapSupport mesh 0)) then (
-			meshop.setMapSupport mesh 0 true
-		)
-		if((meshop.getNumMapVerts mesh 0) == 0 or (meshop.getNumMapFaces mesh 0) == 0) then (
-			meshop.setNumMapVerts mesh 0 1
-			meshop.setMapVert mesh 0 1 [1, 1, 1]
-			meshop.buildMapFaces mesh 0
-			for i = 1 to (meshop.getMapFace mesh 0) do (
-				meshop.setMapFace mesh 0 i [1, 1, 1]
+		kx_enableMapChannel mesh kx_roomlinkChannel
+		--if meshop.getNumMaps mesh < kx_roomlinkChannel + 1 then meshop.setNumMaps mesh (kx_roomlinkChannel + 1)
+		--if not meshop.GetMapSupport mesh kx_roomlinkChannel then meshop.setMapSupport mesh kx_roomlinkChannel true
+		
+		if (meshop.getNumMapVerts mesh kx_roomlinkChannel) < 1 or (meshop.getNumMapFaces mesh kx_roomlinkChannel) < 1 then 
+		(
+			meshop.setNumMapVerts mesh kx_roomlinkChannel 1
+			meshop.setMapVert mesh kx_roomlinkChannel 1 [1, 1, 1]
+			meshop.setNumMapFaces mesh kx_roomlinkChannel mesh.faces.count
+			for i = 1 to mesh.faces.count do 
+			(
+				meshop.setMapFace mesh kx_roomlinkChannel i [1, 1, 1]
 			)
 		)
 
 		-- get links that are present on the mesh, if there are color faces and verts
-		if((meshop.getNumMapVerts mesh 0) > 0 and (meshop.getNumMapFaces mesh 0) > 0) then GetLinks()
+		if((meshop.getNumMapVerts mesh kx_roomlinkChannel) > 0 and (meshop.getNumMapFaces mesh kx_roomlinkChannel) > 0) then GetLinks()
 		
 		-- get rooms with numbers if there are any and this is an aabb
 		local SceneRooms = for obj in $helpers where iskindof obj odysseybase and obj.layouttype == 2 collect obj
@@ -268,17 +267,20 @@ rollout nx_roomlinker "Room Link Editor"
 		-- update listbox
 		lst_rooms.items = RoomNames
 			
-    	nx_roomlinker_flag = true
+    	kx_roomlinker_flag = true
+		
+		callbacks.addScript #selectionSetChanged "(DestroyDialog kx_roomlinker)" id:#selChange_roomLinker
 	)
 
-	on nx_roomlinker close do
+	on kx_roomlinker close do
 	(
-    	nx_roomlinker_flag = false
+		callbacks.removeScripts #selectionSetChanged id:#selChange_roomLinker
+    	kx_roomlinker_flag = false
 	)
 )
 
-if nx_roomlinker_flag != true then
+if kx_roomlinker_flag != true then
 (
     --format "firing roomlinker dialog!\n"
-    createDialog nx_roomlinker width:295
+    createDialog kx_roomlinker width:295
 )

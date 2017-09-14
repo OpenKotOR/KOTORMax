@@ -1,7 +1,7 @@
 
 
 
-rollout nx_util0 "Create" width:162
+rollout kx_util0 "Create" width:162
 (
     -- ui
     group "Odyssey Objects"
@@ -21,6 +21,11 @@ rollout nx_util0 "Create" width:162
         button btn_odywalkmesh "Walkmesh" width:68 height:17 align:#left across:2 offset:[0, -2]
         button btn_skin "Skin" width:68 height:17 align:#right offset:[0, -2]
     )
+	group "Convert"
+	(
+		button btn_makeintodummy "Convert to Dummy" width:144 height:18 align:#center toolTip:"Convert selected objects into Dummy helpers."
+		button btn_trimesh "Convert to Editable Mesh"  width:144 height:18 align:#center toolTip:"Convert selected objects into Editable Meshes, preserving modifiers."
+	)
 
     -- tools
     tool create_odydummy
@@ -216,13 +221,64 @@ rollout nx_util0 "Create" width:162
             ) catch()
         )
 	)
-
-    on nx_util0 moved val do
+	
+    on btn_makeintodummy pressed do
     (
-		if gNX_dock == 0 then
+        -- take the selected objects and make each into a dummy object
+        clearlistener()
+        local sel = selection as array
+        local p -- position of s
+        local r -- rotation of s
+        local par -- parent of s
+        local n -- name of s
+        local newdummy
+
+        for s in sel do
+        (
+            format "Processing: %\r\n" s
+            p = s.pos
+            r = s.rotation
+            n = s.name
+            par = s.parent
+            newdummy = dummy pos:p
+            newdummy.rotation = r
+            newdummy.parent = par
+            newdummy.boxsize = [10,10,10]
+            for c in s.children do
+            (
+                c.parent = newdummy
+            )
+            select s
+            max delete
+            newdummy.name = n
+        )
+    )
+	
+    on btn_trimesh pressed do undo on
+    (
+        for obj in selection do
+        (
+            local orig = copy obj
+
+            -- Converting to an Editable Patch and back again splits the
+            -- given object's polygons into faces (triangles).
+            convertToMesh obj
+            convertTo obj Editable_Patch
+            convertToMesh obj
+
+            -- Restore the original modifiers.
+            kx_copy_modifiers obj orig
+
+            delete orig
+        )
+    )
+
+    on kx_util0 moved val do
+    (
+		if gkx_dock == 0 then
 		(
 			-- store the current location of the KOTORmax Speedbar
-			nx_setinivalue #(#("init", "position", (val as string), (g_kotormaxPath + "kotormax.ini")))
+			kx_setinivalue #(#("init", "position", (val as string), (g_kotormaxPath + "kotormax.ini")))
 			/*
 			if g_ismax then (
 				setINISetting (scriptsPath+"nxlocalprefs.ini") "position" "kotormax" (val as string)

@@ -34,7 +34,7 @@
 
 \-----------------------------------------------------------------------------*/
 format "load: odyssey_helper_light.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 plugin light odysseylight
 name:"OdysseyLight"

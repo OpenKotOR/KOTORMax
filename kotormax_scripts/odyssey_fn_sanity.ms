@@ -67,7 +67,7 @@ function AnimrootCheck inputNode =
     if DEBUG then format "AnimrootCheck%" g_delim to:g_strBuffer
     local acceptable = 1
 
-    if (nx_strclassof(inputNode) == "odysseybase") then
+    if (kx_strclassof(inputNode) == "odysseybase") then
     (
         if (inputNode.animations != #undefined) then (
             local animStringArray
@@ -93,17 +93,25 @@ function AnimrootCheck inputNode =
                     foundName = FindNodeName inputNode animroot
 
                     if (foundName == false) then ( -- If the node doesn't exist, kick & yell & scream until it's fixed
-                        local result = queryBox ("The animroot for the \""+animStringArray[1]+"\" animation doesn't exist.  Press 'Yes' to set the animroot as the OdysseyBase of the model; press 'No' to simply print a warning to the Listener Window and continue. If you press 'Yes', you must save the scene before exiting.") title:"Sanity Check Error"
+                        local result = yesNoCancelBox ("The animroot \"" + animroot + "\" for the \"" + animStringArray[1] + "\" animation doesn't exist.  Press 'Yes' to set the animroot as the OdysseyBase of the model; press 'No' to simply print a warning to the Listener Window and continue; press 'Cancel' to abort Sanity Check. If you press 'Yes', you must save the scene before exiting.") title:"Sanity Check Error"
 
-                        if (result == true) then ( -- The MAX docs say that queryBox should return #yes......
+                        if result == #yes then
+						(
                             -- Set the animroot to be the OdysseyBase name
                             local animRootIndex = findString curAnim animStringArray[6]
                             inputNode.animations[curAnimCount] = (substring curAnim 1 (animRootIndex-1))+inputNode.name
 
-                        ) else (
+                        )
+						else if result == #cancel then
+						(
+							progressEnd()
+							return 2 -- Signal to Sanity Check Function that we want to abort
+						)
+						else
+						(
                             -- Dump the animation name to the listener window and let someone else deal with this
                             format "### Animroot [%] for % doesn't exist.%" animroot animStringArray[1] g_delim to:g_strBuffer
-                            nx_FlushBuffer()
+                            kx_FlushBuffer()
                             acceptable = 0
                         )
                     )
@@ -133,7 +141,7 @@ function BoneCountCheck node = (
     ) catch
     (
         format "DEBUG: BoneCountCheck::failure caught in 'try' block%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         n = skinops.getnumbervertices skinMod
     )
     local boneNames = #()
@@ -190,10 +198,10 @@ function BoneCountCheck node = (
 				format "More than 4 bones are affecting vertex %. Bones: [" i to:g_strBuffer
 				for e in boneNames do (
 					format "  %" e to:g_strBuffer
-					nx_FlushBuffer()
+					kx_FlushBuffer()
 				)
 				format "  ]%" g_delim to:g_strBuffer
-				nx_FlushBuffer()
+				kx_FlushBuffer()
 			)
         )
         -- The following check really should be ignored, as the exporter already takes care of it.
@@ -201,10 +209,10 @@ function BoneCountCheck node = (
             format "WARNING: The following bones [" to:g_strBuffer
             for e in zeroNames do (
                 format "  %" e to:g_strBuffer
-                nx_FlushBuffer()
+                kx_FlushBuffer()
             )
             format "  ] have no effect on vertex %%" i g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
         )
     )
 
@@ -214,7 +222,7 @@ function BoneCountCheck node = (
         return 1
     else (
         format "'Skinning: 4 Bones per Vert' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
 )
@@ -226,40 +234,63 @@ function BitMapNameCheck object =
     if DEBUG then format "BitMapNameCheck%" g_delim to:g_strBuffer
 
     local mat = object.material
+    if mat == undefined then return 1
+	
     local bitmapname
-
-    if (mat != undefined) then
-    (
-        if (classof(mat) == Multimaterial) then (
-            local bmchk_acceptable = true
-            for i = 1 to object.material.numsubs do (
-                bitmapname = nx_materialbitmapname(object.material[i])
-                if (bitmapname.count > 16) then
-                (
-                    format "The bitmap name \"%\" is too long. Please reduce it to 16 or less characters%" bitmapname g_delim to:g_strBuffer
-                    nx_FlushBuffer()
-                    bmchk_acceptable = false
-                )
-            )
-            if (bmchk_acceptable == false) then (
-                format "'Bitmap Name Validity' Check failed.%" g_delim to:g_strBuffer
-                nx_FlushBuffer()
-                return 0
-            )
-            return 1
-        )
-
-        bitmapname = nx_materialbitmapname(mat)
-
-        if (bitmapname.count > 16) then
-        (
-            format "The bitmap name \"%\" is too long. Please reduce it to 16 or less characters%" bitmapname g_delim to:g_strBuffer
-            format "'Bitmap Name Validity' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
-            return 0
-        )
-    )
-    return 1
+	local bmchk_acceptable = true
+	if classof mat == Multimaterial then 
+	(
+		for i = 1 to object.material.numsubs do
+		(
+			bitmapname = kx_materialdiffusebitmapname object.material[i]
+			if bitmapname.count > 16 then
+			(
+				format "The diffuse bitmap name \"%\" is too long. Please reduce it to 16 or less characters%" bitmapname g_delim to:g_strBuffer
+				kx_FlushBuffer()
+				bmchk_acceptable = false
+			)
+			
+			bitmapname = kx_materialambientbitmapname object.material[i]
+			if bitmapname.count > 16 then
+			(
+				format "The ambient bitmap name \"%\" is too long. Please reduce it to 16 or less characters%" bitmapname g_delim to:g_strBuffer
+				kx_FlushBuffer()
+				bmchk_acceptable = false
+			)
+		)
+		
+		if not bmchk_acceptable then 
+		(
+			format "'Bitmap Name Validity' Check failed.%" g_delim to:g_strBuffer
+			kx_FlushBuffer()
+			return 0
+		)
+		else return 1
+	)
+	
+	bitmapname = kx_materialdiffusebitmapname mat
+	if bitmapname.count > 16 then
+	(
+		format "The diffuse bitmap name \"%\" is too long. Please reduce it to 16 or less characters%" bitmapname g_delim to:g_strBuffer
+		kx_FlushBuffer()
+		bmchk_acceptable = false
+	)
+	
+	bitmapname = kx_materialambientbitmapname mat
+	if bitmapname.count > 16 then
+	(
+		format "The ambient bitmap name \"%\" is too long. Please reduce it to 16 or less characters%" bitmapname g_delim to:g_strBuffer
+		kx_FlushBuffer()
+		bmchk_acceptable = false
+	)
+	
+	if not bmchk_acceptable then
+	(
+		format "'Bitmap Name Validity' Check failed.%" g_delim to:g_strBuffer
+		kx_FlushBuffer()
+		return 0
+	)
+	else return 1
 )
 
 --
@@ -274,12 +305,12 @@ function PartTextureCheck object =
         local mat = object.material
         if (mat != undefined) then
         (
-            if (nx_materialbitmapname(mat) != RootNodeName) then
+            if (kx_materialbitmapname(mat) != RootNodeName) then
             (
-                local mbn = nx_materialbitmapname(mat) as string
+                local mbn = kx_materialbitmapname(mat) as string
                 format "Node \"%\" has a texture \"%\" that doesn't have a matching name%" object.name mbn  g_delim to:g_strBuffer
                 format "'Material Bitmap Name' Check failed.%" g_delim to:g_strBuffer
-                nx_FlushBuffer()
+                kx_FlushBuffer()
                 return 0
             )
         )
@@ -298,7 +329,7 @@ function ClassCheck object =
     (
         format "Node \"%\" is a Boolean.  It needs an Edit Mesh modifier to be exported properly%"  object.name  g_delim to:g_strBuffer
         format "'Node type boolean' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
 )
@@ -340,21 +371,21 @@ function AnimationNameCheck root animname =
         if (fstream != undefined) then
         (
             format "%%" animname g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             --close fstream
         )
         else
         (
             format "The file \"%\" has read only properties or could not be found%" root.classification g_delim to:g_strBuffer
             format "Animation Name Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
     if (res == #cancel) then
     (
         format "Animation Name Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
     return 1
@@ -378,17 +409,17 @@ function NameCheck object =
     (
         format "An object in the scene has a name that contains no characters. NameCheck cannot continue%" g_delim to:g_strBuffer
         format "'Node Name Validity' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
 
-    if (nx_strclassof(object) == "odysseybase") then
+    if (kx_strclassof(object) == "odysseybase") then
     (
         if (object.name.count > 16) then
         (
             format "Model (odysseybase) name \"%\" is too long.  An object name can be up to 16 characters. NameCheck cannot continue%" object.name g_delim to:g_strBuffer
             format "'Node Name Validity' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
@@ -411,7 +442,7 @@ function NameCheck object =
         )
         else (
             format "'Node Name Validity' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
@@ -434,7 +465,7 @@ function NameCheck object =
         )
         else (
             format "'Node Name Validity' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
@@ -445,7 +476,7 @@ function NameCheck object =
         (
             format "A node in this scene is invalid because it has the name \"%\" %" object.name g_delim to:g_strBuffer
             format "'Node Name Validity' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
@@ -467,7 +498,7 @@ function RotationCheck baseNode =
     (
         format "OdysseyBase \"%\" has a non-zero rotation%" baseNode.name g_delim to:g_strBuffer
         format "'Zero Rotation' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
 
@@ -489,7 +520,7 @@ function ScaleCheck object =
     (
         format "Node \"%\" has a scale that is not 1%" (object.name) g_delim to:g_strBuffer
         format "'Zero World Scale' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
 
@@ -511,7 +542,7 @@ function ControllerCheck object =
         (
             format "The position controller for \"%\" is neither linear nor Bezier%" object.name g_delim to:g_strBuffer
             format "'Controllers on Keys' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
@@ -522,7 +553,7 @@ function ControllerCheck object =
         (
             format "The rotation controller for \"%\" is not linear: '%'%" object.name (classof object.rotation.controller) g_delim to:g_strBuffer
             format "'Controllers on Keys' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
     )
@@ -568,7 +599,7 @@ function AnimCheck OdysseyBaseNode =
             (
                 format "The animation \"%\" has an end frame % less than it's start frame % %" str[1] str[3] str[2] g_delim to:g_strBuffer
                 format "'Valid Anim Key' Check failed.%" g_delim to:g_strBuffer
-                nx_FlushBuffer()
+                kx_FlushBuffer()
                 return 0
             )
         ) --// if ((str[4] as integer) == 1) then
@@ -577,7 +608,7 @@ function AnimCheck OdysseyBaseNode =
 
     if (acceptable != true) then (
         format "'Valid Anim Key' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
     return 1
@@ -626,13 +657,13 @@ function DoganCheck object =
         if(badpoint(gettvert m i)) then
         (
             format "Texture vertex % in \"%\" has a bad value: %%" (i as string) object.name ((gettvert m i) as string) g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             acceptable = false
         )
     )
     if (acceptable!=true) then (
         format "'Texvert Validity' Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
     return 1
@@ -676,7 +707,7 @@ function FaceCheck object =
                     (
                         canContinue = false
                         format "'Zero Faces On a Node' Check failed.%" g_delim to:g_strBuffer
-                        nx_FlushBuffer()
+                        kx_FlushBuffer()
                         return 0
                     )
                 )
@@ -689,7 +720,7 @@ function FaceCheck object =
             )
             else (
                 format "'Zero Faces On a Node' Check failed.%" g_delim to:g_strBuffer
-                nx_FlushBuffer()
+                kx_FlushBuffer()
                 return 0
             )
         )
@@ -710,7 +741,7 @@ function CollisionMeshCheck node =
         (
             format "Multiple collision meshes (aabb's) found on the current model.  The last mesh was found on %%" node.name g_delim to:g_strBuffer
             format "'Collision Mesh Validity' Check failed.%" g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 0
         )
         else
@@ -760,15 +791,15 @@ function WeldCheck object = (
     if (vertexList.count > 0) then
     (
         format "###### Vertices in % need to be welded%" object.name g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         for i=1 to vertexList.count by 4 do
         (
             format "    Weld: Vert#:% [% % %]  and  " vertexList[i] vertexList[i+1].x vertexList[i+1].y vertexList[i+1].z to:g_strBUffer
             format "Vert#:% [% % %]%" vertexList[i+2] vertexList[i+3].x vertexList[i+3].y vertexList[i+3].z g_delim to:g_strBuffer
-            nx_FlushBuffer()
+            kx_FlushBuffer()
         )
         format "Weld Check failed.%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
    )
@@ -873,7 +904,7 @@ function BumpyShinyAlignCheck part = (
     )
     if (acceptable == false) then (
         format "Bumpy-shiny Alignment check failed on: %  Mirrored bumpmap textures must be 'unmirrored'%" part.name g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         return 0
     )
     else
@@ -882,12 +913,12 @@ function BumpyShinyAlignCheck part = (
 
 fn DuplicateNamesCheck node nameArray =
 (
-	if findItem nameArray (nx_lowercase node.name) > 0 then(
+	if findItem nameArray (kx_lowercase node.name) > 0 then(
         format "DuplicateNames check failed on: %. Remember, names have to be unique under a case insensitive check. %" node.name g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
 		return 0
 	)
-	append nameArray (nx_lowercase node.name)
+	append nameArray (kx_lowercase node.name)
 	for child in node.children where DuplicateNamesCheck child nameArray == 0 do return 0
 	return 1
 )
@@ -906,7 +937,7 @@ function SanityCheck node =
 	)
 	
     format "Checking node %%" node.name g_delim to:g_strBuffer
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     local sc_acceptable = true -- assume we're good
 
@@ -917,7 +948,7 @@ function SanityCheck node =
     if (runNameCheck) then
         if (NameCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     --
     -- ScaleCheck will verify that all nodes to be exported
@@ -927,7 +958,7 @@ function SanityCheck node =
     if (runScaleCheck) then
         if (ScaleCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     -- if this is the model base setup all the test type flags
     if iskindof node odysseybase then
@@ -939,7 +970,7 @@ function SanityCheck node =
 		if (runDuplicateNamesCheck) then
 			if (DuplicateNamesCheck node nameArray == 0) then sc_acceptable = false
 
-		nx_FlushBuffer()
+		kx_FlushBuffer()
 		
 		-- make sure we restart looking for aabbs
 		global FoundCollisionMesh = false
@@ -955,7 +986,7 @@ function SanityCheck node =
         if (runRotationCheck) then
             if (RotationCheck(node) == 0) then sc_acceptable = false
 
-		nx_FlushBuffer()
+		kx_FlushBuffer()
 
         -- This sets up the global for part name verification
         if (node.classification == "bodypart") then
@@ -972,7 +1003,7 @@ function SanityCheck node =
         if (runAnimCheck) then
             if (AnimCheck(node) == 0) then sc_acceptable = false
 
-        nx_FlushBuffer()
+        kx_FlushBuffer()
     )
 
     --
@@ -983,7 +1014,7 @@ function SanityCheck node =
         if (runBoneCountCheck) then
             if (BoneCountCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     --
     -- Part Texture Check: verifies that the material bitmap name is the same as the node name
@@ -991,7 +1022,7 @@ function SanityCheck node =
     if (runPartTextureCheck) then
         if (PartTextureCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     --
     -- WeldCheck is used to test if there are any vertices that are really close together
@@ -1000,7 +1031,7 @@ function SanityCheck node =
     if (runWeldCheck) then
         if (WeldCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     --
     -- Class Check: checks if a node is of type Boolean when it should be an Edit Mesh
@@ -1008,7 +1039,7 @@ function SanityCheck node =
     if (runClassCheck) then
         if (ClassCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 
     --
     -- ControllerCheck will verify that any node to be exported
@@ -1023,11 +1054,11 @@ function SanityCheck node =
     -- any dogan tvertices, ie: invalud numbers (1.#INF, 1.#QNAN,...)
     -- If this happens then a warning will pop up specifying which node it is
     --
-    nx_FlushBuffer()
+    kx_FlushBuffer()
     if (runDoganCheck) then
         if (DoganCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 	
     --
     -- BitMapNameCheck will verify that the name of the
@@ -1036,16 +1067,23 @@ function SanityCheck node =
     if (runBitmapNameCheck) then
         if (BitMapNameCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 	
     --
     -- This check determines if the animroot node for each animation actually
     -- exists within the model
     --
     if (runAnimrootCheck) then
-        if (AnimrootCheck(node) == 0) then sc_acceptable = false
-
-    nx_FlushBuffer()
+	(
+		local animRootState = AnimrootCheck(node)
+        if animRootState == 0 then sc_acceptable = false
+		else if animRootState == 2 then
+		(
+			kx_FlushBuffer force:true
+			return 2
+		)
+	)
+    kx_FlushBuffer()
 
     --
     -- FaceCheck will check if the current node has
@@ -1062,7 +1100,7 @@ function SanityCheck node =
         (
             sc_acceptable = false
             try (
-                node.sanityok = nx_btoi(sc_acceptable)
+                node.sanityok = kx_btoi(sc_acceptable)
             ) catch()
         )
         -- a faceless node was found but was deleted so continue
@@ -1070,15 +1108,15 @@ function SanityCheck node =
         (
             if (sc_acceptable != true) then (
                 format "Face Check failed.%" g_delim to:g_strBuffer
-                nx_FlushBuffer()
+                kx_FlushBuffer()
                 return 0
             )
-            nx_FlushBuffer()
+            kx_FlushBuffer()
             return 1
         )
     )
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 	
 	--
 	-- Collision Mesh Check: verifies that only one collision mesh was specified per node.
@@ -1086,17 +1124,19 @@ function SanityCheck node =
     if (runAabbCheck) then
         if (CollisionMeshCheck(node) == 0) then sc_acceptable = false
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
 	
 	-- Run the check on all the children, but skip any model bases. If you want a check on those, go run it separately.
     for c in node.children where not iskindof c odysseybase and not matchPattern c.name pattern:"ignore_*" do
     (
-        if (SanityCheck(c) == 0) then sc_acceptable = false
+		local childSanityResult = SanityCheck(c)
+        if childSanityResult == 0 then sc_acceptable = false
+        else if childSanityResult == 2 then return 2 -- We are aborting the Sanity Check
     )
 
-    if iskindof node odysseybase then node.sanityok = nx_btoi(sc_acceptable)
+    if iskindof node odysseybase then node.sanityok = kx_btoi(sc_acceptable)
 
-    nx_FlushBuffer force:true
+    kx_FlushBuffer force:true
 
     if (not sc_acceptable) then return 0
 	else return 1
@@ -1128,7 +1168,7 @@ fn massmdlsanity pattern:undefined =
     else
         format "<snoopstart file=%mass_sanitycheck.txt>%" savePath g_delim to:g_strBuffer
 
-    nx_FlushBuffer()
+    kx_FlushBuffer()
     -- get all the files to load from the pattern provided
     local filesToLoad = getFiles pattern
     local doneCount = 0
@@ -1140,7 +1180,7 @@ fn massmdlsanity pattern:undefined =
         local modelBase
         for h in $helpers do
         (
-            if (nx_strclassof h) == "odysseybase" then
+            if (kx_strclassof h) == "odysseybase" then
             (
                 modelBase = h
                 exit
@@ -1149,7 +1189,7 @@ fn massmdlsanity pattern:undefined =
         -- sanity check the file
         SanityCheck modelBase
         format "--------------------===--------------------%" g_delim to:g_strBuffer
-        nx_FlushBuffer()
+        kx_FlushBuffer()
         -- reset scene
         resetMaxFile #noPrompt
         doneCount += 1
@@ -1164,7 +1204,7 @@ fn massmdlsanity pattern:undefined =
         format "</snoopstart>%" g_delim to:g_strBuffer
         format "</snoopend>%" g_delim to:g_strBuffer
     )
-    nx_FlushBuffer force:true
+    kx_FlushBuffer force:true
     -- tell the user we have finished
     progressEnd()
     if not g_ismax then messageBox "Processing Complete.\nDO NOT CLOSE until\nSnoop has written out the checkfile"

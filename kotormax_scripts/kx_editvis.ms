@@ -1,6 +1,6 @@
 
-global nx_editvis_flag
-rollout nx_editvis "Edit Visibility"
+global kx_editvis_flag
+rollout kx_editvis "Edit Visibility"
 (
 	listbox lst_rooms " Rooms:" pos:[5, 5] width:120 across:2
 	listbox lst_vis " Visible:" pos:[130, 5] width:120
@@ -22,12 +22,12 @@ rollout nx_editvis "Edit Visibility"
 	(	
 		local Rooms = getRooms()
 		
-		if allvisible then for room in Rooms do nx_unhideSubtree room
+		if allvisible then for room in Rooms do kx_unhideSubtree room
 		else 
 		(
 			-- unhide selected room
 			local selectedroom = (for obj in Rooms where obj.name == lst_rooms.selected collect obj)[1]
-			if selectedroom != undefined then nx_unhideSubtree selectedroom
+			if selectedroom != undefined then kx_unhideSubtree selectedroom
 		
 			-- process unselected rooms
 			for sItem in lst_vis.items do
@@ -40,8 +40,8 @@ rollout nx_editvis "Edit Visibility"
 				if room == undefined then continue
 				
 				-- do the hiding and unhiding 
-				if tokens[2] == "yes" then nx_unhideSubtree room
-				else nx_hideSubtree room
+				if tokens[2] == "yes" then kx_unhideSubtree room
+				else kx_hideSubtree room
 			)
 		)
 	)
@@ -95,13 +95,13 @@ rollout nx_editvis "Edit Visibility"
 		if tokens[2] == "yes" then
 		(
 			if nIndex > 0 then deleteItem base.visrooms nIndex
-			nx_hideSubtree room
+			kx_hideSubtree room
 			sItems[lst_vis.selection] = room.name + ": no"
 		)
 		else
 		(
 			if nIndex == 0 then append base.visrooms room.name
-			nx_unhideSubtree room
+			kx_unhideSubtree room
 			sItems[lst_vis.selection] = room.name + ": yes"
 		)
 		
@@ -144,9 +144,9 @@ rollout nx_editvis "Edit Visibility"
 		)
 	)
 	
-	on nx_editvis open do
+	on kx_editvis open do
 	(
-		nx_editvis_flag = true
+		kx_editvis_flag = true
 		clearSelection()
 		max create mode 
 		lst_rooms.selection = 0
@@ -177,7 +177,7 @@ rollout nx_editvis "Edit Visibility"
 		ObjectVisibility = for obj in $objects collect #(obj, obj.isHidden)
 	)
 	
-	on nx_editvis close do
+	on kx_editvis close do
 	(
 		updateVisibility allvisible:true
 		for objvis in ObjectVisibility do
@@ -186,11 +186,11 @@ rollout nx_editvis "Edit Visibility"
 			else unhide objvis[1]
 		)
 		ObjectVisibility = #()
-		nx_editvis_flag = false
+		kx_editvis_flag = false
 	)
 )
 
-if nx_editvis_flag != true then
+if kx_editvis_flag != true then
 (
 	-- get all rooms
 	local Rooms = for room in $helpers where iskindof room odysseybase and room.layouttype == 2 collect room
@@ -201,6 +201,6 @@ if nx_editvis_flag != true then
 	else
 	(
 		--format "Firing edit visibility dlg!\n"
-		createDialog nx_editvis width:255 modal:true
+		createDialog kx_editvis width:255 modal:true
 	)
 )

@@ -119,7 +119,7 @@ rollout AboutRollout "KOTORmax" width:162 height:400
 	--HyperLink hlink_ccg   "CCG Wiki by DLA" address:"http://ccg.dladventures.com/" align:#center
 
 	--button btn_code_reload "Reload Code"
-	--on btn_code_reload pressed do nx_coderefresh()
+	--on btn_code_reload pressed do kx_coderefresh()
 
 	on btn_kotormax pressed do ( createDialog CreditDialogKOTORmax )
 	on btn_nwmax pressed do ( createDialog CreditDialogNWmax )

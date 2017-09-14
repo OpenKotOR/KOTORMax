@@ -23,8 +23,8 @@
 
 \-----------------------------------------------------------------------------*/
 
-global nx_orderrooms_flag
-rollout nx_orderrooms "Order Rooms"
+global kx_orderrooms_flag
+rollout kx_orderrooms "Order Rooms"
 (
 	-- gui
 	listbox lst_rooms pos:[5, 5] height:16 width:180
@@ -67,9 +67,9 @@ rollout nx_orderrooms "Order Rooms"
 		)
 	)
 	
-	on nx_orderrooms open do
+	on kx_orderrooms open do
 	(
-		nx_orderrooms_flag = true
+		kx_orderrooms_flag = true
 		clearSelection() 
 		max create mode
 		
@@ -123,9 +123,9 @@ rollout nx_orderrooms "Order Rooms"
 		else messagebox "Two or more rooms in the scene have the exact same name! Make sure all names are unique and try again!"
 	)
 	
-	on nx_orderrooms close do
+	on kx_orderrooms close do
 	(
-		nx_orderrooms_flag = false
+		kx_orderrooms_flag = false
 		
 		local Rooms = for room in $helpers where iskindof room odysseybase and room.layouttype == 2 collect room
 		local RoomNames = lst_rooms.items
@@ -156,10 +156,10 @@ rollout nx_orderrooms "Order Rooms"
 			local Walkmeshes = for obj in objects where iskindof obj.baseobject editable_mesh and obj.modifiers["OdysseyWalkmesh"] != undefined and obj.modifiers["OdysseyWalkmesh"].meshtype == 1 collect obj
 			for wm in Walkmeshes do
 			(
-				if not meshop.getMapSupport wm 0 or meshop.getNumMapVerts wm 0 < 1 then continue -- skip this walkmesh
-				for i = 1 to meshop.getNumMapVerts wm 0 do
+				if not kx_isMapChannelEnabled wm kx_roomlinkChannel or meshop.getNumMapVerts wm kx_roomlinkChannel < 1 then continue -- skip this walkmesh
+				for i = 1 to meshop.getNumMapVerts wm kx_roomlinkChannel do
 				(
-					local ColorVert = meshop.getMapVert wm 0 i
+					local ColorVert = meshop.getMapVert wm kx_roomlinkChannel i
 					if ColorVert.y != 1.0 then
 					(
 						for link in LinkArray do
@@ -169,7 +169,7 @@ rollout nx_orderrooms "Order Rooms"
 							--format "Comparing color % to % (new: %)\n" ColorVert.y fOld fNew
 							if ColorVert.y == fOld then
 							(
-								meshop.setMapVert wm 0 i [0,fNew,0]
+								meshop.setMapVert wm kx_roomlinkChannel i [0,fNew,0]
 								--format "Found a match! This should be the new color vert: %\n" (meshop.getMapVert wm 0 i)
 								exit
 							)
@@ -186,7 +186,7 @@ rollout nx_orderrooms "Order Rooms"
 	)
 )
 
-if nx_orderrooms_flag != true then
+if kx_orderrooms_flag != true then
 (
 	-- get all rooms
 	local Rooms = for room in $helpers where iskindof room odysseybase and room.layouttype == 2 collect room
@@ -197,6 +197,6 @@ if nx_orderrooms_flag != true then
 	else
 	(
 		--format "Firing orderrooms dialog!\n"
-		createDialog nx_orderrooms width:190 modal:true
+		createDialog kx_orderrooms width:190 modal:true
 	)
 )

@@ -23,8 +23,8 @@
 
 \-----------------------------------------------------------------------------*/
 
-global nx_animeditor_flag
-rollout nx_animeditor "Animation Editor"
+global kx_animeditor_flag
+rollout kx_animeditor "Animation Editor"
 (
     local max_anim_frame
     local nodesel = undefined
@@ -191,7 +191,7 @@ rollout nx_animeditor "Animation Editor"
 			if tokens[5] == undefined then
 				chk_export.checked = true
 			else
-				chk_export.checked = (nx_itob (tokens[5] as integer))
+				chk_export.checked = (kx_itob (tokens[5] as integer))
 			-- need to check if there is animroot data
 			if tokens.count > 5 then
 			(
@@ -223,7 +223,7 @@ rollout nx_animeditor "Animation Editor"
             local sAnimName = edit_name.text
             if(sAnimName == "" or sAnimName == undefined) then sAnimName = ddl_name.selected
 			if sAnimName == undefined then return false
-            local sItemString = sAnimName + " " + (spn_framestart.value as integer) as string + " " + (spn_frameend.value as integer) as string + " " + (spn_transition.value) as string + " " + (nx_btoi chk_export.checked) as string + " " + edit_animroot.text
+            local sItemString = sAnimName + " " + (spn_framestart.value as integer) as string + " " + (spn_frameend.value as integer) as string + " " + (spn_transition.value) as string + " " + (kx_btoi chk_export.checked) as string + " " + edit_animroot.text
             --format "Saving string: %\n" sItemString
             --local nFound = 0
             local aCopy = nodesel.animations
@@ -391,9 +391,9 @@ rollout nx_animeditor "Animation Editor"
 	)
 
 	-- actions
-	on nx_animeditor open do
+	on kx_animeditor open do
 	(
-    	nx_animeditor_flag = true
+    	kx_animeditor_flag = true
     	spn_frameend.value = (sliderTime.frame as integer)
     	spn_framestart.value = (sliderTime.frame as integer)
     	spn_event_frame.value = (sliderTime.frame as integer)
@@ -428,14 +428,14 @@ rollout nx_animeditor "Animation Editor"
         )
 	)
 
-	on nx_animeditor close do
+	on kx_animeditor close do
 	(
-    	nx_animeditor_flag = false
+    	kx_animeditor_flag = false
 	)
 )
 
-if nx_animeditor_flag != true then
+if kx_animeditor_flag != true then
 (
     --format "firing animeditor dialog!\n"
-    createDialog nx_animeditor width:362
+    createDialog kx_animeditor width:362
 )

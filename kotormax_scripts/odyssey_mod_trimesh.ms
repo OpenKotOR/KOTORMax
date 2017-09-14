@@ -41,7 +41,7 @@
 
 \-----------------------------------------------------------------------------*/
 format "load: odyssey_mod_trimesh.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 plugin SimpleMod odysseytrimesh
 name:"OdysseyTrimesh"
@@ -85,7 +85,7 @@ version:1
         uvjitter                    type:#float     default: 0.0   ui:spn_uvjitter
         uvjitterspeed               type:#float     default: 0.0   ui:spn_uvjitterspeed
         lightmapped                 type:#integer   default: 0     ui:box_lightmapped
-        m_blsBackgroundGeometry     type:#integer   default: 0     ui:box_backgroundgeometry
+        m_bIsBackgroundGeometry     type:#integer   default: 0     ui:box_backgroundgeometry
         dirt_enabled                type:#integer   default: 0     ui:box_dirtenabled
         dirt_texture                type:#integer   default: 1     ui:spn_dirttexture
         dirt_worldspace             type:#integer   default: 1     ui:spn_dirtworldspace
@@ -228,7 +228,7 @@ version:1
 				)
 				else tempstring = "no texture" -- "No material set"
 			)
-			tempstring = nx_lowercase (tempstring as string)
+			tempstring = kx_lowercase (tempstring as string)
 			return tempstring
 		)
 		
@@ -256,7 +256,7 @@ version:1
 				)
 				else tempstring = "no texture" -- "No material set"
 			)
-			tempstring = nx_lowercase (tempstring as string)
+			tempstring = kx_lowercase (tempstring as string)
 			return tempstring
 		)
 		
@@ -266,7 +266,7 @@ version:1
 			(
 				for node in $objects where node.modifiers["OdysseyTrimesh"] != undefined do
 				(
-					if get_material_name selection[1] == get_material_name node then node.modifiers["OdysseyTrimesh"].tangentspace = nx_btoi val
+					if get_material_name selection[1] == get_material_name node then node.modifiers["OdysseyTrimesh"].tangentspace = kx_btoi val
 				)
 			)
 		)
@@ -280,7 +280,7 @@ version:1
 				(
 					for node in $objects where node.modifiers["OdysseyTrimesh"] != undefined do
 					(
-						if get_material_name2 selection[1] == get_material_name2 node then node.modifiers["OdysseyTrimesh"].lightmapped = nx_btoi val
+						if get_material_name2 selection[1] == get_material_name2 node then node.modifiers["OdysseyTrimesh"].lightmapped = kx_btoi val
 					)
 				)
 			)
@@ -328,7 +328,7 @@ version:1
 			else
 			(
 				local selectme = #()
-				local texname = nx_lowercase (btn_tex.caption)
+				local texname = kx_lowercase (btn_tex.caption)
 				for obj in $geometry do
 				(
 					tempstring = get_material_name obj
@@ -344,7 +344,7 @@ version:1
 			else
 			(
 				local selectme = #()
-				local texname = nx_lowercase (btn_tex2.caption)
+				local texname = kx_lowercase (btn_tex2.caption)
 				for obj in $geometry do
 				(
 					tempstring = get_material_name2 obj

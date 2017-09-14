@@ -39,7 +39,7 @@
 
 --------------------------------------------------------------------------------
 -- Mass operations UI
-rollout nx_massutils "Mass Operations" width:250
+rollout kx_massutils "Mass Operations" width:250
 (
 	group "Mass Sanity Check"
 	(
@@ -57,7 +57,7 @@ rollout nx_massutils "Mass Operations" width:250
 		button btn_massexport "Export" tooltip:"For every max file that matches the pattern, load it and export the .mdl under \"target\modelname\""
 	)
 	
-	on nx_massutils open do
+	on kx_massutils open do
 	(
 		-- load up any saved path values
 		local sanity = getINISetting (g_kotormaxPath + "kotormax.ini") "massutils" "mass_sanity_pattern"
@@ -69,7 +69,7 @@ rollout nx_massutils "Mass Operations" width:250
 		if trgt != undefined then edt_target.text = trgt
 	)
 	
-	on nx_massutils close do
+	on kx_massutils close do
 	(
 		local datalist = #()
 		
@@ -79,7 +79,7 @@ rollout nx_massutils "Mass Operations" width:250
 		append datalist #("massutils", "mass_target_path", "\""+edt_target.text+"\"", (g_kotormaxPath + "kotormax.ini"))
 		
 		-- save field values for later re use
-		nx_setinivalue datalist
+		kx_setinivalue datalist
 	)
 	
 	on btn_massmdlsanity pressed do
@@ -98,4 +98,4 @@ rollout nx_massutils "Mass Operations" width:250
 	)
 )
 
-createDialog nx_massutils
+createDialog kx_massutils

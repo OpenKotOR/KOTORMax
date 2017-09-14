@@ -36,7 +36,7 @@
 \-----------------------------------------------------------------------------*/
 
 
-rollout nx_keyreduction "Anim Key Reducer"
+rollout kx_keyreduction "Anim Key Reducer"
 (
    spinner spn_start "Start Frame:" align:#right type:#integer range:[0,100000,0]
    spinner spn_end "End Frame:" align:#right type:#integer range:[0,100000,100000]
@@ -47,7 +47,7 @@ rollout nx_keyreduction "Anim Key Reducer"
    spinner spn_threshpos "Pos Amnt Threshold:" align:#right range:[0,10000,0]
    button btn_reduce "Reduce Keys"
 
-   on nx_keyreduction open do
+   on kx_keyreduction open do
    (
       spn_start.value = animationRange.start
       spn_end.value = animationRange.end
@@ -103,7 +103,7 @@ rollout nx_keyreduction "Anim Key Reducer"
       -- start processing selection for key reduction
       for s in sel do
       (
-         nx_reduct s (spn_start.value) \
+         kx_reduct s (spn_start.value) \
                     (spn_end.value) \
                     pos:(chk_pos.state) \
                     rot:(chk_rot.state) \
@@ -115,4 +115,4 @@ rollout nx_keyreduction "Anim Key Reducer"
    )
 )
 
-createDialog nx_keyreduction width:210
+createDialog kx_keyreduction width:210

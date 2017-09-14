@@ -427,7 +427,7 @@ rollout AnimKeyCopy "Animation Key Copier" width:162
 createDialog AnimKeyCopy
 */
 
-fn nx_deletekeysinblock obj framestart frameend typeslist =
+fn kx_deletekeysinblock obj framestart frameend typeslist =
 (
 	/*
 	work through the objects in the scene and delete the keys
@@ -501,7 +501,7 @@ fn nx_deletekeysinblock obj framestart frameend typeslist =
 	)
 )
 
-fn nx_insertkeyspace obj framestart insertsize =
+fn kx_insertkeyspace obj framestart insertsize =
 (
 	/*
 	work through the objects in the scene and move the keys defined at and
@@ -575,7 +575,7 @@ fn nx_insertkeyspace obj framestart insertsize =
 )
 
 -- Anim key copy function
-fn nx_copyanimkeys node nodetrg framestart frameend frametarget typeslist relabs mirror =
+fn kx_copyanimkeys node nodetrg framestart frameend frametarget typeslist relabs mirror =
 (
 	local fr, idx, p, r, s, nf, tchild
 	
@@ -822,21 +822,21 @@ fn nx_copyanimkeys node nodetrg framestart frameend frametarget typeslist relabs
 	)
 )
 
-fn nx_sceneContainsDplNames =
+fn kx_sceneContainsDplNames =
 (
 	for n = 1 to $objects.count do
 	(
 		for n2 = (n+1) to $objects.count do
 		(
-			if nx_lowercase $objects[n].name == nx_lowercase $objects[n2].name then return true
+			if kx_lowercase $objects[n].name == kx_lowercase $objects[n2].name then return true
 		)
 	)
 	return false
 )
 
-global nx_animkeycopy_flag
+global kx_animkeycopy_flag
 -- parts anim mapper gui
-rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
+rollout kx_animkeycopy "Animation Key Ops" width:491 height:436
 (
     local oTargetBase = undefined
 
@@ -993,7 +993,7 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 			local tmp = #()
 
 			-- only progress further if there IS a file available to process
-			if not nx_existFile f then return false
+			if not kx_existFile f then return false
 
 			-- Open up the file
 			local mdlStream = openFile f mode:"r"
@@ -1003,7 +1003,7 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 				
 				while not eof mdlStream do
 				(
-					local tok = nx_Tokenizer()
+					local tok = kx_Tokenizer()
 					local line = getNextNonBlankLine mdlStream
 					tok.SetString (line)
 					lineNum += 1
@@ -1092,12 +1092,12 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 				close g_strBuffer
 			)
 
-			nx_FlushBuffer force:true
+			kx_FlushBuffer force:true
 			
 			-- do a general clean up as we eat some memory in these scripts
 			gc()
 
-			--nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+			--kx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 		)
 	)
 
@@ -1127,17 +1127,17 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 		return true
     )
 
-	on nx_animkeycopy open do
+	on kx_animkeycopy open do
 	(
         RefreshSourceNodes()
         RefreshTargetNodes()
 
-		nx_animkeycopy_flag = true
+		kx_animkeycopy_flag = true
 	)
 
-	on nx_animkeycopy close do
+	on kx_animkeycopy close do
 	(
-    	nx_animkeycopy_flag = false
+    	kx_animkeycopy_flag = false
 	)
 
 	on btn_refresh pressed do
@@ -1179,7 +1179,7 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 		(
 			for src in lst_trgnobhs.items do
 			(
-				if nx_lowercase(mdl) == nx_lowercase(src) then
+				if kx_lowercase(mdl) == kx_lowercase(src) then
 				(
 					append tmp (mdl + " --> " + src)
 				)
@@ -1199,7 +1199,7 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
     	local span = ef - sf                -- source frames span (interval)
 		
     	-- Perform sanity check on parameters
-		if nx_sceneContainsDplNames() then
+		if kx_sceneContainsDplNames() then
 		(
 			messagebox "The scene contains several objects with the same name (case insensitive). Please make them different for this tool to work." title:"Duplicate object names"
         	return 0
@@ -1260,11 +1260,11 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 				)
 				
 				-- If we're operating on frames, then create frames for where we'll be inserting
-				if rdo_operateon.state == 2 then nx_insertkeyspace oTarget tf span
+				if rdo_operateon.state == 2 then kx_insertkeyspace oTarget tf span
 				
 				-- Copy animation keys from source to target
 				local typeslist = #(chk_pos.state,chk_rot.state,chk_scl.state,chk_mod.state)
-				nx_copyanimkeys oSource oTarget sf ef tf typeslist rdo_abs.state #(chk_mirror.checked,chk_x.checked,chk_y.checked,chk_z.checked)
+				kx_copyanimkeys oSource oTarget sf ef tf typeslist rdo_abs.state #(chk_mirror.checked,chk_x.checked,chk_y.checked,chk_z.checked)
 			)
 			
 			if rdo_operation.state == 2 or rdo_operation.state == 3 then
@@ -1272,23 +1272,23 @@ rollout nx_animkeycopy "Animation Key Ops" width:491 height:436
 				-- Delete the keys in the source node
 				local typeslist = #(chk_pos.state,chk_rot.state,chk_scl.state,chk_mod.state)
 				if rdo_operateon.state == 2 then typeslist = #(true,true,true,true)
-				nx_deletekeysinblock oSource sf ef typeslist
+				kx_deletekeysinblock oSource sf ef typeslist
 				
 				-- If we're operating on frames, then delete frames as well
-				if rdo_operateon.state == 2 then nx_insertkeyspace oSource ef (-span)
+				if rdo_operateon.state == 2 then kx_insertkeyspace oSource ef (-span)
 			)
 			
 			if rdo_operation.state == 4 and rdo_operateon.state == 2 then
 			(
 				-- We're inserting frames
-				nx_insertkeyspace oSource sf (span)
+				kx_insertkeyspace oSource sf (span)
 			)
 		)
 	)
 )
 
-if nx_animkeycopy_flag != true then
+if kx_animkeycopy_flag != true then
 (
-	if nx_sceneContainsDplNames() then messagebox "The scene contains several objects with the same name (case insensitive). Please make them different for this tool to work." title:"Object name error"
-    else createdialog nx_animkeycopy style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox)
+	if kx_sceneContainsDplNames() then messagebox "The scene contains several objects with the same name (case insensitive). Please make them different for this tool to work." title:"Object name error"
+    else createdialog kx_animkeycopy style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox)
 )
