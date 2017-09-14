@@ -41,7 +41,7 @@ if g_linkCopy == undefined then (
 
 --------------------------------------------------------------------------------
 -- Model scale wizard
-rollout nx_ScaleWizard "Scale Wizard"
+rollout kx_ScaleWizard "Scale Wizard"
 (
     spinner spn_scale "Scale %" range:[0.0,1000.0,100.0] type:#float
     label lbl_status ""
@@ -134,7 +134,7 @@ rollout nx_ScaleWizard "Scale Wizard"
         		select save_selection
         	)
 
-        	append swl (nx_SkinWeights s weightBuffer)
+        	append swl (kx_SkinWeights s weightBuffer)
     	)
 
         -- perform the scale
@@ -178,7 +178,7 @@ rollout nx_ScaleWizard "Scale Wizard"
 		    	rotvalue = s.rotation
 				s.rotation = (quat 0 0 0 1)
 				orig = copy s
-	        	nx_reset_transforms s
+	        	kx_reset_transforms s
 	        	s.rotation = rotvalue
 	        	format "XForm added: %\r\n" s.name
 
@@ -187,7 +187,7 @@ rollout nx_ScaleWizard "Scale Wizard"
 	        	format "XForm collapsed\r\n"
 
 	        	-- restore original modifiers less the Xform
-	        	nx_copy_modifiers s orig ignore:#("XForm")
+	        	kx_copy_modifiers s orig ignore:#("XForm")
 	        	delete orig
 	    	) else
 	    	(
@@ -222,7 +222,7 @@ rollout nx_ScaleWizard "Scale Wizard"
     	-- update the odyssey bases in the selection
     	for s in objSelect do
     	(
-	    	if (nx_strclassof s) == "odysseybase" then
+	    	if (kx_strclassof s) == "odysseybase" then
 	    	(
 		    	if s.setanimationscale == 0 then (
 			    	s.setanimationscale = 1
@@ -237,7 +237,7 @@ rollout nx_ScaleWizard "Scale Wizard"
     		lbl_status.text="Done."
     )
 
-    on btn_close pressed do ( destroyDialog nx_ScaleWizard )
+    on btn_close pressed do ( destroyDialog kx_ScaleWizard )
 )
 
-createDialog nx_ScaleWizard modal:true
+createDialog kx_ScaleWizard modal:true

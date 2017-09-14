@@ -19,7 +19,7 @@
 
 \-----------------------------------------------------------------------------*/
 format "load: odyssey_helper_dummy.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 fn createOdysseyDummy position =
 (

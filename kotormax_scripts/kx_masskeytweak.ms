@@ -35,7 +35,7 @@
      
 \-----------------------------------------------------------------------------*/
 
-rollout nx_masskeytweak "Mass Anim Key Tweaker" width:150
+rollout kx_masskeytweak "Mass Anim Key Tweaker" width:150
 (
 	group "Position Keys"
 	(
@@ -55,7 +55,7 @@ rollout nx_masskeytweak "Mass Anim Key Tweaker" width:150
 	spinner spn_endframe "End Frame:" type:#integer range:[0,100000,0]
 	button btn_process "Process" align:#center
 	
-	on nx_masskeytweak open do
+	on kx_masskeytweak open do
 	(
 		spn_startframe.value = (animationRange.start).frame as integer
 		spn_endframe.value = (animationRange.end).frame as integer
@@ -124,4 +124,4 @@ rollout nx_masskeytweak "Mass Anim Key Tweaker" width:150
 	)
 )
 
-createDialog nx_masskeytweak
+createDialog kx_masskeytweak

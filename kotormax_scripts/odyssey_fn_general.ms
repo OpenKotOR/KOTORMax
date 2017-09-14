@@ -45,13 +45,13 @@
 ---
 /*
 	STRUCTURE LIST
-	nx_Tokenizer - the file reader structure
-	nx_MultiArray - a 2d array with handlers?
-	nx_SkinWeights - stores skin object and weight data
+	kx_Tokenizer - the file reader structure
+	kx_MultiArray - a 2d array with handlers?
+	kx_SkinWeights - stores skin object and weight data
 */
 --------------------------------------------------------------------------------
 format "Define structs and utility fns\r\n"
-struct nx_Tokenizer
+struct kx_Tokenizer
 (
     --
     -- used to parse out the imported mdl file
@@ -119,7 +119,7 @@ struct nx_Tokenizer
     fn ReadBoolean =
     (
         local b = ReadToken()
-        if (nx_lowercase b) == "true" then
+        if (kx_lowercase b) == "true" then
             (true)
         else
             (false)
@@ -133,7 +133,7 @@ struct nx_Tokenizer
     )
 )
 
-struct nx_MultiArray
+struct kx_MultiArray
 (
     -- base array store
     ArrayData = #(),
@@ -185,7 +185,7 @@ struct nx_MultiArray
     )
 )
 
-struct nx_SkinWeights
+struct kx_SkinWeights
 (
     -- used to store the skin object and weights data
     Object,
@@ -199,12 +199,12 @@ struct nx_SkinWeights
 /*
 	FUNCTION LIST
 	dump node = dumps all props with the syntax "<property_name> = <value>\n"
-	nx_push stk e = appends e to array stk
-	nx_pop stk = deletes last element of array stk
-	nx_hierarchy node level:0 = prints the node hierarchy by indentation
-	nx_startStopWatch txt:"" = prints "#Timing Start <txt>\r\n"
-	nx_stopStopWatch txt:"" = prints "#Timing Stop: <time> secs <txt>\r\n"
-	nx_FlushBuffer force:false reset:false = a gmax-only function, because:
+	kx_push stk e = appends e to array stk
+	kx_pop stk = deletes last element of array stk
+	kx_hierarchy node level:0 = prints the node hierarchy by indentation
+	kx_startStopWatch txt:"" = prints "#Timing Start <txt>\r\n"
+	kx_stopStopWatch txt:"" = prints "#Timing Stop: <time> secs <txt>\r\n"
+	kx_FlushBuffer force:false reset:false = a gmax-only function, because:
 	                   "[In gmax, s]trings are limited to 15000 characters."
 					   So if our buffer, g_strBuffer, is approaching two thirds
 					   of the maximum string capacity, this function will print
@@ -217,52 +217,40 @@ struct nx_SkinWeights
 					   if g_delim is "~".
 					   If reset==true, then instead of printing the buffer to
 					   the Listener, we reset it to "".
-	nx_edgeVerts theObj theEdge = gets the vert indices of theEdge as a point2 value
-	nx_strclassof obj = gets the object's class as a string
-	nx_btoi b = converts boolean to integer
-	nx_itob i = converts integer to boolean
-	nx_read_tga_bit f_file = read the depth byte in the .tga that is f_file.
+	kx_edgeVerts theObj theEdge = gets the vert indices of theEdge as a point2 value
+	kx_strclassof obj = gets the object's class as a string
+	kx_btoi b = converts boolean to integer
+	kx_itob i = converts integer to boolean
+	kx_read_tga_bit f_file = read the depth byte in the .tga that is f_file.
 							"Depth of 32 means an alpha channel."
-	nx_progressPlus = updates the progressBar based on com_load and com_load_total
-	nx_MakeUnqiueNodeName strName = creates unique node name by appending an integer
-	nx_round x = returns rounded (to?) integer
-	nx_roundp3 pIn = returns rounded point3
-	nx_lowercase instring = returns the string in lowercase
-	nx_existFile fname = returns true if file exists, else false
-	nx_existDir dname = returns true if directory exists, else false
-	nx_filesize fh = gets the file size
-	nx_RotatePivotOnly obj rotation =
-	nx_copy_modifiers dst src ignore:#() only:#() =
-	nx_reset_transforms obj = ?
-	nx_UpdateMaterialEditor MatLib = ???
-	fn nx_createWalkMaterial = creates the walkmesh surface multimaterial
-	nx_setinivalue datalist = Sets .ini settings. Data list is an array of arrays.
+	kx_progressPlus = updates the progressBar based on com_load and com_load_total
+	kx_MakeUnqiueNodeName strName = creates unique node name by appending an integer
+	kx_round x = returns rounded (to?) integer
+	kx_roundp3 pIn = returns rounded point3
+	kx_lowercase instring = returns the string in lowercase
+	kx_existFile fname = returns true if file exists, else false
+	kx_existDir dname = returns true if directory exists, else false
+	kx_filesize fh = gets the file size
+	kx_RotatePivotOnly obj rotation =
+	kx_copy_modifiers dst src ignore:#() only:#() =
+	kx_reset_transforms obj = ?
+	kx_UpdateMaterialEditor MatLib = ???
+	fn kx_createWalkMaterial = creates the walkmesh surface multimaterial
+	kx_setinivalue datalist = Sets .ini settings. Data list is an array of arrays.
 						Each sub array contains the section, attrib, value, file.
 						Uses snoop in gmax, so it's safe to use.
-	nx_reduct obj start end pos:false rot:false sca:false \
+	kx_reduct obj start end pos:false rot:false sca:false \
             thresholdRot:0 thresholdPos:0 safeframes:#() = anim key reduction
-	nx_tiff_from_tex bmp = creates alpha map from tga file, a .tif file.
+	kx_tiff_from_tex bmp = creates alpha map from tga file, a .tif file.
 										Not sure whether this works in gmax.
-	nx_mat_from_tga tgaFile matName index:0 = creates a material for tga texture
-	nx_deletekeysinblock obj framestart frameend typeslist = takes obj as the source
-									and deletes all the keys on times framestart to frameend
-									on this node and all descendant nodes. What it deletes depends
-									on typeslist, which is:[<bool_delete_pos>,
-															<bool_delete_rotation>,
-															<bool_delete_scale>,
-															<bool_delete_modifier_props>].
+	kx_mat_from_tga tgaFile matName index:0 = creates a material for tga texture
 															
 	-- ADDED BY bead-v:
-	nx_makeDeleteDependent parent child = links parent and child so that when parent is deleted,
-											child is also deleted. They do not need to be in a
-											hierarchical relationship.
-	nx_makeDeleteIndependent parent child = if child was previously made delete-dependent on parent,
-											this function will make it independent on that object again.
-	nx_iskindof obj string = a custom version of iskindof, that will work on those modifier scripts that are being difficult
+	kx_iskindof obj string = a custom version of iskindof, that will work on those modifier scripts that are being difficult
 							the reason the original didn't work was because of the order of the imported scripts, which left
 							some things undefined.
-	fn nx_hideSubtree node = hides the entire subtree starting with node
-	fn nx_unhideSubtree node = unhides the entire subtree starting with node
+	fn kx_hideSubtree node = hides the entire subtree starting with node
+	fn kx_unhideSubtree node = unhides the entire subtree starting with node
 */
 --------------------------------------------------------------------------------
 
@@ -279,12 +267,12 @@ fn dump node =
 -----------------------------------------
 --- generic stack routines            ---
 -----------------------------------------
-fn nx_push stk e =
+fn kx_push stk e =
 (
    append stk e
 )
 
-fn nx_pop stk =
+fn kx_pop stk =
 (
    local e
    e = stk[stk.count]
@@ -297,7 +285,7 @@ fn nx_pop stk =
 ----------------------------------------
 --- Dump hierarchy starting at node  ---
 ----------------------------------------
-fn nx_hierarchy node level:0 =
+fn kx_hierarchy node level:0 =
 (
     if node != undefined then
     (
@@ -309,10 +297,10 @@ fn nx_hierarchy node level:0 =
         format "%%\r\n" indent node.name
         for c in node.children do
         (
-            nx_hierarchy c level:(level+1)
+            kx_hierarchy c level:(level+1)
         )
     ) else (
-        format "nx_hierarchy: object not found\r\n"
+        format "kx_hierarchy: object not found\r\n"
     )
 )
 
@@ -320,13 +308,13 @@ fn nx_hierarchy node level:0 =
 --- Timer analysis code    ---
 ------------------------------
 global g_stopwatch = #()    -- fake stack of floats
-fn nx_startStopWatch txt:"" =
+fn kx_startStopWatch txt:"" =
 (
     append g_stopwatch (timeStamp())
     format "#Timing Start %\r\n" txt
 )
 
-fn nx_stopStopWatch txt:"" =
+fn kx_stopStopWatch txt:"" =
 (
     local l_stopwatch = timeStamp() - g_stopwatch[g_stopwatch.count]
     -- pop value off the stack
@@ -338,7 +326,7 @@ fn nx_stopStopWatch txt:"" =
 ------------------------------
 --- export buffer flusher  ---
 ------------------------------
-fn nx_FlushBuffer force:false reset:false =
+fn kx_FlushBuffer force:false reset:false =
 (
    if not g_ismax then
    (
@@ -369,7 +357,7 @@ fn nx_FlushBuffer force:false reset:false =
 -------------------------------
 --- edges verts as a point2 ---
 -------------------------------
-fn nx_edgeVerts theObj theEdge =
+fn kx_edgeVerts theObj theEdge =
 (
     if not (classof theObj == Editable_mesh or
     classof theObj == triMesh) do return undefined
@@ -387,7 +375,7 @@ fn nx_edgeVerts theObj theEdge =
 ------------------------------
 --- ClassOf node as String ---
 ------------------------------
-fn nx_strclassof obj =
+fn kx_strclassof obj =
 (
     --
     -- Get the objects class as a string
@@ -398,7 +386,7 @@ fn nx_strclassof obj =
 --------------------------
 --- Boolean to Integer ---
 --------------------------
-fn nx_btoi b =
+fn kx_btoi b =
 (
     local r
     if b then
@@ -412,7 +400,7 @@ fn nx_btoi b =
 --------------------------
 --- Integer to Boolean ---
 --------------------------
-fn nx_itob i =
+fn kx_itob i =
 (
     local r
     if i == 0 then
@@ -427,7 +415,7 @@ fn nx_itob i =
 ------------------------------
 --- Read TGA bit for depth ---
 ------------------------------
-fn nx_read_tga_bit f_file =
+fn kx_read_tga_bit f_file =
 (
     -- depth of 32 means an alpha channel
     local fh = undefined
@@ -447,7 +435,7 @@ fn nx_read_tga_bit f_file =
 -----------------------------------
 --- Do plug in loading progress ---
 -----------------------------------
-fn nx_progressPlus =
+fn kx_progressPlus =
 (
     com_load = com_load + 1
     progressUpdate ((com_load*100)/com_load_total)
@@ -456,7 +444,7 @@ fn nx_progressPlus =
 ------------------------
 --- Unique node name ---
 ------------------------
-fn nx_MakeUnqiueNodeName strName=
+fn kx_MakeUnqiueNodeName strName=
 (
     local i = 0
     while (true) do
@@ -472,7 +460,7 @@ fn nx_MakeUnqiueNodeName strName=
 ---------------------
 --- round integer ---
 ---------------------
-fn nx_round x =
+fn kx_round x =
 (
     local correction = 0 as integer
     local tenth = ((mod x 1) * 10) as integer
@@ -483,7 +471,7 @@ fn nx_round x =
 --------------------
 --- round point3 ---
 --------------------
-fn nx_roundp3 pIn =
+fn kx_roundp3 pIn =
 (
     p = copy pIn
     local rn
@@ -512,7 +500,7 @@ fn nx_roundp3 pIn =
 ------------------
 --- Lower case ---
 ------------------
-fn nx_lowercase instring =
+fn kx_lowercase instring =
 (
     -- Joco 8-Aug-03: needed to cope with some keywords in mdl
     -- not being consistently cased when compared to peoples docs.
@@ -538,12 +526,12 @@ fn nx_lowercase instring =
 ----------------------------
 --- Check if file exists ---
 ----------------------------
-fn nx_existFile fname = (getfiles fname).count != 0
+fn kx_existFile fname = (getfiles fname).count != 0
 
 ---------------------------------
 --- Check if directory exists ---
 ---------------------------------
-fn nx_existDir dname =
+fn kx_existDir dname =
 (
     local dirstr
     if (dname[dname.count] == "\\") or (dname[dname.count] == "/") then (
@@ -557,7 +545,7 @@ fn nx_existDir dname =
 ---------------------------------
 --- Get the file size         ---
 ---------------------------------
-fn nx_filesize fh =
+fn kx_filesize fh =
 (
     local fsize = 0
     if fh == undefined then return false
@@ -576,7 +564,7 @@ fn nx_filesize fh =
 -------------------------------------
 --- Rotating only the pivot point ---
 -------------------------------------
-fn nx_RotatePivotOnly obj rotation =
+fn kx_RotatePivotOnly obj rotation =
 (
     local rotValInv=inverse (rotation as quat)
     animate off in coordsys local obj.rotation*=RotValInv
@@ -588,7 +576,7 @@ fn nx_RotatePivotOnly obj rotation =
 --- Copy the modifiers from src to dst.            ---
 --- Code by roboius (http://rockbottom.vtex.net/)  ---
 ------------------------------------------------------
-fn nx_copy_modifiers dst src ignore:#() only:#() =
+fn kx_copy_modifiers dst src ignore:#() only:#() =
 (
     local ii
 
@@ -606,7 +594,7 @@ fn nx_copy_modifiers dst src ignore:#() only:#() =
 --- Similar to the "Reset Transform" utility. ---
 --- Thanks to Roboius                         ---
 -------------------------------------------------
-fn nx_reset_transforms obj =
+fn kx_reset_transforms obj =
 (
     local ntm, ptm, rtm = matrix3 1, tm, piv
 
@@ -663,7 +651,7 @@ fn nx_reset_transforms obj =
 -------------------------------------
 --- UpdateMaterialEditor function ---
 -------------------------------------
-fn nx_UpdateMaterialEditor MatLib=
+fn kx_UpdateMaterialEditor MatLib=
 (
     -- from Waylands original script
     if MatLib.count > 0 then
@@ -694,13 +682,13 @@ fn nx_UpdateMaterialEditor MatLib=
 -----------------------------------
 --- Create Surface Material ---
 -----------------------------------
-global nx_SurfaceMat = #()
-fn nx_createWalkMaterial =
+global kx_SurfaceMat = #()
+fn kx_createWalkMaterial =
 (
-    if DEBUG then format "%nx_createWalkMaterial: start\r\n" strIndent1
+    if DEBUG then format "%kx_createWalkMaterial: start\r\n" strIndent1
     -- from Wayland's script
     local SurfaceMatName = #()
-    nx_SurfaceMat = #()
+    kx_SurfaceMat = #()
     local matName = "OdysseyWalkMaterial";
 
     local newMaterial = sceneMaterials[matName]
@@ -717,8 +705,8 @@ fn nx_createWalkMaterial =
         (
             mat_name = getINISetting (g_kotormaxPath + "wokmat.ini") ("m"+(m as string)) "name"
             append SurfaceMatName mat_name
-            nx_exec_str = "append nx_SurfaceMat "+(getINISetting (g_kotormaxPath + "wokmat.ini") ("m"+(m as string)) mat_name)
-            execute nx_exec_str
+            kx_exec_str = "append kx_SurfaceMat "+(getINISetting (g_kotormaxPath + "wokmat.ini") ("m"+(m as string)) mat_name)
+            execute kx_exec_str
         )
 
        newMaterial = multimaterial name:matName numsubs:SurfaceMatName.count
@@ -727,11 +715,11 @@ fn nx_createWalkMaterial =
        (
          newMaterial.names[i] = SurfaceMatName[i]
          newMaterial.materialList[i].name = SurfaceMatName[i]
-         newMaterial.materialList[i].diffuse = nx_SurfaceMat[i]
+         newMaterial.materialList[i].diffuse = kx_SurfaceMat[i]
        )
     )
-    nx_SurfaceMat = undefined
-    if DEBUG then format "%nx_createWalkMaterial: end\r\n" strIndent1
+    kx_SurfaceMat = undefined
+    if DEBUG then format "%kx_createWalkMaterial: end\r\n" strIndent1
     return newMaterial
 )
 
@@ -739,7 +727,7 @@ fn nx_createWalkMaterial =
 -----------------------------------
 ---                             ---
 -----------------------------------
-fn nx_setinivalue datalist noClear:false noEnd:false =
+fn kx_setinivalue datalist noClear:false noEnd:false =
 (
     /*
     Data list is an array of arrays.
@@ -771,7 +759,7 @@ fn nx_setinivalue datalist noClear:false noEnd:false =
 -----------------------------------
 --- Anim Key reduction          ---
 -----------------------------------
-fn nx_reduct obj start end pos:false rot:false sca:false \
+fn kx_reduct obj start end pos:false rot:false sca:false \
             thresholdRot:0 thresholdPos:0 safeframes:#() =
 (
    -- get all the controllers
@@ -914,7 +902,7 @@ fn nx_reduct obj start end pos:false rot:false sca:false \
 ---------------------------------------
 ---  Create alpha map from tga file ---
 ---------------------------------------
-fn nx_tiff_from_tex bmp =
+fn kx_tiff_from_tex bmp =
 (
     local h = bmp.height
     local w = bmp.width
@@ -938,7 +926,7 @@ fn nx_tiff_from_tex bmp =
 --------------------------------------
 ---  Create material from tga file ---
 --------------------------------------
-fn nx_mat_from_tga tgaFile matName index:0 =
+fn kx_mat_from_tga tgaFile matName index:0 =
 (
     local objMaterial, tga, texMap, tgaDepth
 
@@ -952,10 +940,10 @@ fn nx_mat_from_tga tgaFile matName index:0 =
     objMaterial.opacity = 100
     objMaterial.soften = 0.1
 
-    if (nx_existFile tgaFile) then
+    if (kx_existFile tgaFile) then
     (
         tga = openBitMap(tgaFile)
-        tgaDepth = nx_read_tga_bit tgaFile
+        tgaDepth = kx_read_tga_bit tgaFile
     )
     else
     (
@@ -976,115 +964,33 @@ fn nx_mat_from_tga tgaFile matName index:0 =
     objMaterial
 )
 
-
-fn nx_deletekeysinblock obj framestart frameend typeslist =
+fn kx_iskindof obj string =
 (
-	/*
-	work through the objects in the scene and delete the keys
-	*/
-	local cntrl
-	local propnames
-	local mctrl
-
-	cntrl = #(undefined, undefined, undefined)
-	-- get the standard controllers
-	if typeslist[1] then (
-		try (
-			cntrl[1] = obj.pos.controller
-		) catch (
-			cntrl[1] = undefined
-		)
-	)
-	if typeslist[2] then (
-		try (
-			cntrl[2] = obj.rotation.controller
-		) catch (
-			cntrl[2] = undefined
-		)
-	)
-
-	if typeslist[3] then (
-		try (
-			cntrl[3] = obj.scale.controller
-		) catch (
-			cntrl[3] = undefined
-		)
-	)
-
-	-- delete the standard controllers
-	for c in cntrl do
-	(
-		if c != undefined then
-		(
-			for k = c.keys.count to 1 by -1 do
-			(
-				if (c.keys[k].time >= framestart) and (c.keys[k].time <= frameend) then
-				(
-					deleteKey c.keys k
-				)
-			)
-		)
-	)
-
-	-- now deal with modifiers on obj with animated properties
-	if typeslist[4] then
-	(
-		for m in obj.modifiers do
-		(
-			propnames = getPropNames m
-			for prop in propnames do
-			(
-				mctrl = getPropertyController m prop
-				-- if there is a controller then deal with its keys
-				if mctrl != undefined then
-				(
-					for k = mctrl.keys.count to 1 by -1 do
-					(
-						if (mctrl.keys[k].time >= framestart) and (mctrl.keys[k].time <= frameend) then
-						(
-							deleteKey mctrl.keys k
-						)
-					)
-				)
-			)
-		)
-	)
-
-	-- work through children
-	for child in obj.children do
-	(
-		nx_deletekeysinblock child framestart frameend typeslist
-	)
+	return ((kx_lowercase (classof obj as string)) == (kx_lowercase string))
 )
 
-
-fn nx_iskindof obj string =
-(
-	return ((nx_lowercase (classof obj as string)) == (nx_lowercase string))
-)
-
-fn nx_hideSubtree TreeRoot =
+fn kx_hideSubtree TreeRoot =
 (
 	if TreeRoot != undefined then
 	(
-		for TreeChild in TreeRoot.children do (nx_hideSubtree TreeChild)
+		for TreeChild in TreeRoot.children do (kx_hideSubtree TreeChild)
 		hide TreeRoot
 	)
 )
 
-fn nx_unhideSubtree TreeRoot =
+fn kx_unhideSubtree TreeRoot =
 (
 	if TreeRoot != undefined then
 	(
-		for TreeChild in TreeRoot.children do (nx_unhideSubtree TreeChild)
+		for TreeChild in TreeRoot.children do (kx_unhideSubtree TreeChild)
 		unhide TreeRoot
 	)
 )
 
-fn nx_CreateExportName sModel =
+fn kx_CreateExportName sModel =
 (
 	local sName = sModel
-	if nx_itob g_expLower then sName = nx_lowercase sName
+	if kx_itob g_expLower then sName = kx_lowercase sName
 	return (sName + "-kotormax")
 )
 
@@ -1095,7 +1001,7 @@ fn sortBones p1 p2 =
 	else return 1
 )
 
-function nx_LimitAllWeights =
+function kx_LimitAllWeights =
 (
     local save_selection = selection
 	
@@ -1135,6 +1041,52 @@ function nx_LimitAllWeights =
     if save_selection != undefined do select save_selection
 	
 	return 0
+)
+
+-- Enables channel support if necessary
+fn kx_enableMapChannel mesh nChannel =
+(
+	local nMaps = meshop.getNumMaps mesh
+	-- If the map is already "active", only check for support and enable it if disabled
+	if nChannel < nMaps then
+	(
+		if not meshop.getMapSupport mesh nChannel then 
+		(
+			meshop.setMapSupport mesh nChannel true
+			
+			-- Enabling support for the mesh will put garbage into it, so we need to delete that
+			meshop.setNumMapVerts mesh nChannel 0
+		)
+		return 1
+	)
+	
+	-- If we get here then we need to increase the number of maps. This automatically enables support for the newly activated maps.
+	meshop.setNumMaps mesh (nChannel + 1)
+	
+	-- For every new map in between that we don't need, we need to disable support for it
+	for n = nMaps to (nChannel - 1) do
+	(
+		-- This is an unnecessary map channel, disable support
+		meshop.setMapSupport mesh n false
+	)
+	
+	-- Enabling support for the mesh will put garbage into it, so we need to delete that
+	meshop.setNumMapVerts mesh nChannel 0
+	
+	return 2
+)
+
+-- This is provided as a pair to the above function. Simply disables support, but won't change the number of "active" map channels
+fn kx_disableMapChannel mesh nChannel =
+(
+	if meshop.getNumMaps mesh > nChannel then meshop.setMapSupport mesh nChannel false
+)
+
+-- Checking function
+fn kx_isMapChannelEnabled mesh nChannel =
+(
+	if meshop.getMapSupport mesh nChannel then return true
+	else return false
 )
 
 /*

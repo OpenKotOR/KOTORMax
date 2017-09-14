@@ -35,7 +35,7 @@
 
 \-----------------------------------------------------------------------------*/
 format "load: odyssey_helper_emitter.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 plugin helper odysseyemitter
 name:"OdysseyEmitter"

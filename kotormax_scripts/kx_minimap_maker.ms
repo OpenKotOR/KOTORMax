@@ -23,7 +23,7 @@
 
 \-----------------------------------------------------------------------------*/
 
-rollout nx_tile_minimap "Tile MiniMap Maker" width:300
+rollout kx_tile_minimap "Tile MiniMap Maker" width:300
 (
 	local silentmode = true
 	local bmp_black = standardmaterial diffuse:(color 0 0 0) ambient:(color 0 0 0) -- takes care of Bio's generic black texture
@@ -59,7 +59,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
 	return outstring
 	)
 
-    fn nx_load_group sel_text filename =
+    fn kx_load_group sel_text filename =
     (
         local rows, columns, grp_number, filename, tile_name, tile_number
         local rowpl, columnpl, model_base
@@ -130,7 +130,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
     )
 
 
-    fn nx_render_tile imagename scaleit:true =
+    fn kx_render_tile imagename scaleit:true =
     (
         local bmp, scaled_bmp
         local logvar
@@ -329,7 +329,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
     )
 
 
-    fn nx_make_tile_minimap =
+    fn kx_make_tile_minimap =
     (
 		local chk_map
         -- make sure the stack and heap is really large!!
@@ -413,7 +413,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
                     convertToMesh obj
 
                     -- restore modifiers
-                    nx_copy_modifiers obj orig ignore:#("Skin")
+                    kx_copy_modifiers obj orig ignore:#("Skin")
                     delete orig
                 )
             )
@@ -434,7 +434,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
                     )
 	                    else if (o.mat != undefined) and (o.mat.diffusemap != undefined) then
 	                    (
-	                        if (nx_read_tga_bit(o.mat.diffusemap.filename) == 32) then
+	                        if (kx_read_tga_bit(o.mat.diffusemap.filename) == 32) then
 	                        (
 	                            -- depth of 32 means an alpha channel
 	                            setRenderable o false
@@ -475,7 +475,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
             viewport.setType #view_top
             max tool zoomextents
             enableSceneRedraw()
-            map_tga = nx_render_tile (targetdir + "mi_" + modelname + ".tga")
+            map_tga = kx_render_tile (targetdir + "mi_" + modelname + ".tga")
             if map_tga != false then
             (
                 close map_tga
@@ -486,7 +486,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
     )
 
 
-    fn nx_process_groups =
+    fn kx_process_groups =
     (
         -- make sure the stack and heap is really large!!
         if heapSize < 7500000 then heapSize = 7500000
@@ -549,7 +549,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
             if not silentmode then format "get group: %\r\n" g
             disableSceneRedraw()
             resetMaxFile #noPrompt
-            retvalarray = nx_load_group g filenameSET
+            retvalarray = kx_load_group g filenameSET
 
 			-- EDIT BY Velmar - workaround for script stop at 'nothing to render'
 			-- creates a red plane instead
@@ -584,7 +584,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
                     )
 	                    else if (o.mat != undefined) and (o.mat.diffusemap != undefined) then
 	                    (
-	                        if (nx_read_tga_bit(o.mat.diffusemap.filename) == 32) then
+	                        if (kx_read_tga_bit(o.mat.diffusemap.filename) == 32) then
 	                        (
 	                            -- depth of 32 means an alpha channel
 	                            setRenderable o false
@@ -624,7 +624,7 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
 
             -- for groups we don't want things scaled in the render routine.
             -- We scale after chopping
-            map_tga = nx_render_tile (targetdir + "group_" +(g as string)+ ".tga") scaleit:false
+            map_tga = kx_render_tile (targetdir + "group_" +(g as string)+ ".tga") scaleit:false
 
             if map_tga == false then
             (
@@ -768,14 +768,14 @@ rollout nx_tile_minimap "Tile MiniMap Maker" width:300
 
     on btn_makemaps pressed do
     (
-        nx_make_tile_minimap()
+        kx_make_tile_minimap()
     )
 
     on btn_dogroups pressed do
     (
         clearListener()
-        nx_process_groups()
+        kx_process_groups()
     )
 )
 
-createDialog nx_tile_minimap
+createDialog kx_tile_minimap

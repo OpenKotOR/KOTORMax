@@ -35,7 +35,7 @@
 
 \-----------------------------------------------------------------------------*/
 format "load: odyssey_helper_base.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 -- make the list all lower case to cope with differences in export scripts
 global odysseyClassTypes = #("other","effect","tile","character","door","lightsaber","placeable","flyer") --,"walkmesh","bodypart","item","gui")
@@ -67,6 +67,8 @@ invisible:true
 		bmin    		type:#point3 default:[-5,-5,-1]
 		bmax    		type:#point3 default:[5,5,10]
 		ignorefog		type:#integer default:0 ui:chk_ignorefog
+		headlink 		type:#integer default:0 ui:chk_headlink
+		compressquats	type:#integer default:0 ui:chk_compressquats
 		layouttype      type:#integer default:1 ui:droplist_areatype
 		layoutnum       type:#integer default:-1
 		extranames      type:#stringtab tabsizevariable:true
@@ -110,10 +112,12 @@ invisible:true
 			label classtype "Classification:" across:2 offset:[-4,3]
 			dropdownlist droplist_classui items:odysseyClassTypes width:75 offset:[-4,0]
 			checkbox chk_ignorefog "Ignore Fog" 
+			checkbox chk_headlink "Head Link"
 		)
 
         group "Animation Parameters" (
             spinner spn_animscale "Animation scale:" type:#float scale:0.01 range:[0,10,1] fieldwidth:45 align:#left
+			checkbox chk_compressquats "Compress Quaternions" 
             button btn_animeditor "Open Animation Editor"
         )
 
@@ -145,12 +149,12 @@ invisible:true
 		
         on edit_exportpath entered val do
         (
-            if not (nx_existDir val) then
+            if not (kx_existDir val) then
                 messagebox "Directory does not exist!"
 			else
 			(
 				g_exportPath = val
-				nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+				kx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 			)
         )
 
@@ -163,7 +167,7 @@ invisible:true
     		local strCmd
 	        -- Make sure listener is clear
 	        clearListener()
-    		if (nx_existDir export_path) then
+    		if (kx_existDir export_path) then
     		(
         		if (export_path[export_path.count] != "\\") then export_path = export_path + "\\"
 
@@ -171,8 +175,8 @@ invisible:true
         		g_exportPath = export_path
 
                 mdlextn = "mdl"
-				if nx_itob g_dotAscii then mdlextn += ".ascii"
-				model_name = nx_CreateExportName node.name
+				if kx_itob g_dotAscii then mdlextn += ".ascii"
+				model_name = kx_CreateExportName node.name
 
 				-- we need to make sure that the model_name has no tabs in it
 				-- as it will break things. The rule will be tabs will be changed to '_'
@@ -242,7 +246,7 @@ invisible:true
 	      		-- copy the tga files to export dir. If converting to dds then put in a tga dir inside export dir
 	      		if node.copy_tga == 1 then
 	      		(
-		      			nx_getTextures node node
+		      			kx_getTextures node node
       			)
 
 	      		-- perform the tga to dds conversion
@@ -267,7 +271,7 @@ invisible:true
 
     	    clearSelection()
     	    select node
-    	    nx_FlushBuffer force:true
+    	    kx_FlushBuffer force:true
 		)
 
 		-- support browse for export dir path
@@ -315,9 +319,9 @@ invisible:true
 		on btn_viewsanity pressed do
 		(
 			local model_name = selection[1].name
-			local target_file = g_kotormaxPath + "sanity\\" + (nx_CreateExportName model_name) + "_sanitycheck.txt"
+			local target_file = g_kotormaxPath + "sanity\\" + (kx_CreateExportName model_name) + "_sanitycheck.txt"
 			-- test to make sure sanity file exists
-			if not nx_existFile(target_file) then
+			if not kx_existFile(target_file) then
 			(
 				messageBox "No sanity check file found.\nHave you exported the model?"
 				return false
@@ -333,7 +337,7 @@ invisible:true
         		format "\r\n%" g_delim to:g_strBuffer
       			format "</snoopstart>\r\n%" g_delim to:g_strBuffer  -- closes exportcontrol.txt
       			format "</snoopend>%" g_delim to:g_strBuffer
-      			nx_FlushBuffer force:true
+      			kx_FlushBuffer force:true
       		) else
       		(
 				format "View sanity file.\r\n"
@@ -344,7 +348,7 @@ invisible:true
 
         on btn_animeditor pressed do
         (
-            try (filein (g_kotormaxPath + "kotormax_scripts/nx_animeditor.ms")) catch(format "Opening nx_animeditor.ms failed!\n")
+            try (filein (g_kotormaxPath + "kotormax_scripts/kx_animeditor.ms")) catch(format "Opening kx_animeditor.ms failed!\n")
         )
 
 		--
@@ -825,14 +829,14 @@ name:"AuroraBase"
     )
 )
 
-fn nx_baseHasContent base =
+fn kx_baseHasContent base =
 (
     if base == undefined or not iskindof base odysseybase then return false
     for child in base.children where (not iskindof child odysseybase and not matchpattern child.name pattern:"ignore_*" and not (iskindof child dummy and matchpattern child.name pattern:"door_*")) do return true
     return false
 )
 
-fn nx_isTopmostBase base =
+fn kx_isTopmostBase base =
 (
 	if base == undefined or not iskindof base odysseybase then return -1
 	local parentnode = base.parent

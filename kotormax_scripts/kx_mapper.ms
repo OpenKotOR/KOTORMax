@@ -41,9 +41,9 @@
 \-----------------------------------------------------------------------------*/
 
 
-global nx_animpartsmapper_flag
+global kx_animpartsmapper_flag
 -- parts anim mapper gui
-rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:524
+rollout kx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:514
 (
     local oTargetBase = undefined
 
@@ -62,7 +62,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	button btn_refresh "Refresh Target Nodes" pos:[20,485] width:121 height:21
 
 
-	GroupBox grp4 "2. Anim Data" pos:[163,7] width:373 height:264
+	GroupBox grp4 "2. Anim Data" pos:[163,7] width:373 height:311
 	button btn_selectall "Sel All" pos:[175,202] width:50 height:16
 	button btn_deselectall "Desel All" pos:[230,202] width:50 height:16
 	button btn_addanim "Add" pos:[285,203] width:50 height:16
@@ -73,17 +73,16 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	button btn_delanim "Remove" pos:[476,202] width:50 height:16
 	dropdownList drp_options "Options" pos:[176,221] width:146 height:40 items:#("Append To End", "Use Insert Point")
 	spinner spn_inserrtpoint "Insert Point:" pos:[372,240] width:125 height:16 enabled:false range:[0,100000,0] type:#integer scale:1
-	
-	GroupBox grp3 "Mappings: Source --> Target" pos:[163,277] width:374 height:190
-	button btn_addmap ">>" pos:[173,300] width:40 height:28
-	button btn_delmap "<<" pos:[173,330] width:40 height:28
-	button btn_automap "Auto" pos:[173,360] width:40 height:28
-	button btn_mapimport "Import" pos:[173,390] width:40 height:28
-	button btn_mapexport "Export" pos:[173,420] width:40 height:28
-	listbox lst_mappings "" pos:[220,293] width:309 height:12
-	
-	button btn_import "Import" pos:[273,485] width:136 height:26
+	button btn_import "Import" pos:[273,275] width:136 height:26
 	--checkbox chk_resetorient "Reset Orientation" pos:[360,490] checked:false
+	
+	GroupBox grp3 "Mappings: Source --> Target" pos:[163,324] width:374 height:190
+	button btn_addmap ">>" pos:[173,347] width:40 height:28
+	button btn_delmap "<<" pos:[173,377] width:40 height:28
+	button btn_automap "Auto" pos:[173,407] width:40 height:28
+	button btn_mapimport "Import" pos:[173,437] width:40 height:28
+	button btn_mapexport "Export" pos:[173,467] width:40 height:28
+	listbox lst_mappings "" pos:[220,340] width:309 height:12
 	
 	
 
@@ -100,7 +99,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 			local tmp = #()
 
 			-- only progress further if there IS a file available to process
-			if not nx_existFile f then return false
+			if not kx_existFile f then return false
 
 			-- Open up the file
 			local mdlStream = openFile f mode:"r"
@@ -110,7 +109,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 				
 				while not eof mdlStream do
 				(
-					local tok = nx_Tokenizer()
+					local tok = kx_Tokenizer()
 					local line = getNextNonBlankLine mdlStream
 					tok.SetString (line)
 					lineNum += 1
@@ -200,12 +199,12 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 				close g_strBuffer
 			)
 
-			nx_FlushBuffer force:true
+			kx_FlushBuffer force:true
 			
 			-- do a general clean up as we eat some memory in these scripts
 			gc()
 
-			--nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+			--kx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 		)
 		
 		return false
@@ -217,7 +216,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
         (
             local temp = #()
             -- load scene objects
-            for o in $objects do
+            for o in $objects where not isDeleted o do
             (
                 if isdescendantof o oTargetBase then append temp o.name
             )
@@ -226,12 +225,12 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 		return false
     )
 
-	on nx_animpartsmapper open do
+	on kx_animpartsmapper open do
 	(
         oTargetBase = undefined
 	    local base = undefined
         local basecount = 0
-	    for o in selection do
+	    for o in selection where not isDeleted o do
         (
             if (iskindof o odysseybase) then
             (
@@ -243,7 +242,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
         (
     	    -- no model base was selected so see if only 1 in the scene.
     	    -- If there is only 1 then select it
-    	    for o in $objects do
+    	    for o in $objects where not isDeleted o do
     	    (
         	    if (iskindof o odysseybase) then
         	    (
@@ -258,12 +257,12 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 
         RefreshTargetNodes()
 
-		nx_animpartsmapper_flag = true
+		kx_animpartsmapper_flag = true
 	)
 
-	on nx_animpartsmapper close do
+	on kx_animpartsmapper close do
 	(
-    	nx_animpartsmapper_flag = false
+    	kx_animpartsmapper_flag = false
 	)
 
 	on btn_setbase picked obj do
@@ -275,7 +274,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	on btn_browse pressed do
 	(
 		local sPattern = "Odyssey Ascii Model (*.mdl)|*.mdl|Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|"
-		if nx_itob g_dotAscii then sPattern = "Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|Odyssey Ascii Model (*.mdl)|*.mdl|"
+		if kx_itob g_dotAscii then sPattern = "Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|Odyssey Ascii Model (*.mdl)|*.mdl|"
 		
 	    local f = getOpenFileName caption:"MDL file with source animations" types:sPattern
 
@@ -386,7 +385,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	        -- Go through the whole mdl file
 	        while not (eof mdlStream) and not quitEarly do
 	        (
-	            local tok = nx_Tokenizer()
+	            local tok = kx_Tokenizer()
 	            local line = getNextNonBlankLine mdlStream
 	            tok.SetString (line)
 	            lineNum += 1
@@ -396,7 +395,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	            local idToken = tok.ReadToken()
 
 	            -- if idToken is a string token the convert to lowercase
-	            if (isKindOf idToken string) then idToken = nx_lowercase idToken
+	            if (isKindOf idToken string) then idToken = kx_lowercase idToken
 
 	            if (idToken[1] == "#") then idToken = "#"
 	            if (idToken == "donemodel") then
@@ -471,7 +470,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	        throw
 	    )
 	    close mdlStream
-	    nx_FlushBuffer()
+	    kx_FlushBuffer()
 
 	    -- now add the mdl name list back in
 	    lst_mdlobjs.items = nodenames
@@ -511,7 +510,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 		(
 			for src in lst_trgnobhs.items do
 			(
-				if nx_lowercase(mdl) == nx_lowercase(src) then
+				if kx_lowercase(mdl) == kx_lowercase(src) then
 				(
 					append tmp (mdl + " --> " + src)
 				)
@@ -636,7 +635,7 @@ rollout nx_animpartsmapper "Animation Parts Importing Mapper" width:540 height:5
 	)
 )
 
-if nx_animpartsmapper_flag != true then
+if kx_animpartsmapper_flag != true then
 (
-    createdialog nx_animpartsmapper style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox, #style_resizing)
+    createdialog kx_animpartsmapper style:#(#style_titlebar, #style_border, #style_sysmenu, #style_minimizebox)
 )

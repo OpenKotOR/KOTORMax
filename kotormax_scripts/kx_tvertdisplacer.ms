@@ -2,7 +2,7 @@
 
 -- tvert displacer.  For Lisa
 
-rollout nx_tvert_displacer "TVert Displacer" width:200
+rollout kx_tvert_displacer "TVert Displacer" width:200
 (
 	group "TVert Scale Data"
 	(
@@ -131,7 +131,7 @@ rollout nx_tvert_displacer "TVert Displacer" width:200
 					setTVert s i tvp
 				)
 	        	-- restore original modifiers
-	        	nx_copy_modifiers s orig ignore:#("Unwrap UVW", "Skin")
+	        	kx_copy_modifiers s orig ignore:#("Unwrap UVW", "Skin")
 	        	delete orig
 	        	-- add back in a Unwrap UVW
 	        	-- leave out as more hassle than worth: addModifier s (Unwrap_UVW())
@@ -148,4 +148,4 @@ rollout nx_tvert_displacer "TVert Displacer" width:200
 	)
 )
 
-createdialog nx_tvert_displacer
+createdialog kx_tvert_displacer

@@ -28,7 +28,7 @@
 ----------------------------------------------------------------------------
 
 -- import function for rollout and supporting utils
-fn nx_importer =
+fn kx_importer =
 (
 	local bDoAnims = true
 	local bDoGeom = true
@@ -105,7 +105,7 @@ fn nx_importer =
 	       )
     )
 
-    if (not nx_existFile mdlFileName) then
+    if (not kx_existFile mdlFileName) then
     (
         MessageBox ("Model not imported.  " + mdlFileName + " does not exist.") title:"File does not exist"
     )
@@ -113,10 +113,12 @@ fn nx_importer =
     (
         clearListener()
         disableSceneRedraw()
-        local pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk.ascii"
-		if (not nx_existFile pwk_file) then pwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".pwk"
-        local dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk.ascii"
-		if (not nx_existFile dwk_file) then dwk_file = (getFilenamePath mdlFileName)+(getFilenameFile  mdlFileName)+".dwk"
+		local StrictFilename = mdlFileName
+		while matchPattern StrictFilename pattern:"*.*" do StrictFilename = getFilenameFile  StrictFilename
+        local pwk_file = (getFilenamePath mdlFileName)+StrictFilename+".pwk.ascii"
+		if (not kx_existFile pwk_file) then pwk_file = (getFilenamePath mdlFileName)+StrictFilename+".pwk"
+        local dwk_file = (getFilenamePath mdlFileName)+StrictFilename+".dwk.ascii"
+		if (not kx_existFile dwk_file) then dwk_file = (getFilenamePath mdlFileName)+StrictFilename+".dwk"
 
         -- import MDL file
         ImportOdysseyModel \
@@ -133,11 +135,11 @@ fn nx_importer =
             progressbar:ImportProgress
 
         -- import PWK file if available
-        if (nx_existFile pwk_file) then
+        if (kx_existFile pwk_file) then
             ImportOdysseyWalkmesh pwk_file "pwk"
 
         -- import DWK file if available
-        if (nx_existFile dwk_file) then
+        if (kx_existFile dwk_file) then
             ImportOdysseyWalkmesh dwk_file "dwk"
 			
         enableSceneRedraw()
@@ -243,7 +245,7 @@ rollout ImportRollout "MDL Loading" width:162 height:250
 	on import_browse_button pressed do
 	(
 		local sPattern = "Odyssey Ascii Model (*.mdl)|*.mdl|Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|"
-		if nx_itob g_dotAscii then sPattern = "Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|Odyssey Ascii Model (*.mdl)|*.mdl|"
+		if kx_itob g_dotAscii then sPattern = "Odyssey Ascii Model (*.mdl.ascii)|*.mdl.ascii|Odyssey Ascii Model (*.mdl)|*.mdl|"
 		
 	    local filename = getOpenFileName caption:"Import mdl" types:sPattern
 	    if (filename == undefined) then filename = ""
@@ -252,11 +254,11 @@ rollout ImportRollout "MDL Loading" width:162 height:250
 
 	on import_button pressed do
 	(
-		nx_importer()
+		kx_importer()
 	)
 )
 
-rollout nx_util6 "Area Tools" width:162 height:68
+rollout kx_util6 "Area Tools" width:162 height:68
 (
     -- ui
     button btn_minimap "MiniMap Maker" width:144 height:18 align:#center
@@ -273,7 +275,7 @@ rollout nx_util6 "Area Tools" width:162 height:68
     )
 
     -- ensure only active if running max version of kotormax
-    on nx_util6 open do
+    on kx_util6 open do
     (
 	    if ( not g_ismax ) then
 	    (
@@ -282,15 +284,15 @@ rollout nx_util6 "Area Tools" width:162 height:68
     )
 
     -- actions
-    on btn_orderrooms pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_orderrooms.ms")) catch() )
-    on btn_editvis pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_editvis.ms")) catch() )
+    on btn_orderrooms pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_orderrooms.ms")) catch() )
+    on btn_editvis pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_editvis.ms")) catch() )
 	on chk_withmodels changed state do
 	(
 		chk_withanims.enabled = state
 		edit_suffix.enabled = state
 	)
 
-    on btn_minimap pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_minimap_maker.ms")) catch() )
+    on btn_minimap pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_minimap_maker.ms")) catch() )
 
 	on btn_importlyt pressed do
 	(
@@ -307,14 +309,14 @@ rollout nx_util6 "Area Tools" width:162 height:68
 							doanims:chk_withanims.checked \
 							suffix:sSuffix
 		
-		nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))	
+		kx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))	
 	)
 
 	on btn_exportlyt pressed do
 	(
-		local Rooms = for base in helpers where nx_istopmostbase base == 1 and base.layouttype == 2 collect base
-		local Tracks = for base in helpers where nx_istopmostbase base == 1 and base.layouttype == 3 collect base
-		local Obstacles = for base in helpers where nx_istopmostbase base == 1 and base.layouttype == 4 collect base
+		local Rooms = for base in helpers where kx_istopmostbase base == 1 and base.layouttype == 2 collect base
+		local Tracks = for base in helpers where kx_istopmostbase base == 1 and base.layouttype == 3 collect base
+		local Obstacles = for base in helpers where kx_istopmostbase base == 1 and base.layouttype == 4 collect base
 		local Doorhooks = #()
 
 		local basestotal = Rooms.count + Tracks.count + Obstacles.count
@@ -387,12 +389,12 @@ rollout nx_util6 "Area Tools" width:162 height:68
 				--format "\r\n" to:g_strBuffer
 			)
 
-			nx_FlushBuffer force:true
+			kx_FlushBuffer force:true
 
-			nx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
+			kx_setinivalue #(#("init", "lastexport", g_exportPath, (g_kotormaxPath + "kotormax.ini")))
 
 			--format "Done exporting." to:g_strBuffer
-			--nx_FlushBuffer force:true
+			--kx_FlushBuffer force:true
 
 			clearSelection()
 		)

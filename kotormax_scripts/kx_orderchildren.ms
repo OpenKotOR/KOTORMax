@@ -37,7 +37,7 @@
 
 --------------------------------------------------------------------------------
 -- Used to create model dialog for Ordering Children
-rollout nx_OrderChildren "Order Children" width:190
+rollout kx_OrderChildren "Order Children" width:190
 (
     
 	listbox clist pos:[5, 5] height:16 width:180
@@ -49,7 +49,7 @@ rollout nx_OrderChildren "Order Children" width:190
 	--button btn_ok "OK" pos:[79,290] width:74 height:24
 	--button btn_cancel "Cancel" pos:[160,291] width:74 height:24
 	
-	on nx_OrderChildren open do
+	on kx_OrderChildren open do
 	(
 	    local strList
 		-- initalise the dialog
@@ -137,4 +137,4 @@ rollout nx_OrderChildren "Order Children" width:190
 	)
 )
 
-createDialog nx_OrderChildren modal:true
+createDialog kx_OrderChildren modal:true

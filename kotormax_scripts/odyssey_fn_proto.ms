@@ -37,7 +37,7 @@
 
 /*
 	LIST OF GLOBALS IN KOTORMAX.MS
-(kotormax.ms only) gNX_maxver - version of max
+(kotormax.ms only) gkx_maxver - version of max
 	gblVersion - version of KOTORmax
 	DEBUG - flag whether to print all sorts of debug messages during processing
 	SPEEDT - "speed timer flag"
@@ -45,15 +45,15 @@
 
 	FLAGS
 	1. defined first in "KOTORmax/kotormax.ini", then overriden by "nxlocalprefs.ini"
-	gNX_dock - integer, dock on startup, default is 0
+	gkx_dock - integer, dock on startup, default is 0
 	g_basepointer - integer, use base pointer, default is 1
 (kotormax.ms only) g_guiAnimListSize - integer size, default is 10
 (kotormax.ms only) g_verbose - integer, in gmax use new lines when printing to listener, default is 0
-(kotormax.ms only) gNX_visible - integer, make the floater, default is 0
-(kotormax.ms only) gnx_sanity - string of 0|1, which sanity tests to apply, default is "11000111110111111111"
+(kotormax.ms only) gkx_visible - integer, make the floater, default is 0
+(kotormax.ms only) gkx_sanity - string of 0|1, which sanity tests to apply, default is "11000111110111111111"
 (kotormax.ms only) g_3dsmax - this is just a transitional variable, see below
 	2. defined in "nxlocalprefs.ini" only
-(kotormax.ms only) gnx_pos_kotormax - point2 position of kotormax on screen, default is [0, 100]
+(kotormax.ms only) gkx_pos_kotormax - point2 position of kotormax on screen, default is [0, 100]
 
 	3dsmax vs gmax variables
 (kotormax.ms only) g_gmaxini - name of ini file ("3dsmax.ini" for 3ds, "gmax.ini" for gmax)
@@ -85,20 +85,20 @@ function Alert = messageBox "This function has not been implemented!"
 --------------------------------------------------------------------------------
 fn ShowDanglyConstraints node onoff = (Alert)
 fn dump node = (Alert)
-fn nx_progressPlus = (Alert)
-fn nx_MakeUnqiueNodeName strName = (Alert)
-fn nx_round x = (Alert)
-fn nx_lowercase instring = (Alert)
-fn nx_existFile fname = (Alert)
+fn kx_progressPlus = (Alert)
+fn kx_MakeUnqiueNodeName strName = (Alert)
+fn kx_round x = (Alert)
+fn kx_lowercase instring = (Alert)
+fn kx_existFile fname = (Alert)
 fn FindAnimByName lookup_name = (Alert)
 fn FindFreeAnimNumber = (Alert)
 fn FindFreeEventNumber = (Alert)
 fn ShowDanglyConstraints node onoff = (Alert)
-fn nx_UpdateMaterialEditor MatLib = (Alert)
-fn nx_createWalkMaterial = (Alert)
+fn kx_UpdateMaterialEditor MatLib = (Alert)
+fn kx_createWalkMaterial = (Alert)
 fn selChanged = (Alert)
-fn nx_roundp3 = (Alert)
-fn nx_deletekeysinblock = (Alert)
+fn kx_roundp3 = (Alert)
+fn kx_deletekeysinblock = (Alert)
 
 --------------------------------------------------------------------------------
 -- Import Functions
@@ -114,9 +114,10 @@ global ExportOdysseyModel = (Alert)
 global SanityCheck = (Alert)
 global massexport = (Alert)
 -- utility functions
-global nx_fprints = (Alert)
-global nx_strclassof = (Alert)
-global nx_materialbitmapname = (Alert)
+global kx_fprints = (Alert)
+global kx_strclassof = (Alert)
+global kx_materialdiffusebitmapname = (Alert)
+global kx_materialambientbitmapname = (Alert)
 
 
 --------------------------------------------------------------------------------

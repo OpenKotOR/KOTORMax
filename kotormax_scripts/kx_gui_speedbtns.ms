@@ -36,7 +36,7 @@
 \-----------------------------------------------------------------------------*/
 
 filein (g_kotormaxPath+"kotormax_scripts\\odyssey_fn_desparkle.ms")
-filein (g_kotormaxPath+"kotormax_scripts\\nx_adjustnormals.ms")
+filein (g_kotormaxPath+"kotormax_scripts\\kx_adjustnormals.ms")
 
 
 -- Global var for holding unlnked hierarchy of selected nodes
@@ -59,67 +59,49 @@ fn LoadPlugIns =
 
 
 --------------------------------------------------------------------------------
-rollout nx_util2 "Skin Tools" width:162 height:68
+rollout kx_util2 "Skin Tools" width:162 height:68
 (
     button btn_skindumper "Skin Dumper" width:144 height:18
     button btn_weightmaster "Weight Master" width:144 height:18
 
-    on btn_skindumper pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_skindumper.ms")) catch() )
-    on btn_weightmaster pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_weightmaster.ms")) catch() )
+    on btn_skindumper pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_skindumper.ms")) catch() )
+    on btn_weightmaster pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_weightmaster.ms")) catch() )
 )
 
-rollout nx_util3 "Mesh Tools" width:162 height:68
+rollout kx_util3 "Mesh Tools" width:162 height:68
 (
-    button btn_trimesh "To Editable Mesh"  width:144 height:18 align:#center toolTip:"Convert object into an editable mesh, preserving modifiers."
+    --button btn_trimesh "Convert to Editable Mesh"  width:144 height:18 align:#center toolTip:"Convert object into an editable mesh, preserving modifiers."
     --button btn_bumpmaterial "Add TXI Properties"  width:144 height:18 align:#center toolTip:"Adds TXI Properties to the materials used by the objects in selection."
     --button btn_shadowchecker "Check Shadows" width:144 height:18 align:#center toolTip:"Check shadow validity of all selected objects."
     --button btn_tidy_materials "Rationalise Materials" width:144 height:18 align:#center toolTip:"Rationalise the materials in the scene"
-    button btn_tvertdisplace "TVert Displacer" width:144 height:18 align:#center toolTip:"Scale/Move tverts on a material that has been resized"
-    button btn_randomisecolor "Random Wirecolor" width:144 height:18 align:#center toolTip:"Randomise the wirecolor of all selected objects"
     button btn_resetxform "ResetXForm" width:70 height:18 toolTip:"Auto unlinks selection, reset xforms the editable meshes and relinks. Pivots can be preserved or not." across:2
     checkbox chk_keeppivots "Safe Pivots" checked:true
     checkbutton btn_linkcopy "Copy/Paste Links" width:90 height:18 align:#left across:2 toolTip:"Copy linkages of selected nodes, then on 2nd push restore them."
     button btn_copyreset "Reset" width:44 height:18 align:#right toolTip:"Clear copy link buffer"
-    button btn_desparkle "\"Desparkle\" Model" width:144 height:18 align:#center toolTip:"Desparkle by rounding all verts to nearest cm"
     button btn_modelscaler "Scale Wizard" width:144 height:18 align:#center
-    button btn_limitweights "Delete Extra Vertex Weights" width:144 height:18 align:#center toolTip:"Preserve the 4 weights with the largest influence on all skin verts in the scene and delete the rest."
+    button btn_tvertdisplace "TVert Displacer" width:144 height:18 align:#center toolTip:"Scale/Move tverts on a material that has been resized"
+    button btn_desparkle "\"Desparkle\" Model" width:144 height:18 align:#center toolTip:"Desparkle by rounding all verts to nearest cm"
+    button btn_limitweights "Delete Extra Skin Weights" width:144 height:18 align:#center toolTip:"Preserve the 4 weights with the largest influence on all skin verts in the scene and delete the rest."
     --button btn_chilliskinner "Chilli Skinner" width:144 height:18 align:#center
 	group "Smoothing"
 	(
 		button btn_smooth "Apply Smoothing" width:144 height:18 align:#center toolTip:"This will recalculate the vertex normals in the same way they are calculated by the compilers, using smoothing groups. Warning: This is an expensive operation on larger models!"
 		checkbox chk_areaweight "Use Area Weighting" checked:true
 		checkbox chk_angleweight "Use Angle Weighting" checked:false
+		checkbox chk_creasetest "Use Crease Angle" checked:false
+		spinner spn_creaseangle "Crease Angle:" range:[0,180,60] type:#integer
 	)
 	
 	on btn_limitweights pressed do undo on
 	(
-		nx_LimitAllWeights()
+		kx_LimitAllWeights()
 	)
 	
 	on btn_smooth pressed do undo on
 	(
-		CalculateVertexNormals bArea:chk_areaweight.state bAngle:chk_angleweight.state
+		CalculateVertexNormals bArea:chk_areaweight.state bAngle:chk_angleweight.state bCrease:chk_creasetest.state
 		max views redraw
 	)
-
-    on btn_trimesh pressed do undo on
-    (
-        for obj in selection do
-        (
-            local orig = copy obj
-
-            -- Converting to an Editable Patch and back again splits the
-            -- given object's polygons into faces (triangles).
-            convertToMesh obj
-            convertTo obj Editable_Patch
-            convertToMesh obj
-
-            -- Restore the original modifiers.
-            nx_copy_modifiers obj orig
-
-            delete orig
-        )
-    )
 
     on btn_bumpmaterial pressed do 
 	(
@@ -134,11 +116,11 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
 	
     --on btn_chilliskinner pressed do ( try (filein (scriptsPath + "CSv3.0.2/CSv3-0-2.ms")) catch() )
 
-    on btn_modelscaler pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_scalewiz.ms")) catch() )
+    on btn_modelscaler pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_scalewiz.ms")) catch() )
 
     on btn_tvertdisplace pressed do
     (
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_tvertdisplacer.ms")) catch()
+        try (filein (g_kotormaxPath + "kotormax_scripts/kx_tvertdisplacer.ms")) catch()
     )
 
     on btn_copyreset pressed do
@@ -204,7 +186,7 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
                     s.rotation = (quat 0 0 0 1)
                 )
                 orig = copy s
-                nx_reset_transforms s
+                kx_reset_transforms s
                 if chk_keeppivots.checked then
                 (
                     s.rotation = rotvalue
@@ -216,7 +198,7 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
                 format "XForm collapsed\r\n"
 
                 -- restore original modifiers less the Xform
-                nx_copy_modifiers s orig ignore:#("XForm")
+                kx_copy_modifiers s orig ignore:#("XForm")
                 delete orig
             ) else
             (
@@ -315,17 +297,6 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
     -- End Tidy Materials
     --
 
-    on btn_randomisecolor pressed do
-    (
-        local sel = selection as array
-        for s in sel do
-        (
-            try (
-                s.wirecolor = random black white
-            ) catch()
-        )
-    )
-
     --
     -- Test for valid shadows.  If a ray from the pivot point hits the
     -- front of any face in the object, the shadows will be off.
@@ -403,110 +374,41 @@ rollout nx_util3 "Mesh Tools" width:162 height:68
     --
 )
 
-rollout nx_util4 "Anim Tools" width:162 height:68
+rollout kx_util4 "Anim Tools" width:162 height:68
 (
-    button btn_animeditor "Anim Editor" width:144 height:18
-    button btn_animapper "Anim Mapper" width:144 height:18 toolTip:"Import animations off nodes in an MDL and map to scene nodes"
-    button btn_keymaster "Anim Ops" width:144 height:18 toolTip:"Some operations on animations"
-    button btn_animcopy "Key Ops" width:144 height:18 toolTip:"A number of animation key manipulation operations"
+    button btn_animeditor "Editor" width:68 height:18 align:#left across:2 toolTip:"Edit animations and events."
+    button btn_animapper "Mapper" width:68 height:18 align:#right toolTip:"Import animations off nodes in an MDL and map to scene nodes."
+    button btn_animops "Anim Ops" width:68 height:18 align:#left across:2 toolTip:"Some operations on animations."
+    button btn_keyops "Key Ops" width:68 height:18 align:#right toolTip:"A number of animation key manipulation operations."
+    --button btn_animeditor "Anim Editor" width:144 height:18
+    --button btn_animapper "Anim Mapper" width:144 height:18 toolTip:"Import animations off nodes in an MDL and map to scene nodes"
+    --button btn_keymaster "Anim Ops" width:144 height:18 toolTip:"Some operations on animations"
+    --button btn_animcopy "Key Ops" width:144 height:18 toolTip:"A number of animation key manipulation operations"
     button btn_keytweak "Mass Key Tweaker" width:144 height:18 toolTip:"Mass tweaking of rot and pos keys"
     button btn_keyreduct "Reduce Anim Keys" width:144 height:18 toolTip:"Rationalise the animation keys for the selected nodes"
     button btn_bakeanim "Bake Anims" width:144 height:18
-    --button btn_reset_controllers "Reset Orientation" width:144 height:18 toolTip:"Resets the rotation controller to tcb then back to linear"
 
-    on btn_keymaster pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_animkeymaster.ms")) catch() )
-
-    on btn_reset_controllers pressed do
-    (
-        local objSum = $objects.count * 2.0
-        local cnt = 0.0
-        progressStart "Reset Controllers"
-        format "Setting to tcb rotation\r\n"
-        for o in $objects do
-        (
-            o.rotation.controller = tcb_rotation()
-            --o.pos.controller = tcb_position()
-            --o.scale.controller = tcb_scale()
-            cnt += 1
-            if (progressUpdate (((cnt*100)/objSum) as integer)) == false then return 0
-        )
-        format "Setting back to linear rotation\r\n"
-        for o in $objects do
-        (
-            o.rotation.controller = linear_rotation()
-            --o.pos.controller = linear_position()
-            --o.scale.controller = linear_scale()
-            cnt += 1
-            if (progressUpdate (((cnt*100)/objSum) as integer)) == false then return 0
-        )
-        progressEnd()
-    )
-
-
-    on btn_animcopy pressed do
-    (
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_animkeycopy.ms")) catch()
-    )
-
-    on btn_animapper pressed do
-    (
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_mapper.ms")) catch()
-    )
-
-    on btn_keytweak pressed do
-    (
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_masskeytweak.ms")) catch()
-    )
-
-    on btn_bakeanim pressed do
-    (
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_animbaker.ms")) catch()
-    )
-
-    on btn_keyreduct pressed do
-    (
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_keyreduct.ms")) catch()
-    )
-
-    on btn_animeditor pressed do
-    (
-        --format "Opening nx_animeditor.ms...\n"
-        try (filein (g_kotormaxPath + "kotormax_scripts/nx_animeditor.ms")) catch(format "Opening nx_animeditor.ms failed!\n")
-    )
+    on btn_animeditor pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_animeditor.ms")) catch(format "kx_animeditor.ms threw an exception or wasn't found!\n") )
+    on btn_animapper pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_mapper.ms")) catch(format "kx_mapper.ms threw an exception or wasn't found!\n") )
+    on btn_animops pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_animops.ms")) catch(format "kx_animops.ms threw an exception or wasn't found!\n") )
+    on btn_keyops pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_keyops.ms")) catch(format "kx_keyops.ms threw an exception or wasn't found!\n") )
+    on btn_keytweak pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_masskeytweak.ms")) catch(format "kx_masskeytweak.ms threw an exception or wasn't found!\n") )
+    on btn_keyreduct pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_keyreduct.ms")) catch(format "kx_keyreduct.ms threw an exception or wasn't found!\n") )
+    on btn_bakeanim pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_animbaker.ms")) catch(format "kx_animbaker.ms threw an exception or wasn't found!\n") )
 )
 
-rollout nx_util5 "Texture Tools" width:162 height:68
-(
-    -- ui
-    button btn_texlib "TexLib" width:144 height:18 align:#center
-    button btn_texlibmaker "TexLib Maker" width:144 height:18 align:#center
-
-    -- ensure only active if running max version of kotormax
-    on nx_util5 open do
-    (
-	    if ( not g_ismax ) then
-	    (
-		    btn_texlib.enabled = false
-		    btn_texlibmaker.enabled = false
-	    )
-    )
-
-    -- actions
-    on btn_texlib pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_texturelib.ms")) catch() )
-    on btn_texlibmaker pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_texturelibmaker.ms")) catch() )
-)
-
-rollout nx_prefs "Preferences" width:162 height:68
+global kx_Environ = #()
+rollout kx_prefs "Preferences" width:162 height:68
 (
     checkbutton btn_rollup "Float Speedbar" width:144 height:18 align:#center checked:false
-    --checkbox chk_autodock "Autodock" checked:(nx_itob(gNX_dock))
-    checkbox chk_usepointer "Use Base Pointers" checked:(nx_itob(g_basepointer))
+    --checkbox chk_autodock "Autodock" checked:(kx_itob(gkx_dock))
+    checkbox chk_usepointer "Use Base Pointers" checked:(kx_itob(g_basepointer))
     button btn_removepointer "Delete Base Arrow Pointers" width:144 height:18 align:#center
-	checkbox chk_exportwok "Export WOK File" checked:(nx_itob (g_exportwok))
-	checkbox chk_exportcolors "Export Vertex Colors" checked:(nx_itob (g_exportcolors))
-	checkbox chk_dotascii "Use .ascii By Default" checked:(nx_itob (g_dotAscii))
-	checkbox chk_lowercase "Lowercase Filename" checked:(nx_itob (g_expLower))
-    button btn_environ "Use Default Metric Units" width:144 height:18 align:#center toolTip:"Set default unit scales (cm)"
+	checkbox chk_exportwok "Export WOK File" checked:(kx_itob (g_exportwok))
+	checkbox chk_exportcolors "Export Vertex Colors" checked:(kx_itob (g_exportcolors))
+	checkbox chk_dotascii "Use .ascii By Default" checked:(kx_itob (g_dotAscii))
+	checkbox chk_lowercase "Lowercase Filename" checked:(kx_itob (g_expLower))
+    checkbutton btn_environ "Use Game Units" width:144 height:18 align:#center toolTip:"Sets the units to meters."
     group "Sanity Check Options"
     (
         checkbox box_RotationCheck "Base: No Rotation" checked:runRotationCheck
@@ -526,12 +428,23 @@ rollout nx_prefs "Preferences" width:162 height:68
         checkbox box_AabbCheck "Aabb: 1 per Model" checked:runAabbCheck
     )
 	
-    on btn_environ pressed do
+    on btn_environ changed val do
     (
-        units.displaytype = #Metric
-        units.metrictype = #Centimeters
-        units.SystemType = #Centimeters
-        units.SystemScale = 1.0
+		if val then
+		(
+			kx_Environ = #(units.displaytype, units.metrictype, units.SystemType, units.SystemScale)
+			units.displaytype = #Metric
+			units.metrictype = #Meters
+			units.SystemType = #Meters
+			units.SystemScale = 0.01
+		)
+		else if kx_Environ.count == 4 then
+		(
+			units.displaytype = kx_Environ[1]
+			units.metrictype = kx_Environ[2]
+			units.SystemType = kx_Environ[3]
+			units.SystemScale = kx_Environ[4]
+		)
     )
 
 	on btn_removepointer pressed do
@@ -547,39 +460,39 @@ rollout nx_prefs "Preferences" width:162 height:68
     on chk_autodock changed state do
     (
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "dock", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		kx_setinivalue #(#("init", "dock", (kx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
     )
 	*/
     on chk_usepointer changed state do
     (
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "basepointer", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
-		g_basepointer = (nx_btoi state)
+		kx_setinivalue #(#("init", "basepointer", (kx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_basepointer = (kx_btoi state)
     )
     on chk_exportwok changed state do
     (
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "exportwok", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
-		g_exportwok = (nx_btoi state)
+		kx_setinivalue #(#("init", "exportwok", (kx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_exportwok = (kx_btoi state)
     )
     on chk_exportcolors changed state do
     (
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "exportcolors", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
-		g_exportcolors = (nx_btoi state)
+		kx_setinivalue #(#("init", "exportcolors", (kx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_exportcolors = (kx_btoi state)
     )
     on chk_dotascii changed state do
     (
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "dotascii", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
-		g_dotAscii = (nx_btoi state)
+		kx_setinivalue #(#("init", "dotascii", (kx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_dotAscii = (kx_btoi state)
     )
 
     on chk_lowercase changed state do
     (
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "lowercase", (nx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
-		g_expLower = (nx_btoi state)
+		kx_setinivalue #(#("init", "lowercase", (kx_btoi state) as string, (g_kotormaxPath + "kotormax.ini")))
+		g_expLower = (kx_btoi state)
     )
 
 	fn saveSanity =
@@ -592,7 +505,7 @@ rollout nx_prefs "Preferences" width:162 height:68
 		for bCheck in sanitychecks do if bCheck then sPrint += "1" else sPrint += "0"
 
 		-- Array contains the section, attrib, value, file
-		nx_setinivalue #(#("init", "sanity", sPrint, (g_kotormaxPath + "kotormax.ini")))
+		kx_setinivalue #(#("init", "sanity", sPrint, (g_kotormaxPath + "kotormax.ini")))
 	)
 
 	on box_RotationCheck changed newState do (
@@ -692,12 +605,12 @@ rollout nx_prefs "Preferences" width:162 height:68
                 cui.DockDialogBar kotormax_handle #cui_dock_left
             ) catch ()
         )
-		nx_setinivalue #(#("init", "dock", (nx_btoi (not val)) as string, (g_kotormaxPath + "kotormax.ini")))
-		gNX_dock = (nx_btoi (not val))
+		kx_setinivalue #(#("init", "dock", (kx_btoi (not val)) as string, (g_kotormaxPath + "kotormax.ini")))
+		gkx_dock = (kx_btoi (not val))
     )
 	    
 	-- old speed bar code
-    on nx_prefs open do
+    on kx_prefs open do
     (
         -- correctly set the floating button state
         try (
@@ -709,33 +622,114 @@ rollout nx_prefs "Preferences" width:162 height:68
             -- not docked
             btn_rollup.checked = true
         )
-        if(gNX_dock == 0) then btn_rollup.checked = true
+        if(gkx_dock == 0) then btn_rollup.checked = true
         else btn_rollup.checked = false
     )
 )
 
-rollout nx_util1 "General Utils" width:162 height:68
+-- Here we'll make a callback script for 'Reset', to reapply the current unit options.
+fn resetEnviron =
 (
-    local vp_layout
-    local plugin_scripts
+	if kx_prefs.btn_environ.checked then
+	(
+		units.displaytype = #Metric
+		units.metrictype = #Meters
+		units.SystemType = #Meters
+		units.SystemScale = 0.01
+	)
+)
+fn restoreEnviron =
+(
+	if kx_prefs.btn_environ.checked then kx_prefs.btn_environ.checked = false
+/*
+	if kx_Environ.count == 4 then
+	(
+		units.displaytype = kx_Environ[1]
+		units.metrictype = kx_Environ[2]
+		units.SystemType = kx_Environ[3]
+		units.SystemScale = kx_Environ[4]
+	)
+*/
+)
+callbacks.addScript #systemPostReset  "resetEnviron()" id:#kx_resetEnviron
+callbacks.addScript #preSystemShutdown  "restoreEnviron()" id:#kx_resetEnviron
 
-    -- speedbar #1
-    button btn_sel_parent "Parent" width:68 height:18 align:#left across:2 toolTip:"Select Parent"
-    button btn_sel_child "Children" width:68 height:18 align:#right toolTip:"Select Children"
-    button btn_makeintodummy "To Dummy" width:68 height:18 align:#left across:2 tooltop:"Make selected objects into Dummy helpers"
-    button btn_linker "Fast Linker" width:68 height:18 align:#right toolTip:"Link all selected objects to the OdysseyBase in the selection"
-    button btn_zoomextents "Zoom In" width:68 height:18 align:#left across:2 toolTip:"Zooms all viewports to selection."
-    button btn_zoomextentsall "Zoom Out" width:68 height:18 align:#right toolTip:"Zooms all viewports to scene."
-
-    -- speedbar #2
-    button btn_orderchildren "Order Children" width:144 height:18 align:#center toolTip:"Manually reorder children of selected object"
-    button btn_massops "Mass Operations" width:144 height:18 align:#center toolTip:"Mass Sanity Check, Export and Import."
-    button btn_export_all "Export All/Selected" width:144 height:18 align:#center toolTip:"Export selected models or all models if none selected."
+rollout kx_util_export "MDL Exporting" width:162 height:68
+(
+    button btn_massops "Batch Operations" width:144 height:18 align:#center toolTip:"Batch Sanity Check, Export and Import."
+    button btn_export_all "Export Selected" width:144 height:18 align:#center toolTip:"Export selected models or all models if no model base selected."
     group "Set Export Directory" (
         edittext edt_resetdir "Dir:" text:g_exportPath
         button btn_resetdirbrowse "Browse" width:68 height:18 tooltip:"Select the export path" across:2
         button btn_resetdir "Set" width:68 height:18 tooltip:"Set as export directory for all selected model bases."
     )
+
+    on btn_massops pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_massutils.ms")) catch() )
+
+    on btn_export_all pressed do
+    (
+        ExportAll()
+    )
+
+    on edt_resetdir entered val do
+    (
+        if not (kx_existDir val) then
+            messagebox "Directory does not exist!"
+    )
+
+    on btn_resetdir pressed do
+    (
+        local bIsSelection = false
+
+        if not (kx_existDir edt_resetdir.text) then
+        (
+            messagebox "Directory does not exist!"
+            return 0
+        )
+        for b in $helpers do
+        (
+            if b.isSelected and (iskindof b odysseybase) then
+            (
+                bIsSelection = true
+                -- node is selected so reset base
+                b.export_path = edt_resetdir.text
+            )
+        )
+        if not (bIsSelection) then
+        (
+            messagebox "No Odyssey Bases selected."
+            return 0
+        )
+    )
+
+    on btn_resetdirbrowse pressed do
+    (
+        local dirpath
+        -- suggested by Danmar
+        dirpath = getSavePath()
+        if (dirpath!=undefined) then (
+            edt_resetdir.text = dirpath
+        )
+    )
+)
+
+rollout kx_util1 "General Utils" width:162 height:68
+(
+    local vp_layout
+    local plugin_scripts
+
+    -- speedbar #1
+    button btn_zoomextents "Zoom In" width:68 height:18 align:#left across:2 toolTip:"Zooms all viewports to selection."
+    button btn_zoomextentsall "Zoom Out" width:68 height:18 align:#right toolTip:"Zooms all viewports to scene."
+    button btn_sel_parent "Parent" width:68 height:18 align:#left across:2 toolTip:"Select Parent"
+    button btn_sel_child "Children" width:68 height:18 align:#right toolTip:"Select Children"
+    --button btn_makeintodummy "To Dummy" width:68 height:18 align:#left across:2 tooltop:"Make selected objects into Dummy helpers"
+    --button btn_linker "Fast Linker" width:68 height:18 align:#right toolTip:"Link all selected objects to the OdysseyBase in the selection"
+
+    -- speedbar #2
+    button btn_orderchildren "Order Children" width:144 height:18 align:#center toolTip:"Manually reorder children of selected object"
+    button btn_linker "Fast Linker" width:144 height:18 align:#center toolTip:"Link all selected objects to the OdysseyBase in the selection"
+    button btn_randomisecolor "Random Wirecolor" width:144 height:18 align:#center toolTip:"Randomize the wirecolor of all selected objects"
 	
 	group "Hide / Unhide / Select"
 	(
@@ -755,7 +749,7 @@ rollout nx_util1 "General Utils" width:162 height:68
 		button btn_show "Unhide" width:40
 		button btn_select "Select" width:40 offset:[-6,0]
 	)
-
+	
     group "Plug-Ins"
     (
         dropdownlist dpl_prefabs height:10 width:130 offset:[-6,0] align:#left across:2
@@ -823,9 +817,20 @@ rollout nx_util1 "General Utils" width:162 height:68
 	(
 		max tool zoomextents all
 	)
+	
+    on btn_randomisecolor pressed do
+    (
+        local sel = selection as array
+        for s in sel do
+        (
+            try (
+                s.wirecolor = random black white
+            ) catch()
+        )
+    )
 
     -- old speed bar code
-    on nx_util1 open do
+    on kx_util1 open do
     (
         local temp = #()
         local i
@@ -856,7 +861,7 @@ rollout nx_util1 "General Utils" width:162 height:68
     (
         if selection[1] != undefined then
         (
-            if selection[1].children != undefined then
+            if selection[1].children != undefined and selection[1].children.count > 0 then
                 select selection[1].children
         )
     )
@@ -892,38 +897,6 @@ rollout nx_util1 "General Utils" width:162 height:68
         for obj in linkobjects where obj != base and not matchPattern obj.name pattern:"ignore_*" do obj.parent = base
     )
 
-    on btn_makeintodummy pressed do
-    (
-        -- take the selected objects and make each into a dummy object
-        clearlistener()
-        local sel = selection as array
-        local p -- position of s
-        local r -- rotation of s
-        local par -- parent of s
-        local n -- name of s
-        local newdummy
-
-        for s in sel do
-        (
-            format "Processing: %\r\n" s
-            p = s.pos
-            r = s.rotation
-            n = s.name
-            par = s.parent
-            newdummy = dummy pos:p
-            newdummy.rotation = r
-            newdummy.parent = par
-            newdummy.boxsize = [10,10,10]
-            for c in s.children do
-            (
-                c.parent = newdummy
-            )
-            select s
-            max delete
-            newdummy.name = n
-        )
-    )
-
     on btn_prefab_do pressed do
     (
         local index = dpl_prefabs.selection
@@ -931,64 +904,16 @@ rollout nx_util1 "General Utils" width:162 height:68
     )
     -- speed bar code stops
 
-    on btn_massops pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_massutils.ms")) catch() )
-
-    on btn_export_all pressed do
-    (
-        ExportAll()
-    )
-
-    on edt_resetdir entered val do
-    (
-        if not (nx_existDir val) then
-            messagebox "Directory does not exist!"
-    )
-
-    on btn_resetdir pressed do
-    (
-        local bIsSelection = false
-
-        if not (nx_existDir edt_resetdir.text) then
-        (
-            messagebox "Directory does not exist!"
-            return 0
-        )
-        for b in $helpers do
-        (
-            if b.isSelected and (iskindof b odysseybase) then
-            (
-                bIsSelection = true
-                -- node is selected so reset base
-                b.export_path = edt_resetdir.text
-            )
-        )
-        if not (bIsSelection) then
-        (
-            messagebox "No Odyssey Bases selected."
-            return 0
-        )
-    )
-
-    on btn_resetdirbrowse pressed do
-    (
-        local dirpath
-        -- suggested by Danmar
-        dirpath = getSavePath()
-        if (dirpath!=undefined) then (
-            edt_resetdir.text = dirpath
-        )
-    )
-
-    on btn_orderchildren pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_orderchildren.ms")) catch() )
+    on btn_orderchildren pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_orderchildren.ms")) catch() )
 
     -- Perform a model desparkle
     on btn_desparkle pressed do
     (
-        if (nx_strclassof selection[1]) == "odysseybase" then
+        if (kx_strclassof selection[1]) == "odysseybase" then
         (
             clearListener()
             --format "<snoopstart file=%>\r\n" (selection[1].name + "_desparklelog.txt")
-            nx_mesh_desparkle selection[1]
+            kx_mesh_desparkle selection[1]
             --format "</snoopstart>\r\n"
         ) else
             MessageBox "No OdysseyBase selected."

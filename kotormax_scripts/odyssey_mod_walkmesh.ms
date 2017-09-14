@@ -43,7 +43,7 @@
 
 \-------------------------------------------------------------------------------------------------*/
 format "load: odyssey_mod_walkmesh.ms\r\n"
-nx_progressPlus()
+kx_progressPlus()
 
 plugin simpleMod odysseywalkmesh
 name:"OdysseyWalkmesh"
@@ -64,7 +64,7 @@ classID:#(0x882d65e4, 0xcd666735)
         )
 		button btn_roomlinker "Edit Room Links" width:155 enabled:false
 		
-		on btn_roomlinker pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/nx_roomlinker.ms")) catch() )
+		on btn_roomlinker pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_roomlinker.ms")) catch() )
 
         on mdlWalkmeshParams open do
         (	
@@ -77,7 +77,7 @@ classID:#(0x882d65e4, 0xcd666735)
             -- make sure there is a walk material for this mesh
             local matName = "OdysseyWalkMaterial"
             if node.material == undefined or node.material.name != matName then
-                node.material = nx_createWalkMaterial()
+                node.material = kx_createWalkMaterial()
 
             if(meshtype > 0) then radio_meshtype.state = meshtype
 			if meshtype == 1 then btn_roomlinker.enabled = true
