@@ -4,10 +4,6 @@
 
 	KOTORmax
 	by bead-v
-	
-	Derived from:
-    NWmax
-    by Joco (jameswalker@clear.net.nz)
 
     Legal Stuff
     1. This is free software and is provided with no explicit or implied

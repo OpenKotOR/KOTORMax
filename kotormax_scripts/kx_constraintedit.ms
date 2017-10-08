@@ -218,6 +218,7 @@ rollout kx_constraintedit "Constraint Editor"
 		local mesh = GetValidBaseObject()
 		if mesh == undefined then return false
 		
+		disableSceneRedraw() 
 		for v in mesh.selectedverts do
 		(
 			local val = (((meshop.getMapVert mesh kx_constraintChannel v.index) * 255.0) as color).red
@@ -228,6 +229,7 @@ rollout kx_constraintedit "Constraint Editor"
 			meshop.setMapVert mesh kx_constraintChannel v.index [newval/255.0,0,0]
 			--meshop.setvertcolor mesh kx_constraintChannel v.index (color val 0 0)
 		)
+		enableSceneRedraw() 
 		redrawDangleGizmos()
 	)
 	
@@ -237,9 +239,11 @@ rollout kx_constraintedit "Constraint Editor"
 		if mesh == undefined then return false
 		
 		-- update the colour of the selected verts in the current mesh
+		disableSceneRedraw() 
 		for v in mesh.selectedverts do
 			meshop.setMapVert mesh kx_constraintChannel v.index [val/255.0,0,0]
 			--meshop.setvertcolor mesh kx_constraintChannel v.index (color val 0 0)
+		enableSceneRedraw() 
 
 		redrawDangleGizmos()
 	)
