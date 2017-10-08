@@ -397,7 +397,47 @@ rollout kx_util4 "Anim Tools" width:162 height:68
     on btn_bakeanim pressed do ( try (filein (g_kotormaxPath + "kotormax_scripts/kx_animbaker.ms")) catch(format "kx_animbaker.ms threw an exception or wasn't found!\n") )
 )
 
-global kx_Environ = #()
+global kx_unitBackup = #()
+global kx_unitMetric = #(#Metric, #Meters, #Centimeters, 1)
+global kx_bUnitNoInterrupt = false
+fn kx_setUnits unitOptions =
+(
+	if unitOptions.count != 4 then return false
+	
+	kx_bUnitNoInterrupt = true
+	units.displaytype = unitOptions[1]
+	units.metrictype = unitOptions[2]
+	units.SystemType = unitOptions[3]
+	units.SystemScale = unitOptions[4]
+	kx_bUnitNoInterrupt = false
+	
+	local unitsConverted = #()
+	if unitOptions[1] == #Metric then append unitsConverted "1"
+	else if unitOptions[1] == #US then append unitsConverted "2"
+	else if unitOptions[1] == #Custom then append unitsConverted "3"
+	else if unitOptions[1] == #Generic then append unitsConverted "0"
+	else throw "Unit Display Type does not match any valid value!"
+	if unitOptions[2] == #Millimeters then append unitsConverted "0"
+	else if unitOptions[2] == #Centimeters then append unitsConverted "1"
+	else if unitOptions[2] == #Meters then append unitsConverted "2"
+	else if unitOptions[2] == #Kilometers then append unitsConverted "3"
+	else throw "Unit Metric Display Type does not match any valid value!"
+	if unitOptions[3] == #Inches then append unitsConverted "0"
+	else if unitOptions[3] == #Feet then append unitsConverted "1"
+	else if unitOptions[3] == #Miles then append unitsConverted "2"
+	else if unitOptions[3] == #Millimeters then append unitsConverted "3"
+	else if unitOptions[3] == #Centimeters then append unitsConverted "4"
+	else if unitOptions[3] == #Meters then append unitsConverted "5"
+	else if unitOptions[3] == #Kilometers then append unitsConverted "6"
+	else throw "Unit System Type does not match any valid value!"
+	append unitsConverted (unitOptions[4] as string)
+	
+	-- Array contains the section, attrib, value, file
+	kx_setinivalue #(#("Performance", "UnitDispType", unitsConverted[1], (g_ini_location + g_gmaxini)), 
+					 #("Performance", "UnitDispMetricType", unitsConverted[2], (g_ini_location + g_gmaxini)),
+					 #("Performance", "UnitType", unitsConverted[3], (g_ini_location + g_gmaxini)),
+		             #("Performance", "UnitScale", unitsConverted[4], (g_ini_location + g_gmaxini)))
+)
 rollout kx_prefs "Preferences" width:162 height:68
 (
     checkbutton btn_rollup "Float Speedbar" width:144 height:18 align:#center checked:false
@@ -428,25 +468,6 @@ rollout kx_prefs "Preferences" width:162 height:68
         checkbox box_AabbCheck "Aabb: 1 per Model" checked:runAabbCheck
     )
 	
-    on btn_environ changed val do
-    (
-		if val then
-		(
-			kx_Environ = #(units.displaytype, units.metrictype, units.SystemType, units.SystemScale)
-			units.displaytype = #Metric
-			units.metrictype = #Meters
-			units.SystemType = #Meters
-			units.SystemScale = 0.01
-		)
-		else if kx_Environ.count == 4 then
-		(
-			units.displaytype = kx_Environ[1]
-			units.metrictype = kx_Environ[2]
-			units.SystemType = kx_Environ[3]
-			units.SystemScale = kx_Environ[4]
-		)
-    )
-
 	on btn_removepointer pressed do
 	(
 		for obj in $objects where matchPattern obj.name pattern:"ignore_NGon*" or matchPattern obj.name pattern:"ignore_basepointer" do
@@ -625,34 +646,54 @@ rollout kx_prefs "Preferences" width:162 height:68
         if(gkx_dock == 0) then btn_rollup.checked = true
         else btn_rollup.checked = false
     )
+	
+    on btn_environ changed val do
+    (
+		if val then
+		(
+			kx_unitBackup = #(units.displaytype, units.metrictype, units.SystemType, units.SystemScale)
+			kx_setUnits kx_unitMetric
+		)
+		else
+		(
+			kx_setUnits kx_unitBackup
+		)
+    )
 )
 
 -- Here we'll make a callback script for 'Reset', to reapply the current unit options.
-fn resetEnviron =
+global kx_unitsReset = false
+fn markResetGameUnits =
 (
+	kx_unitsReset = true
+)
+fn restoreGameUnits =
+(
+	kx_unitsReset = false
 	if kx_prefs.btn_environ.checked then
 	(
-		units.displaytype = #Metric
-		units.metrictype = #Meters
-		units.SystemType = #Meters
-		units.SystemScale = 0.01
+		kx_setUnits kx_unitMetric
 	)
 )
-fn restoreEnviron =
+fn updateGameUnitsButton =
 (
-	if kx_prefs.btn_environ.checked then kx_prefs.btn_environ.checked = false
-/*
-	if kx_Environ.count == 4 then
+	if kx_bUnitNoInterrupt or kx_unitsReset then return false
+	local unitCurrent = #(units.displaytype, units.metrictype, units.SystemType, units.SystemScale)
+	local bMatch = true
+	for i = 1 to 4 do if kx_unitMetric[i] != unitCurrent[i] then bMatch = false
+	if kx_prefs.btn_environ.checked and not bMatch then
 	(
-		units.displaytype = kx_Environ[1]
-		units.metrictype = kx_Environ[2]
-		units.SystemType = kx_Environ[3]
-		units.SystemScale = kx_Environ[4]
+		kx_prefs.btn_environ.checked = false
 	)
-*/
+	else if not kx_prefs.btn_environ.checked and bMatch then
+	(
+		kx_prefs.btn_environ.checked = true
+	)
 )
-callbacks.addScript #systemPostReset  "resetEnviron()" id:#kx_resetEnviron
-callbacks.addScript #preSystemShutdown  "restoreEnviron()" id:#kx_resetEnviron
+callbacks.addScript #unitsChange "updateGameUnitsButton()" id:#kx_gameUnits
+callbacks.addScript #postSystemStartup "updateGameUnitsButton()" id:#kx_gameUnits --It doesn't make sense to call this here, because the system will have already started up, no?
+callbacks.addScript #systemPreReset "markResetGameUnits()" id:#kx_gameUnits
+callbacks.addScript #systemPostReset "restoreGameUnits()" id:#kx_gameUnits
 
 rollout kx_util_export "MDL Exporting" width:162 height:68
 (

@@ -95,9 +95,11 @@ Also thanks to:
 
 rollout AboutRollout "KOTORmax" width:162 height:400
 (
+    local bmap_kx = g_kotormaxPath+"kotormax_scripts/kotormax_v1.bmp"
+	button btn_kotormax "About and Credits" width:144 images:#(bmap_kx, undefined, 1, 1, 1, 1, 1) \
+    	toolTip:"Click for About and Credits."
 	label lbl_ver ""
-	label lbl_author "by bead-v"
-	button btn_kotormax "About and Credits" width:144
+	--label lbl_author "by bead-v"
 	hyperlink hlink_deadlystream "www.deadlystream.com" address:"http://www.deadlystream.com" align:#center
 	
 	label lbl_space ""

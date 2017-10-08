@@ -1,6 +1,13 @@
 /*-----------------------------------------------------------------------------\
 
-    Aurora Reference Helper Object
+    Odyssey Reference Helper Object
+
+	KOTORmax
+	by bead-v
+	
+	Derived from:
+    NWmax
+    by Joco (jameswalker@clear.net.nz)
 
     Credits:
     Wayland Reid :-

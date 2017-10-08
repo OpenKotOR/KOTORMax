@@ -54,7 +54,7 @@ if ( heapSize < 80000000 ) then heapSize = 80000000
 if ( stackLimit < 80000000 ) then stackLimit = 80000000
 
 global gkx_maxver = (maxversion())[1]
-global gblVersion = "0.4.0"
+global gblVersion = "0.4.1"
 global g_kotormaxPath = scriptsPath + "KOTORmax\\"
 global kotormax_handle -- handle to the master floater window
 if autostart == undefined then autostart = false
@@ -342,6 +342,7 @@ if gkx_visible == 1 then
 		-- By default dock the bar
 		cui.DockDialogBar kotormax_handle #cui_dock_left
 	)
+	updateGameUnitsButton()
 )
 
 -- Set app title
