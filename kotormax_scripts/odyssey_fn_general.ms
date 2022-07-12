@@ -714,8 +714,7 @@ fn kx_createWalkMaterial =
        for i in 1 to SurfaceMatName.count do
        (
          newMaterial.names[i] = SurfaceMatName[i]
-         newMaterial.materialList[i].name = SurfaceMatName[i]
-         newMaterial.materialList[i].diffuse = kx_SurfaceMat[i]
+         newMaterial[i] = standard name: SurfaceMatName[i] diffuse: kx_SurfaceMat[i]
        )
     )
     kx_SurfaceMat = undefined
