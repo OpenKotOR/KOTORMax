@@ -412,9 +412,12 @@ fn ImportOdysseyWalkmesh pFile type =
                                 setVert newObj verti verts[verti]
                             )
                             update newObj
-
-                            --set vertex colors to work
-                            kx_enableMapChannel newObj 0 true
+							
+							-- Fix for PWK import error, spurious third argument - DP
+							--kx_enableMapChannel newObj 0 true
+							kx_enableMapChannel newObj 0
+							
+							--set vertex colors to work
                             setNumCPVVerts newObj 1
                             meshop.setMapVert newObj 0 1 [1, 1, 1]
                             buildVCFaces newObj
