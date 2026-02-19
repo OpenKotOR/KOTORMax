@@ -610,7 +610,10 @@ function do_emitter node =
     format "%grav %%" strIndent1 (kx_fprints node.grav) g_delim to:g_strBuffer
     format "%threshold %%" strIndent1 (kx_fprints node.threshold) g_delim to:g_strBuffer
     format "%blurlength %%" strIndent1 (kx_fprints node.blurlength) g_delim to:g_strBuffer
-    format "%detonate %%" strIndent1 (kx_fprints node.detonate) g_delim to:g_strBuffer
+    if node.update == "Explosion" then
+    (
+        format "%detonate %%" strIndent1 (kx_fprints node.detonate) g_delim to:g_strBuffer
+    )
 	kx_FlushBuffer()
 
 	-- Emitter Header properties
@@ -2300,11 +2303,14 @@ fn ExportAnimKeys node firstframe lastframe root:false animName:"NULL" =
             if DEBUG then format "        #DEBUG: Build tangentspread list%" g_delim to:g_strBuffer
             DynBuildKeyList node firstframe lastframe "float" "tangentspread"
 
-            --
-            -- build detonate keylist
-            --
-            if DEBUG then format "        #DEBUG: Build detonate list%" g_delim to:g_strBuffer
-            DynBuildKeyList node firstframe lastframe "float" "detonate"
+            if node.update == "Explosion" then
+            (
+                --
+                -- build detonate keylist
+                --
+                if DEBUG then format "        #DEBUG: Build detonate list%" g_delim to:g_strBuffer
+                DynBuildKeyList node firstframe lastframe "float" "detonate"
+            )
 
         /*
             --
