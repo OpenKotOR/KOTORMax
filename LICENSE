@@ -1,0 +1,63 @@
+KOTORmax
+by bead-v
+
+Derived from NWmax by Joco (jameswalker@clear.net.nz)
+
+-------------------------------------------------------------------------------
+
+Legal Stuff
+
+1. This is free software and is provided with no explicit or implied
+   warranty. If you use this software then you do so at your own risk.
+
+2. If there is any law in your country that requires the author to provide
+   any form of support or indemnity on the use of this software you are
+   not therefore authorised to use said software as no such indemnity or
+   support will be provided (per 1) other than at the authors discretion.
+
+3. Credit has been given where code or methods have been integrated from
+   other sources.
+
+4. In the case of code used from the BioWare scripts their intellectual
+   property rights still hold.
+
+5. No code has been knowingly included from other sources where that code
+   is sold for commercial purposes.
+
+-------------------------------------------------------------------------------
+
+Import/Export routines (kx_gui_import.ms) are based on:
+
+  NWN mdl Import/Export utility for GMax, v0.3b
+  by Wayland Reid (wreid@spectrumanalytic.com)
+  (c) Wayland Reid
+
+  Based on Zaddix's original WOK file importer
+  (c) Copyright Zaddix, 2002
+
+  "Use this code in any way you see fit. If you use any/all of the code
+  in your own scripts, just credit me and Zaddix somewhere."
+
+-------------------------------------------------------------------------------
+
+Credits
+
+KOTORmax
+  bead-v — author
+  ndix UR — knowledge, ideas, and inspiration; KOTORmax wouldn't exist without him
+  Magnusll — originally edited NWmax scripts for lightmap export
+  DarthParametric — fix for PWK import error (spurious third argument)
+  JCarter426 — fix for model/walkmesh import in 3ds Max 2017+
+  JCarter426, Quanon, DarthParametric, FairStrides, VarsityPuppet — testing and community feedback
+
+NWmax (the predecessor this is derived from)
+  Joco — author
+  Wayland Reid — original Import/Export script
+  Zaddix — original WOK file importer
+  DLA — ideas, mentoring, and bug reports
+  roboius — assistance, code, and "The TileSlicer"
+  Velmar — animation lists, code, and "Velmar Tools"
+  Torlack — "nwnmdlcomp" mdl compiler/decompiler
+  simple tim — fixes for the original Wayland script
+  scooterpb — MDL Suite UI
+  Revinor — decoding the MDL format
